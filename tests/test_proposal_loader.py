@@ -1,10 +1,10 @@
 """Tests for pipeline.proposal_loader — multi-format proposal ingestion."""
+
 from __future__ import annotations
 
 import importlib
-import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -265,7 +265,6 @@ class TestExtractTextUnknown:
 
 
 class TestExtensionSets:
-
     def test_no_overlap_text_and_pdf(self):
         assert TEXT_EXTENSIONS & PDF_EXTENSIONS == set()
 

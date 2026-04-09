@@ -4,13 +4,13 @@ Each service module provides a thin wrapper (``ensure_*_service`` /
 ``shutdown_*_service``) that builds the service-specific command and
 delegates to this module for the common lifecycle logic.
 """
+
 from __future__ import annotations
 
 import atexit
 import logging
 import os
 import subprocess
-import sys
 import threading
 import time
 from pathlib import Path
@@ -159,6 +159,7 @@ def resolve_device() -> str:
     """Detect CUDA availability, defaulting to ``cpu``."""
     try:
         import torch
+
         return "cuda" if torch.cuda.is_available() else "cpu"
     except ImportError:
         return "cpu"
@@ -170,6 +171,7 @@ def resolve_hf_env() -> dict[str, str]:
         return {}
     try:
         from huggingface_hub import constants
+
         return {"HF_HOME": str(Path(constants.HF_HUB_CACHE).parent)}
     except (ImportError, AttributeError):
         return {}

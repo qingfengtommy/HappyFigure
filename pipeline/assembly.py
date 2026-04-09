@@ -6,6 +6,7 @@ PNGs into publication-ready paper figures using nested GridSpec layouts.
 This module is pure Python with no agent dependencies — it can be tested
 in isolation or called by either the python-stages or agent-first orchestrator.
 """
+
 from __future__ import annotations
 
 import json
@@ -94,11 +95,13 @@ def parse_assembly_spec(spec: dict) -> AssemblySpec:
             )
             for p in row_data.get("panels", [])
         ]
-        rows.append(RowSpec(
-            row_index=row_data.get("row_index", len(rows)),
-            height_ratio=row_data.get("height_ratio", 1.0),
-            panels=panels,
-        ))
+        rows.append(
+            RowSpec(
+                row_index=row_data.get("row_index", len(rows)),
+                height_ratio=row_data.get("height_ratio", 1.0),
+                panels=panels,
+            )
+        )
 
     layout = LayoutSpec(
         rows=rows,
@@ -175,7 +178,7 @@ def generate_assembly_script(
         row_lines.append(f"    # Row {row.row_index}: {n_cols} columns")
         row_lines.append(f"    gs_row{row.row_index} = gs_outer[{row.row_index}, 0].subgridspec(")
         row_lines.append(f"        1, {n_cols}, width_ratios={width_ratios_list!r}, wspace={layout.wspace},")
-        row_lines.append(f"    )")
+        row_lines.append("    )")
 
         col_offset = 0
         for p in row.panels:
@@ -185,7 +188,7 @@ def generate_assembly_script(
             row_lines.append(f"    ax = fig.add_subplot(gs_row{row.row_index}[0, {col_slice}])")
             row_lines.append(f"    _render_panel(ax, panel_paths.get({p.panel_id!r}), {p.panel_id!r})")
             if p.aspect_policy == "preserve":
-                row_lines.append(f"    ax.set_aspect('equal', adjustable='box')")
+                row_lines.append("    ax.set_aspect('equal', adjustable='box')")
             row_lines.append(f"    ax.text({labels.offset[0]}, {labels.offset[1]}, '{label_char}',")
             row_lines.append(f"            transform=ax.transAxes, fontsize={labels.size_pt},")
             row_lines.append(f"            fontweight='{labels.weight}', va='top', ha='right')")
@@ -291,7 +294,7 @@ if __name__ == '__main__':
 
 def _panel_label(index: int, scheme: str) -> str:
     """Return panel label for a given index (a-z, then aa, ab, ...)."""
-    base = ord('a') if scheme == "lowercase" else ord('A')
+    base = ord("a") if scheme == "lowercase" else ord("A")
     if index < 26:
         return chr(base + index)
     # For >26 panels: aa, ab, ac, ...
@@ -317,6 +320,7 @@ def render_placeholder_png(
 ) -> None:
     """Generate a labeled gray placeholder PNG for a non-generatable panel."""
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
@@ -325,9 +329,15 @@ def render_placeholder_png(
 
     display_text = text or f"Panel ({panel_id})\n{panel_type}\n[to be provided]"
     ax.text(
-        0.5, 0.5, display_text,
-        transform=ax.transAxes, ha="center", va="center",
-        fontsize=11, color="#666666", style="italic",
+        0.5,
+        0.5,
+        display_text,
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=11,
+        color="#666666",
+        style="italic",
     )
     ax.set_xticks([])
     ax.set_yticks([])
@@ -430,6 +440,7 @@ def validate_assembly_deterministic(
         # 5. Not fully blank (check variance)
         try:
             import numpy as np
+
             arr = np.array(img.convert("L"))
             if arr.std() < 2.0:
                 issues.append("Output appears to be a blank image (very low pixel variance)")
@@ -522,13 +533,10 @@ def assemble_pil(
         img = Image.new("RGB", (w, h), (248, 248, 248))
         draw = ImageDraw.Draw(img)
         try:
-            small_font = ImageFont.truetype(
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24
-            )
+            small_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
         except (OSError, IOError):
             small_font = ImageFont.load_default()
-        draw.text((w // 2, h // 2), text, fill=(153, 153, 153),
-                  font=small_font, anchor="mm")
+        draw.text((w // 2, h // 2), text, fill=(153, 153, 153), font=small_font, anchor="mm")
         return img
 
     def _scale_to_height(img: Image.Image, target_h: int) -> Image.Image:
@@ -549,9 +557,7 @@ def assemble_pil(
             if img is None:
                 img = _placeholder(800, 600, f"Panel ({slot.panel_id})")
             panel_imgs.append(img)
-            panel_labels_list.append(
-                _panel_label(panel_index, labels.scheme)
-            )
+            panel_labels_list.append(_panel_label(panel_index, labels.scheme))
             panel_index += 1
 
         # Scale all panels in this row to the same height.
@@ -565,9 +571,7 @@ def assemble_pil(
             # multi-subplot panels that should be row-spanning, not inline)
             max_single_w = target_h * 8
             scaled = [
-                im.resize((max_single_w, target_h), Image.LANCZOS)
-                if im.width > max_single_w else im
-                for im in scaled
+                im.resize((max_single_w, target_h), Image.LANCZOS) if im.width > max_single_w else im for im in scaled
             ]
 
             # Compose row: hstack with gap + labels
@@ -662,19 +666,13 @@ def cross_figure_consistency_check(
         issues.append(f"Inconsistent DPI across figures: {dpis}")
 
     # Check panel label scheme consistency
-    schemes = {
-        fig_id: s.get("panel_labels", {}).get("scheme", "lowercase")
-        for fig_id, s in specs.items()
-    }
+    schemes = {fig_id: s.get("panel_labels", {}).get("scheme", "lowercase") for fig_id, s in specs.items()}
     unique_schemes = set(schemes.values())
     if len(unique_schemes) > 1:
         issues.append(f"Inconsistent panel label scheme: {schemes}")
 
     # Check label font size consistency
-    sizes = {
-        fig_id: s.get("panel_labels", {}).get("size_pt", 10)
-        for fig_id, s in specs.items()
-    }
+    sizes = {fig_id: s.get("panel_labels", {}).get("size_pt", 10) for fig_id, s in specs.items()}
     unique_sizes = set(sizes.values())
     if len(unique_sizes) > 1:
         issues.append(f"Inconsistent panel label font size: {sizes}")

@@ -12,7 +12,10 @@ from pipeline.agent_runtime import launch_orchestrator_session, require_agent_su
 from pipeline.contracts import StageRecord, StageStatus
 from pipeline.context import get_ctx
 from pipeline.orchestrator import artifacts as orch_art
+from pipeline.orchestrator import steps as orch_steps
 from pipeline.orchestrator.modes import resolve_mode
+from pipeline.pipeline_backend import start_services, stop_services
+from pipeline.run_state import read_manifest, read_manifest_stage, write_manifest_stage
 
 _MODE_LABELS: dict[str, str] = {
     "exp_plot": "Pipeline",
@@ -20,9 +23,6 @@ _MODE_LABELS: dict[str, str] = {
     "agent_svg": "Agent SVG pipeline",
     "paper_composite": "Paper composite pipeline",
 }
-from pipeline.orchestrator import steps as orch_steps
-from pipeline.pipeline_backend import start_services, stop_services
-from pipeline.run_state import read_manifest, read_manifest_stage, write_manifest_stage
 
 
 def _emit_review_output(
@@ -32,10 +32,11 @@ def _emit_review_output(
 ) -> None:
     """Generate review template and update preferences after a --review run."""
     from pipeline.feedback import generate_review_template, update_style_preferences
+
     review_path = generate_review_template(run_dir, experiments)
     ui.info(f"Review template: {ui.short_path(review_path)}")
-    ui.dim(f"  Edit it or run: python run_once.py review {ui.short_path(run_dir)}")
-    ui.dim(f"  Then apply: python run_once.py plot --proposal ... --resume {ui.short_path(run_dir)} --review")
+    ui.dim(f"  Edit it or run: python cli.py review {ui.short_path(run_dir)}")
+    ui.dim(f"  Then apply: python cli.py plot --proposal ... --resume {ui.short_path(run_dir)} --review")
     if review_feedback:
         added = update_style_preferences(review_feedback)  # type: ignore[arg-type]
         if added:
@@ -67,10 +68,7 @@ def run_agent_pipeline(args: argparse.Namespace) -> None:
         exp_dirs = getattr(args, "experiments_dir", "") or ""
         exp_display = ", ".join(ui.short_path(d) for d in exp_dirs.split(",") if d.strip()) if exp_dirs else "(none)"
         proposal_display = ui.short_path(args.proposal) if getattr(args, "proposal", None) else "(none)"
-        ui.dim(
-            f"Mode: {mode} | Proposal: {proposal_display} | "
-            f"Experiments: {exp_display} | Execution: {execution}"
-        )
+        ui.dim(f"Mode: {mode} | Proposal: {proposal_display} | Experiments: {exp_display} | Execution: {execution}")
 
     if orchestration_mode == "agent-first" and not (
         mode in {"composite", "agent_svg"} and getattr(args, "drawing_image", None)
@@ -81,6 +79,7 @@ def run_agent_pipeline(args: argparse.Namespace) -> None:
         _review_feedback = None
         if review_active and resume_dir:
             from pipeline.feedback import parse_review, invalidate_stages_from
+
             _review_feedback = parse_review(run_dir)
             if _review_feedback:
                 ui.info(f"Parsed human review: earliest affected stage = {_review_feedback.earliest_affected_stage}")
@@ -90,9 +89,7 @@ def run_agent_pipeline(args: argparse.Namespace) -> None:
         prompt = orch_steps.build_orchestrator_session_prompt(run_dir, args, mode)
         generate_rec = read_manifest_stage(run_dir, "generate")
         resume_completed = bool(
-            getattr(args, "resume", None)
-            and generate_rec
-            and generate_rec.status == StageStatus.COMPLETED
+            getattr(args, "resume", None) and generate_rec and generate_rec.status == StageStatus.COMPLETED
         )
 
         with ui.orchestrator_log(run_dir):
@@ -155,8 +152,10 @@ def run_agent_pipeline(args: argparse.Namespace) -> None:
         return
 
     if mode == "paper_composite":
-        ui.error("Paper composite mode requires agent-first orchestration. "
-                 "Set orchestrator.mode to 'agent-first' in pipeline.yaml or use --orchestrator-mode agent-first.")
+        ui.error(
+            "Paper composite mode requires agent-first orchestration. "
+            "Set orchestrator.mode to 'agent-first' in pipeline.yaml or use --orchestrator-mode agent-first."
+        )
         sys.exit(1)
 
     ctx.orchestrator.setup(run_dir="", mode=mode, execution=execution)
@@ -167,6 +166,7 @@ def run_agent_pipeline(args: argparse.Namespace) -> None:
         _resume_abs = os.path.abspath(resume_dir)
         if os.path.isdir(_resume_abs):
             from pipeline.feedback import parse_review, invalidate_stages_from
+
             _review_feedback_ps = parse_review(_resume_abs)
             if _review_feedback_ps:
                 ui.info(f"Parsed human review: earliest affected stage = {_review_feedback_ps.earliest_affected_stage}")

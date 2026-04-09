@@ -46,6 +46,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from pipeline.orchestrator import artifacts as orch_artifacts  # noqa: E402
+
 
 def _json_out(obj: dict | list) -> None:
     json.dump(obj, sys.stdout, indent=2, default=str)
@@ -168,7 +170,7 @@ def cmd_init(args: argparse.Namespace) -> None:
     rd = Path(run_dir)
     rd.mkdir(parents=True, exist_ok=True)
     # Create logs/ for all modes. For exp_plot, outputs/ and debug/ are created
-    # by run_once._ensure_plot_run_layout(); diagram artifacts go directly
+    # by cli._ensure_plot_run_layout(); diagram artifacts go directly
     # in run_dir. No legacy figures/data/svg dirs — outputs/ is canonical.
     (rd / "logs").mkdir(exist_ok=True)
 
@@ -1539,7 +1541,9 @@ def main() -> None:
     p_init.add_argument("--results-dir", default=None, help="Path to experiments/results directory")
     p_init.add_argument("--llm-preset", default=None, choices=["azure", "gemini", "mixed"])
     p_init.add_argument("--run-dir", default=None, help="Custom run directory path")
-    p_init.add_argument("--mode", default="happyfigure", choices=["happyfigure", "exp_plot", "composite", "paper_composite"])
+    p_init.add_argument(
+        "--mode", default="happyfigure", choices=["happyfigure", "exp_plot", "composite", "paper_composite"]
+    )
     p_init.add_argument("--style-examples", default=None, help="Style examples directory")
 
     # data-scan
@@ -1557,17 +1561,22 @@ def main() -> None:
     p_plan = sub.add_parser("figure-plan", help="Plan figures for all experiments")
     p_plan.add_argument("--run-dir", required=True)
     p_plan.add_argument("--verbose", action="store_true")
-    p_plan.add_argument("--exploration-report", default=None,
-                        help="Path to pre-computed data exploration report (skip LLM explorer)")
-    p_plan.add_argument("--proposal", default=None,
-                        help="Path to proposal .md file (for auto-bootstrap when state.json missing)")
-    p_plan.add_argument("--results-dir", default=None,
-                        help="Path to results directory (for auto-bootstrap)")
-    p_plan.add_argument("--llm-preset", default=None, choices=["azure", "gemini", "mixed"],
-                        help="LLM preset (for auto-bootstrap)")
-    p_plan.add_argument("--mode", default="exp_plot",
-                        choices=["happyfigure", "exp_plot", "composite"],
-                        help="Pipeline mode (for auto-bootstrap)")
+    p_plan.add_argument(
+        "--exploration-report", default=None, help="Path to pre-computed data exploration report (skip LLM explorer)"
+    )
+    p_plan.add_argument(
+        "--proposal", default=None, help="Path to proposal .md file (for auto-bootstrap when state.json missing)"
+    )
+    p_plan.add_argument("--results-dir", default=None, help="Path to results directory (for auto-bootstrap)")
+    p_plan.add_argument(
+        "--llm-preset", default=None, choices=["azure", "gemini", "mixed"], help="LLM preset (for auto-bootstrap)"
+    )
+    p_plan.add_argument(
+        "--mode",
+        default="exp_plot",
+        choices=["happyfigure", "exp_plot", "composite"],
+        help="Pipeline mode (for auto-bootstrap)",
+    )
 
     # figure-execute
     p_exec = sub.add_parser("figure-execute", help="Execute figure generation for one experiment")

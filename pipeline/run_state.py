@@ -1,4 +1,5 @@
 """State I/O and directory layout helpers for plot runs."""
+
 from __future__ import annotations
 
 import glob
@@ -11,6 +12,7 @@ from pipeline.contracts import StageRecord
 # ---------------------------------------------------------------------------
 # state.json helpers
 # ---------------------------------------------------------------------------
+
 
 def read_state(run_dir: str) -> dict:
     state_path = os.path.join(run_dir, "state.json")
@@ -36,6 +38,7 @@ def append_completed_step(state: dict, step: str) -> None:
 # ---------------------------------------------------------------------------
 # Directory layout
 # ---------------------------------------------------------------------------
+
 
 def plot_outputs_root(run_dir: str) -> str:
     return os.path.join(run_dir, "outputs")
@@ -68,6 +71,7 @@ def ensure_plot_run_layout(run_dir: str) -> None:
 # ---------------------------------------------------------------------------
 # Experiment discovery
 # ---------------------------------------------------------------------------
+
 
 def get_experiments(run_dir: str) -> list[str]:
     """Discover experiment names, preferring the manifest/index over legacy state."""
@@ -123,7 +127,7 @@ def read_critic_result(run_dir: str, experiment: str) -> dict:
         os.path.join(plot_output_dir(run_dir, experiment), "critic_result.json"),
     ):
         if os.path.exists(path):
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 return json.load(f)
     return {}
 
@@ -131,6 +135,7 @@ def read_critic_result(run_dir: str, experiment: str) -> dict:
 # ---------------------------------------------------------------------------
 # Execution-result persistence for plot pipeline
 # ---------------------------------------------------------------------------
+
 
 def persist_plot_plan_state(run_dir: str, experiments: list[str], *, execution: str) -> None:
     state = read_state(run_dir)
@@ -141,8 +146,7 @@ def persist_plot_plan_state(run_dir: str, experiments: list[str], *, execution: 
     state["debug_dir"] = plot_debug_root(run_dir)
     state["experiments_root"] = os.path.join(run_dir, "experiments")
     state["per_experiment_specs"] = {
-        exp: os.path.join(plot_experiment_workspace(run_dir, exp), "styled_spec.md")
-        for exp in experiments
+        exp: os.path.join(plot_experiment_workspace(run_dir, exp), "styled_spec.md") for exp in experiments
     }
     state["experiment_artifacts"] = {
         exp: {
@@ -208,10 +212,7 @@ def finalize_plot_experiment(run_dir: str, experiment: str, result: dict, *, wor
         json.dump(critic_payload, f, indent=2)
 
     score = (
-        critic_payload.get("score")
-        or critic_payload.get("overall_score")
-        or critic_payload.get("total_score")
-        or 0.0
+        critic_payload.get("score") or critic_payload.get("overall_score") or critic_payload.get("total_score") or 0.0
     )
     raw_verdict = critic_payload.get("verdict")
     if raw_verdict is None:
@@ -228,7 +229,7 @@ def finalize_plot_experiment(run_dir: str, experiment: str, result: dict, *, wor
     if not os.path.exists(spec_path) and os.path.exists(legacy_spec):
         spec_path = legacy_spec
 
-    code_path_final = code_dst if os.path.exists(code_dst) else (ws_code if os.path.exists(ws_code) else "")
+    code_path_final = ws_code if os.path.exists(ws_code) else ""
 
     summary = {
         "experiment": experiment,
@@ -237,7 +238,7 @@ def finalize_plot_experiment(run_dir: str, experiment: str, result: dict, *, wor
         "iterations": critic_payload.get("iteration", 0),
         "figure_path": figure_dst if figure_src else "",
         "figure_code_path": code_path_final,
-        "critic_result_path": critic_dst,
+        "critic_result_path": critic_workspace,
         "styled_spec_path": spec_path if os.path.exists(spec_path) else "",
         "workspace_dir": workspace_dir,
         "output_dir": output_dir,
