@@ -10,33 +10,34 @@ Subcommands:
 
 Usage:
     # Statistical plots — positional paths (auto-detected)
-    python run_once.py plot paper.md ./results
-    python run_once.py plot ./data/dir1 ./data/dir2       # multiple results dirs
-    python run_once.py plot paper.md                       # results-dir defaults to ./results
+    python cli.py plot paper.md ./results
+    python cli.py plot ./data/dir1 ./data/dir2       # multiple results dirs
+    python cli.py plot paper.md                       # results-dir defaults to ./results
 
     # Explicit flags still work
-    python run_once.py plot --proposal paper.md --results-dir ./results
+    python cli.py plot --proposal paper.md --results-dir ./results
 
     # Architecture diagram
-    python run_once.py diagram paper.md
+    python cli.py diagram paper.md
 
     # Quick architecture diagram (agent writes SVG directly, no services)
-    python run_once.py sketch paper.md
+    python cli.py sketch paper.md
 
     # Beam search for plots
-    python run_once.py plot paper.md --execution beam
+    python cli.py plot paper.md --execution beam
 
     # Switch agent platform (default from pipeline.yaml)
-    python run_once.py plot paper.md --agent claude
+    python cli.py plot paper.md --agent claude
 
     # Override LLM provider preset
-    python run_once.py plot paper.md --llm-preset gemini
+    python cli.py plot paper.md --llm-preset gemini
 
     # Human review: generate template, edit, resume with feedback
-    python run_once.py plot paper.md --review
-    python run_once.py review notes/figure_runs/run_20260406_220000
-    python run_once.py plot --proposal paper.md --resume <run_dir> --review
+    python cli.py plot paper.md --review
+    python cli.py review notes/figure_runs/run_20260406_220000
+    python cli.py plot --proposal paper.md --resume <run_dir> --review
 """
+
 from __future__ import annotations
 
 import argparse
@@ -62,49 +63,70 @@ from pipeline.orchestrator.modes import resolve_mode
 # CLI parser
 # ---------------------------------------------------------------------------
 
+
 def _build_parser() -> argparse.ArgumentParser:
     """Build the unified subcommand-based CLI parser."""
     global_parser = argparse.ArgumentParser(add_help=False)
-    global_parser.add_argument("--agent", type=str, default=None,
-                               choices=["opencode", "claude", "codex", "gemini", "copilot"],
-                               help="Agent runner CLI (overrides pipeline.yaml agent.platform)")
-    global_parser.add_argument("--llm-preset", type=str, default=None,
-                               choices=["azure", "gemini", "mixed"],
-                               help="Override LLM config from pipeline.yaml (optional)")
-    global_parser.add_argument("--verbose", action="store_true",
-                               help="Enable verbose logging")
-    global_parser.add_argument("--resume", type=str, default=None, metavar="RUN_DIR",
-                               help="Resume from a previous run directory (skips completed stages)")
-    global_parser.add_argument("--orchestrator-mode", type=str, default=None,
-                               choices=["agent-first", "python-stages"],
-                               help="Internal orchestration mode (default from pipeline.yaml)")
-    global_parser.add_argument("--review", action="store_true",
-                               help="Enable human review: generate review.md after run, "
-                                    "or consume existing review.md on --resume")
+    global_parser.add_argument(
+        "--agent",
+        type=str,
+        default=None,
+        choices=["opencode", "claude", "codex", "gemini", "copilot"],
+        help="Agent runner CLI (overrides pipeline.yaml agent.platform)",
+    )
+    global_parser.add_argument(
+        "--llm-preset",
+        type=str,
+        default=None,
+        choices=["azure", "gemini", "mixed"],
+        help="Override LLM config from pipeline.yaml (optional)",
+    )
+    global_parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+    global_parser.add_argument(
+        "--resume",
+        type=str,
+        default=None,
+        metavar="RUN_DIR",
+        help="Resume from a previous run directory (skips completed stages)",
+    )
+    global_parser.add_argument(
+        "--orchestrator-mode",
+        type=str,
+        default=None,
+        choices=["agent-first", "python-stages"],
+        help="Internal orchestration mode (default from pipeline.yaml)",
+    )
+    global_parser.add_argument(
+        "--review",
+        action="store_true",
+        help="Enable human review: generate review.md after run, or consume existing review.md on --resume",
+    )
 
     _SUP = argparse.SUPPRESS
     global_parser_sub = argparse.ArgumentParser(add_help=False)
-    global_parser_sub.add_argument("--agent", type=str, default=_SUP,
-                                   choices=["opencode", "claude", "codex", "gemini", "copilot"],
-                                   help=argparse.SUPPRESS)
-    global_parser_sub.add_argument("--llm-preset", type=str, default=_SUP,
-                                   choices=["azure", "gemini", "mixed"],
-                                   help=argparse.SUPPRESS)
-    global_parser_sub.add_argument("--verbose", action="store_true",
-                                   default=_SUP, help=argparse.SUPPRESS)
-    global_parser_sub.add_argument("--resume", type=str, default=_SUP,
-                                   help=argparse.SUPPRESS)
-    global_parser_sub.add_argument("--orchestrator-mode", type=str, default=_SUP,
-                                   choices=["agent-first", "python-stages"],
-                                   help=argparse.SUPPRESS)
-    global_parser_sub.add_argument("--review", action="store_true",
-                                   default=_SUP, help=argparse.SUPPRESS)
+    global_parser_sub.add_argument(
+        "--agent",
+        type=str,
+        default=_SUP,
+        choices=["opencode", "claude", "codex", "gemini", "copilot"],
+        help=argparse.SUPPRESS,
+    )
+    global_parser_sub.add_argument(
+        "--llm-preset", type=str, default=_SUP, choices=["azure", "gemini", "mixed"], help=argparse.SUPPRESS
+    )
+    global_parser_sub.add_argument("--verbose", action="store_true", default=_SUP, help=argparse.SUPPRESS)
+    global_parser_sub.add_argument("--resume", type=str, default=_SUP, help=argparse.SUPPRESS)
+    global_parser_sub.add_argument(
+        "--orchestrator-mode", type=str, default=_SUP, choices=["agent-first", "python-stages"], help=argparse.SUPPRESS
+    )
+    global_parser_sub.add_argument("--review", action="store_true", default=_SUP, help=argparse.SUPPRESS)
 
     class _HelpfulParser(argparse.ArgumentParser):
         _subparsers_map: dict | None = None
 
         def error(self, message: str):
             import sys as _sys
+
             _sys.stderr.write(f"error: {message}\n\n")
             sub_shown = False
             if self._subparsers_map:
@@ -118,7 +140,7 @@ def _build_parser() -> argparse.ArgumentParser:
             _sys.exit(2)
 
     parser = _HelpfulParser(
-        prog="happyfigure",
+        prog="python cli.py",
         parents=[global_parser],
         description="HappyFigure — AI-powered scientific figure generation",
         epilog=(
@@ -138,129 +160,227 @@ def _build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    subparsers = parser.add_subparsers(dest="command", required=True,
-                                       parser_class=_HelpfulParser,
-                                       metavar="{plot|figure,diagram|method,sketch|method-svg,composite|hybrid}")
+    subparsers = parser.add_subparsers(
+        dest="command",
+        required=True,
+        parser_class=_HelpfulParser,
+        metavar="{plot|figure,diagram|method,sketch|method-svg,composite|hybrid}",
+    )
 
     # ── figure ──
-    fig = subparsers.add_parser("plot", parents=[global_parser_sub], aliases=["figure"],
-                                help="Generate statistical plots from experiment data (alias: figure)",
-                                description="Generate statistical plots from experiment data. Alias: figure.",
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
-    fig.add_argument("--proposal", type=str, default=None,
-                     help="Path to proposal file (.md, .pdf, .tex) or directory containing proposal docs")
-    fig.add_argument("--results-dir", "--results", type=str, default=None,
-                     help="Path(s) to experiments/results directories, comma-separated for multiple (default: ./results)")
-    fig.add_argument("paths", nargs="*", default=[],
-                     help="Positional paths: files (.md/.pdf/.tex) → proposal, directories → results dirs")
+    fig = subparsers.add_parser(
+        "plot",
+        parents=[global_parser_sub],
+        aliases=["figure"],
+        help="Generate statistical plots from experiment data (alias: figure)",
+        description="Generate statistical plots from experiment data. Alias: figure.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    fig.add_argument(
+        "--proposal",
+        type=str,
+        default=None,
+        help="Path to proposal file (.md, .pdf, .tex) or directory containing proposal docs",
+    )
+    fig.add_argument(
+        "--results-dir",
+        "--results",
+        type=str,
+        default=None,
+        help="Path(s) to experiments/results directories, comma-separated for multiple (default: ./results)",
+    )
+    fig.add_argument(
+        "paths",
+        nargs="*",
+        default=[],
+        help="Positional paths: files (.md/.pdf/.tex) → proposal, directories → results dirs",
+    )
     exec_group = fig.add_argument_group("execution strategy")
-    exec_group.add_argument("--execution", type=str, default="sequential",
-                            choices=["sequential", "parallel", "beam"],
-                            help="sequential: one experiment at a time; "
-                                 "parallel: all experiments concurrently; "
-                                 "beam: style×code variant search ranked by critic (default: sequential)")
+    exec_group.add_argument(
+        "--execution",
+        type=str,
+        default="sequential",
+        choices=["sequential", "parallel", "beam"],
+        help="sequential: one experiment at a time; "
+        "parallel: all experiments concurrently; "
+        "beam: style×code variant search ranked by critic (default: sequential)",
+    )
 
     beam_group = fig.add_argument_group("beam search parameters")
-    beam_group.add_argument("--beam-width", type=int, default=2,
-                            help="Candidates kept per round (default: 2)")
-    beam_group.add_argument("--style-variants", type=int, default=2,
-                            help="Style variants in first iteration (default: 2)")
-    beam_group.add_argument("--code-variants", type=int, default=2,
-                            help="Code variants per candidate (default: 2)")
-    beam_group.add_argument("--beam-iterations", type=int, default=2,
-                            help="Beam search iterations (default: 2)")
+    beam_group.add_argument("--beam-width", type=int, default=2, help="Candidates kept per round (default: 2)")
+    beam_group.add_argument(
+        "--style-variants", type=int, default=2, help="Style variants in first iteration (default: 2)"
+    )
+    beam_group.add_argument("--code-variants", type=int, default=2, help="Code variants per candidate (default: 2)")
+    beam_group.add_argument("--beam-iterations", type=int, default=2, help="Beam search iterations (default: 2)")
 
     # ── shared diagram arguments ──
     def _add_diagram_args(p):
-        p.add_argument("--proposal", type=str, default=None,
-                       help="Path to proposal file (.md, .pdf, .tex) or directory containing proposal docs")
-        p.add_argument("--results-dir", "--results", type=str, default=None,
-                       help="Path(s) to experiments/results directories, comma-separated for multiple")
-        p.add_argument("paths", nargs="*", default=[],
-                       help="Positional paths: files (.md/.pdf/.tex) → proposal, directories → results dirs")
-        p.add_argument("--quality-profile", type=str, default="journal",
-                       choices=["journal", "conference", "poster", "presentation",
-                                "report", "grant", "thesis", "preprint", "default"],
-                       help="Quality threshold profile (default: journal)")
-        p.add_argument("--max-team-iterations", type=int, default=3,
-                       help="Max review iterations (default: 3)")
+        p.add_argument(
+            "--proposal",
+            type=str,
+            default=None,
+            help="Path to proposal file (.md, .pdf, .tex) or directory containing proposal docs",
+        )
+        p.add_argument(
+            "--results-dir",
+            "--results",
+            type=str,
+            default=None,
+            help="Path(s) to experiments/results directories, comma-separated for multiple",
+        )
+        p.add_argument(
+            "paths",
+            nargs="*",
+            default=[],
+            help="Positional paths: files (.md/.pdf/.tex) → proposal, directories → results dirs",
+        )
+        p.add_argument(
+            "--quality-profile",
+            type=str,
+            default="journal",
+            choices=[
+                "journal",
+                "conference",
+                "poster",
+                "presentation",
+                "report",
+                "grant",
+                "thesis",
+                "preprint",
+                "default",
+            ],
+            help="Quality threshold profile (default: journal)",
+        )
+        p.add_argument("--max-team-iterations", type=int, default=3, help="Max review iterations (default: 3)")
         ig = p.add_argument_group("image source (mutually exclusive)")
         isrc = ig.add_mutually_exclusive_group()
-        isrc.add_argument("--drawing-image", type=str, default=None,
-                          help="Use existing image (skips proposer + image generation)")
+        isrc.add_argument(
+            "--drawing-image", type=str, default=None, help="Use existing image (skips proposer + image generation)"
+        )
 
     # ── method ──
-    meth = subparsers.add_parser("diagram", parents=[global_parser_sub], aliases=["method"],
-                                 help="Generate method/architecture diagram (full SVG pipeline; alias: method)",
-                                 description="Generate method/architecture diagram via the full SVG pipeline. Alias: method.",
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    meth = subparsers.add_parser(
+        "diagram",
+        parents=[global_parser_sub],
+        aliases=["method"],
+        help="Generate method/architecture diagram (full SVG pipeline; alias: method)",
+        description="Generate method/architecture diagram via the full SVG pipeline. Alias: method.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     _add_diagram_args(meth)
     meth.set_defaults(skip_viz_compose=True)
 
     # ── composite ──
-    comp = subparsers.add_parser("composite", parents=[global_parser_sub], aliases=["hybrid"],
-                                 help="Diagram + programmatic visualization compositing (alias: hybrid)",
-                                 description="Generate a composite method diagram with programmatic visualization compositing. Alias: hybrid.",
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    comp = subparsers.add_parser(
+        "composite",
+        parents=[global_parser_sub],
+        aliases=["hybrid"],
+        help="Diagram + programmatic visualization compositing (alias: hybrid)",
+        description="Generate a composite method diagram with programmatic visualization compositing. Alias: hybrid.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     _add_diagram_args(comp)
     viz_group = comp.add_argument_group("viz-composer options")
-    viz_group.add_argument("--skip-viz-compose", action="store_true",
-                           help="Run diagram pipeline only, skip viz-composer step")
+    viz_group.add_argument(
+        "--skip-viz-compose", action="store_true", help="Run diagram pipeline only, skip viz-composer step"
+    )
 
     parser._subparsers_map = {
-        "plot": fig, "figure": fig,
-        "diagram": meth, "method": meth,
-        "composite": comp, "hybrid": comp,
+        "plot": fig,
+        "figure": fig,
+        "diagram": meth,
+        "method": meth,
+        "composite": comp,
+        "hybrid": comp,
     }
 
     # ── method-svg ──
-    msvg = subparsers.add_parser("sketch", parents=[global_parser_sub], aliases=["method-svg"],
-                                 help="Generate method diagram (lightweight, no services; alias: method-svg)",
-                                 description="Generate a lightweight method diagram directly as SVG. Alias: method-svg.",
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    msvg.add_argument("--proposal", type=str, default=None,
-                      help="Path to proposal file (.md, .pdf, .tex) or directory containing proposal docs")
-    msvg.add_argument("--results-dir", "--results", type=str, default=None,
-                      help="Path(s) to experiments/results directories, comma-separated for multiple")
-    msvg.add_argument("paths", nargs="*", default=[],
-                      help="Positional paths: files (.md/.pdf/.tex) → proposal, directories → results dirs")
+    msvg = subparsers.add_parser(
+        "sketch",
+        parents=[global_parser_sub],
+        aliases=["method-svg"],
+        help="Generate method diagram (lightweight, no services; alias: method-svg)",
+        description="Generate a lightweight method diagram directly as SVG. Alias: method-svg.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    msvg.add_argument(
+        "--proposal",
+        type=str,
+        default=None,
+        help="Path to proposal file (.md, .pdf, .tex) or directory containing proposal docs",
+    )
+    msvg.add_argument(
+        "--results-dir",
+        "--results",
+        type=str,
+        default=None,
+        help="Path(s) to experiments/results directories, comma-separated for multiple",
+    )
+    msvg.add_argument(
+        "paths",
+        nargs="*",
+        default=[],
+        help="Positional paths: files (.md/.pdf/.tex) → proposal, directories → results dirs",
+    )
 
     parser._subparsers_map["sketch"] = msvg
     parser._subparsers_map["method-svg"] = msvg
 
     # ── paper (unified composite) ──
-    paper = subparsers.add_parser("paper", parents=[global_parser_sub], aliases=["paper-composite"],
-                                   help="Generate all figures for a paper (plots + diagrams + assembly)",
-                                   description="Paper-level pipeline: generate ALL figures — statistical plots, "
-                                               "method diagrams, and hybrids — in one run with complex assembly.",
-                                   formatter_class=argparse.RawDescriptionHelpFormatter)
-    paper.add_argument("--proposal", type=str, default=None,
-                       help="Path to proposal markdown file or directory (optional — agents discover from data)")
-    paper.add_argument("--results-dir", "--results", type=str, default=None,
-                       help="Path(s) to experiments/results directories, comma-separated for multiple")
-    paper.add_argument("paths", nargs="*", default=[],
-                       help="Positional paths: files (.md/.pdf/.tex) → proposal, directories → results dirs")
-    paper.add_argument("--execution", choices=["sequential", "parallel", "beam"], default="parallel",
-                       help="Execution strategy for statistical panels (default: parallel)")
-    paper.add_argument("--figures", type=str, default=None,
-                       help="Comma-separated figure IDs to generate (default: all)")
-    paper.add_argument("--skip-assembly", action="store_true",
-                       help="Generate panels only, skip assembly step")
-    paper.add_argument("--skip-diagrams", action="store_true",
-                       help="Skip diagram panel generation")
-    paper.add_argument("--skip-plots", action="store_true",
-                       help="Skip statistical plot generation")
+    paper = subparsers.add_parser(
+        "paper",
+        parents=[global_parser_sub],
+        aliases=["paper-composite"],
+        help="Generate all figures for a paper (plots + diagrams + assembly)",
+        description="Paper-level pipeline: generate ALL figures — statistical plots, "
+        "method diagrams, and hybrids — in one run with complex assembly.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    paper.add_argument(
+        "--proposal",
+        type=str,
+        default=None,
+        help="Path to proposal markdown file or directory (optional — agents discover from data)",
+    )
+    paper.add_argument(
+        "--results-dir",
+        "--results",
+        type=str,
+        default=None,
+        help="Path(s) to experiments/results directories, comma-separated for multiple",
+    )
+    paper.add_argument(
+        "paths",
+        nargs="*",
+        default=[],
+        help="Positional paths: files (.md/.pdf/.tex) → proposal, directories → results dirs",
+    )
+    paper.add_argument(
+        "--execution",
+        choices=["sequential", "parallel", "beam"],
+        default="parallel",
+        help="Execution strategy for statistical panels (default: parallel)",
+    )
+    paper.add_argument(
+        "--figures", type=str, default=None, help="Comma-separated figure IDs to generate (default: all)"
+    )
+    paper.add_argument("--skip-assembly", action="store_true", help="Generate panels only, skip assembly step")
+    paper.add_argument("--skip-diagrams", action="store_true", help="Skip diagram panel generation")
+    paper.add_argument("--skip-plots", action="store_true", help="Skip statistical plot generation")
     parser._subparsers_map["paper"] = paper
     parser._subparsers_map["paper-composite"] = paper
 
     # ── review ──
-    rev = subparsers.add_parser("review", parents=[global_parser_sub],
-                                help="Interactively review figures from a completed run",
-                                description="Walk through each figure, view scores, provide feedback. "
-                                            "Writes review.md for use with --resume --review.",
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
-    rev.add_argument("run_dir", type=str,
-                     help="Path to completed run directory")
+    rev = subparsers.add_parser(
+        "review",
+        parents=[global_parser_sub],
+        help="Interactively review figures from a completed run",
+        description="Walk through each figure, view scores, provide feedback. "
+        "Writes review.md for use with --resume --review.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    rev.add_argument("run_dir", type=str, help="Path to completed run directory")
     parser._subparsers_map["review"] = rev
 
     return parser
@@ -289,10 +409,7 @@ def _looks_like_path(s: str) -> bool:
     # Two-word strings: NL if neither word looks path-like
     if len(words) == 2:
         # e.g. "my results" → NL; "./results data" → could be two paths
-        return any(
-            w.startswith(("/", "./", "../", "~")) or os.path.splitext(w)[1]
-            for w in words
-        )
+        return any(w.startswith(("/", "./", "../", "~")) or os.path.splitext(w)[1] for w in words)
     # Single token — check if it looks like a path
     if s.startswith(("/", "./", "../", "~")):
         return True
@@ -366,7 +483,11 @@ def _ensure_compat_attrs(args: argparse.Namespace) -> None:
         args.results_dir = None  # not real paths
 
     # Default --results-dir for plot subcommand when nothing was provided.
-    if getattr(args, "command", None) in ("plot", "figure") and not getattr(args, "results_dir", None) and not args._results_instruction:
+    if (
+        getattr(args, "command", None) in ("plot", "figure")
+        and not getattr(args, "results_dir", None)
+        and not args._results_instruction
+    ):
         args.results_dir = "./results"
 
     # --results-dir: resolve all paths to absolute (handles comma-separated).
@@ -394,6 +515,7 @@ def _ensure_compat_attrs(args: argparse.Namespace) -> None:
 
 def _load_pipeline_config() -> dict:
     from graphs.svg_utils import load_pipeline_config
+
     return load_pipeline_config()
 
 
@@ -438,6 +560,7 @@ def _preflight_auth_checks(config: dict, llm_preset: str | None) -> None:
         sys.exit(1)
 
     import llm
+
     llm.init_from_config()
     if llm_preset:
         llm.apply_preset(llm_preset)
@@ -466,6 +589,7 @@ def _preflight_auth_checks(config: dict, llm_preset: str | None) -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def main():
     """CLI entry point for HappyFigure."""
     parser = _build_parser()
@@ -480,6 +604,7 @@ def main():
     ui.set_project_root(str(PROJECT_ROOT))
 
     from agents import create_orchestrator
+
     orch = create_orchestrator(agent_platform, config)
 
     ctx = RunnerContext(
@@ -495,19 +620,21 @@ def main():
     # review subcommand: no pipeline setup needed
     if command == "review":
         from pipeline.feedback import run_interactive_review
+
         run_interactive_review(getattr(args, "run_dir", ""))
         return
 
     execution = getattr(args, "execution", "sequential")
     llm_roles = _resolve_llm_roles(config, llm_preset)
-    orch_mode = (
-        getattr(args, "orchestrator_mode", None)
-        or config.get("orchestrator", {}).get("mode", "python-stages")
-    )
+    orch_mode = getattr(args, "orchestrator_mode", None) or config.get("orchestrator", {}).get("mode", "python-stages")
 
     ui.banner(
-        command, agent_platform, orch.model_display, llm_preset,
-        execution=execution, llm_roles=llm_roles,
+        command,
+        agent_platform,
+        orch.model_display,
+        llm_preset,
+        execution=execution,
+        llm_roles=llm_roles,
         orchestrator_mode=orch_mode,
     )
 

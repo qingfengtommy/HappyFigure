@@ -5,11 +5,12 @@ JSON streaming format.  The parsers here normalise those into unified
 ``ui.raw_tool_call()`` / ``ui.raw_tool_error()`` / ``ui.raw_error()`` calls
 so that every platform renders the same structured ``⟡ tool: summary`` output.
 
-Usage from ``run_once.py``::
+Usage from ``cli.py``::
 
     from ui.stream_parsers import dispatch_stream
     dispatch_stream(agent_command.stream_format, process.stdout, log_file, output_tail)
 """
+
 from __future__ import annotations
 
 import json
@@ -29,6 +30,7 @@ import ui
 # where agents are exposed as tools (Gemini, Copilot, Claude Code "Agent").
 # ---------------------------------------------------------------------------
 
+
 def _discover_agent_names() -> frozenset[str]:
     """Scan prompts/agents/ for known agent names."""
     prompts_dir = Path(__file__).resolve().parent / "prompts" / "agents"
@@ -43,6 +45,7 @@ KNOWN_AGENTS: frozenset[str] = _discover_agent_names()
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
+
 
 def truncate(text, limit: int | None = None) -> str:
     return ui.truncate_text(str(text), limit)
@@ -148,9 +151,7 @@ def summarize_tool_input(name: str, payload) -> str:
             if not isinstance(todo, dict):
                 continue
             icon = _icons.get(todo.get("status", "pending"), "·")
-            content = " ".join(
-                (todo.get("content") or todo.get("title") or todo.get("description") or "?").split()
-            )
+            content = " ".join((todo.get("content") or todo.get("title") or todo.get("description") or "?").split())
             lines.append(f"{icon} {content}")
         return "\n".join(lines)
 
@@ -187,6 +188,7 @@ def sanitize_terminal_output(text: str) -> str:
 # OpenCode helpers
 # ---------------------------------------------------------------------------
 
+
 class OpenCodeStreamState:
     def __init__(self):
         self.text_offsets: dict[str, int] = {}
@@ -210,7 +212,9 @@ class OpenCodeStreamState:
         return text[offset:]
 
 
-def handle_opencode_part(part: dict, state: OpenCodeStreamState, *, output_tail=None, log_file=None, delta: str | None = None) -> None:
+def handle_opencode_part(
+    part: dict, state: OpenCodeStreamState, *, output_tail=None, log_file=None, delta: str | None = None
+) -> None:
     part_id = str(part.get("id", ""))
     ptype = part.get("type", "")
 
@@ -363,10 +367,7 @@ class OpenCodeDbMonitor:
     @property
     def saw_output(self) -> bool:
         return bool(
-            self.state.text_offsets
-            or self.state.tool_status
-            or self.state.subtasks_seen
-            or self.state.patches_seen
+            self.state.text_offsets or self.state.tool_status or self.state.subtasks_seen or self.state.patches_seen
         )
 
     def _run(self) -> None:
@@ -541,6 +542,7 @@ class OpenCodeDbMonitor:
 # Platform stream parsers
 # ---------------------------------------------------------------------------
 
+
 def stream_claude_json(stdout, log_file=None, output_tail=None):
     """Parse Claude CLI stream-json output and display intermediate steps.
 
@@ -628,8 +630,7 @@ def stream_claude_json(stdout, log_file=None, output_tail=None):
                 duration = event.get("duration_ms", 0)
                 in_tok = event.get("total_input_tokens", 0) or 0
                 out_tok = event.get("total_output_tokens", 0) or 0
-                ui.agent_done(turns=turns, duration_ms=duration, cost=cost,
-                              input_tokens=in_tok, output_tokens=out_tok)
+                ui.agent_done(turns=turns, duration_ms=duration, cost=cost, input_tokens=in_tok, output_tokens=out_tok)
     finally:
         spinner.stop()
 
@@ -786,6 +787,7 @@ def _extract_codex_agent_name(prompt: str) -> str:
     """Try to extract agent name from a Codex spawn_agent prompt."""
     # Prompts typically start with "Act as @agent-name ..."
     import re
+
     m = re.search(r"@([\w-]+)", prompt[:200])
     return m.group(1) if m else "subagent"
 
@@ -827,11 +829,7 @@ def stream_codex_json(stdout, log_file=None, output_tail=None):
                     tool = item.get("tool", "")
                     prompt = item.get("prompt", "") or item.get("description", "")
                     if tool == "spawn_agent" or itype == "agent_handoff":
-                        agent_name = (
-                            item.get("agent", "")
-                            or item.get("name", "")
-                            or _extract_codex_agent_name(prompt)
-                        )
+                        agent_name = item.get("agent", "") or item.get("name", "") or _extract_codex_agent_name(prompt)
                         summary = truncate(prompt)
                         plain = ui.raw_subagent(agent_name, summary)
                         tee(plain, output_tail, to_stdout=False)
@@ -941,8 +939,7 @@ def stream_gemini_json(stdout, log_file=None, output_tail=None):
                 # Gemini exposes agents as tools — detect by name
                 if name in KNOWN_AGENTS:
                     summary = truncate(
-                        (args.get("prompt") or args.get("description") or "")
-                        if isinstance(args, dict) else ""
+                        (args.get("prompt") or args.get("description") or "") if isinstance(args, dict) else ""
                     )
                     plain = ui.raw_subagent(name, summary)
                 else:
@@ -1024,8 +1021,7 @@ def stream_copilot_json(stdout, log_file=None, output_tail=None):
                 # Copilot exposes agents as tools — detect by name
                 if name in KNOWN_AGENTS:
                     summary = truncate(
-                        (args.get("prompt") or args.get("description") or "")
-                        if isinstance(args, dict) else ""
+                        (args.get("prompt") or args.get("description") or "") if isinstance(args, dict) else ""
                     )
                     plain = ui.raw_subagent(name, summary)
                 else:

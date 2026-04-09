@@ -13,6 +13,7 @@ Usage::
     cmd = orch.build_agent_command("data-explore", "Explore data...")
     # run cmd.cmd with subprocess
 """
+
 from __future__ import annotations
 
 __all__ = [
@@ -38,13 +39,14 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 @dataclasses.dataclass
 class AgentCommand:
     """Platform-specific command to launch an agent."""
+
     cmd: list[str]
-    env: dict[str, str] | None = None   # Extra env vars (merged with os.environ)
-    input_text: str | None = None        # Stdin text (e.g., Claude piped prompt)
-    cwd: str | None = None               # Working directory override
-    stream_format: str | None = None     # "claude-stream-json" to parse Claude streaming events
-    use_pty: bool = False                 # Use pseudo-TTY (for CLIs that suppress output without TTY)
-    silent_stdout: bool = False           # Discard raw stdout/stderr (used when another monitor supplies progress)
+    env: dict[str, str] | None = None  # Extra env vars (merged with os.environ)
+    input_text: str | None = None  # Stdin text (e.g., Claude piped prompt)
+    cwd: str | None = None  # Working directory override
+    stream_format: str | None = None  # "claude-stream-json" to parse Claude streaming events
+    use_pty: bool = False  # Use pseudo-TTY (for CLIs that suppress output without TTY)
+    silent_stdout: bool = False  # Discard raw stdout/stderr (used when another monitor supplies progress)
     metadata: dict[str, str] | None = None
 
 
@@ -105,7 +107,7 @@ class OrchestratorBase(ABC):
     def build_agent_command(self, agent_name: str, prompt: str) -> AgentCommand:
         """Build the CLI command to launch an agent.
 
-        Called by ``run_once._run_agent()`` which handles subprocess streaming,
+        Called by ``cli._run_agent()`` which handles subprocess streaming,
         logging, and exit code reporting uniformly across all platforms.
         """
         ...
@@ -121,11 +123,12 @@ class OrchestratorBase(ABC):
         """Launch an agent and wait for completion. Returns exit code.
 
         Default implementation uses ``build_agent_command`` + subprocess.
-        Prefer using ``build_agent_command`` from ``run_once._run_agent()``
+        Prefer using ``build_agent_command`` from ``cli._run_agent()``
         for streaming output support.
         """
         import os
         import subprocess
+
         ac = self.build_agent_command(agent_name, prompt)
         env = {**os.environ, **(ac.env or {})}
         proc = subprocess.run(
@@ -179,8 +182,7 @@ class OrchestratorBase(ABC):
         prompt_file = PROMPTS_DIR / f"{agent_name}.md"
         if not prompt_file.exists():
             raise FileNotFoundError(
-                f"Agent prompt not found: {prompt_file}. "
-                f"Available: {[p.stem for p in PROMPTS_DIR.glob('*.md')]}"
+                f"Agent prompt not found: {prompt_file}. Available: {[p.stem for p in PROMPTS_DIR.glob('*.md')]}"
             )
         text = prompt_file.read_text()
 
@@ -220,15 +222,12 @@ class OrchestratorBase(ABC):
         Uses stored mode/execution from setup() for fragment injection.
         """
         prompt_body = self.get_agent_prompt(
-            agent_name, mode=self._mode, execution=self._execution,
+            agent_name,
+            mode=self._mode,
+            execution=self._execution,
         ).strip()
         task = prompt.strip()
-        return (
-            f"{prompt_body}\n\n"
-            "---\n\n"
-            "## Runtime Task\n\n"
-            f"{task}\n"
-        )
+        return f"{prompt_body}\n\n---\n\n## Runtime Task\n\n{task}\n"
 
     def list_agents(self) -> list[str]:
         """Return names of all available agent prompts."""
@@ -242,10 +241,12 @@ _PLATFORMS: dict[str, type[OrchestratorBase]] = {}
 
 def register_platform(name: str):
     """Decorator to register a platform adapter."""
+
     def decorator(cls: type[OrchestratorBase]):
         _PLATFORMS[name] = cls
         cls._registered_name = name
         return cls
+
     return decorator
 
 
@@ -254,9 +255,7 @@ def create_orchestrator(platform: str, config: dict | None = None) -> Orchestrat
     _ensure_loaded()
     if platform not in _PLATFORMS:
         available = ", ".join(sorted(_PLATFORMS.keys()))
-        raise ValueError(
-            f"Unknown platform: {platform!r}. Available: {available}"
-        )
+        raise ValueError(f"Unknown platform: {platform!r}. Available: {available}")
     orch = _PLATFORMS[platform](config or {})
     orch._platform_name = platform
     return orch
@@ -270,12 +269,14 @@ def list_platforms() -> list[str]:
 
 _loaded = False
 
+
 def _ensure_loaded():
     global _loaded
     if _loaded:
         return
     _loaded = True
     import importlib
+
     for mod in [
         "agents.opencode",
         "agents.claude_code",

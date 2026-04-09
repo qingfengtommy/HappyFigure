@@ -4,6 +4,7 @@ The ``--review`` flag controls template generation and resume parsing.
 Style preferences (``configs/feedback/style_preferences.yaml``) are loaded
 on every run when the file exists, regardless of ``--review``.
 """
+
 from __future__ import annotations
 
 import json
@@ -134,7 +135,7 @@ def _classify_line(line: str) -> tuple[str, str]:
     """Return (tag, text) for a feedback line."""
     m = _TAG_RE.match(line)
     if m:
-        return m.group(1).lower(), line[m.end():].strip()
+        return m.group(1).lower(), line[m.end() :].strip()
     return "code", line.strip()
 
 
@@ -172,7 +173,7 @@ def parse_review(run_dir: str) -> ReviewFeedback | None:
         # Extract feedback lines from ### Feedback: subsection or whole body
         feedback_start = body.find("### Feedback:")
         if feedback_start >= 0:
-            feedback_text = body[feedback_start + len("### Feedback:"):]
+            feedback_text = body[feedback_start + len("### Feedback:") :]
         elif header.lower() == "global feedback":
             feedback_text = body
         else:
@@ -181,8 +182,13 @@ def parse_review(run_dir: str) -> ReviewFeedback | None:
         feedback_lines: list[tuple[str, str]] = []
         for raw_line in feedback_text.split("\n"):
             stripped = raw_line.strip()
-            if not stripped or stripped.startswith("<!--") or stripped.startswith("Figure:") \
-                    or stripped.startswith("Score:") or stripped.startswith("Issues:"):
+            if (
+                not stripped
+                or stripped.startswith("<!--")
+                or stripped.startswith("Figure:")
+                or stripped.startswith("Score:")
+                or stripped.startswith("Issues:")
+            ):
                 continue
             # Strip leading "- " (markdown bullet) before classifying
             if stripped.startswith("- "):
@@ -251,24 +257,21 @@ def _write_feedback_files(run_dir: str, review: ReviewFeedback) -> None:
     for exp, ef in sorted(review.experiments.items()):
         for line in ef.style:
             style_lines.append(f"({exp}) {line}")
-    _write(os.path.join(run_dir, art.HUMAN_STYLE_FEEDBACK), style_lines,
-           "# Human Style Feedback\n\n")
+    _write(os.path.join(run_dir, art.HUMAN_STYLE_FEEDBACK), style_lines, "# Human Style Feedback\n\n")
 
     # Data feedback
     data_lines = list(review.global_data)
     for exp, ef in sorted(review.experiments.items()):
         for line in ef.data:
             data_lines.append(f"({exp}) {line}")
-    _write(os.path.join(run_dir, art.HUMAN_DATA_FEEDBACK), data_lines,
-           "# Human Data Feedback\n\n")
+    _write(os.path.join(run_dir, art.HUMAN_DATA_FEEDBACK), data_lines, "# Human Data Feedback\n\n")
 
     # Code feedback
     code_lines = list(review.global_code)
     for exp, ef in sorted(review.experiments.items()):
         for line in ef.code:
             code_lines.append(f"({exp}) {line}")
-    _write(os.path.join(run_dir, art.HUMAN_CODE_FEEDBACK), code_lines,
-           "# Human Code Feedback\n\n")
+    _write(os.path.join(run_dir, art.HUMAN_CODE_FEEDBACK), code_lines, "# Human Code Feedback\n\n")
 
     # Per-experiment combined feedback
     for exp, ef in review.experiments.items():
@@ -277,8 +280,7 @@ def _write_feedback_files(run_dir: str, review: ReviewFeedback) -> None:
             + [f"[data] {line}" for line in ef.data]
             + [f"[code] {line}" for line in ef.code]
         )
-        _write(art.human_experiment_feedback_path(run_dir, exp), all_lines,
-               f"# Human Feedback: {exp}\n\n")
+        _write(art.human_experiment_feedback_path(run_dir, exp), all_lines, f"# Human Feedback: {exp}\n\n")
 
 
 # ---------------------------------------------------------------------------
@@ -296,7 +298,8 @@ def invalidate_stages_from(run_dir: str, stage: str) -> None:
     start = _STAGE_ORDER.index(stage) if stage in _STAGE_ORDER else 0
     for s in _STAGE_ORDER[start:]:
         write_manifest_stage(
-            run_dir, s,
+            run_dir,
+            s,
             StageRecord(status=StageStatus.PENDING),
         )
 
@@ -408,6 +411,7 @@ def update_style_preferences(review: ReviewFeedback) -> int:
     Returns the number of new rules added.
     """
     from graphs.svg_utils import load_pipeline_config
+
     cfg = load_pipeline_config()
     max_rules = cfg.get("feedback", {}).get("max_style_preferences", 30)
 
@@ -453,6 +457,7 @@ def _open_image(path: str) -> bool:
         return True
     except FileNotFoundError:
         import ui as _ui
+
         _ui.warn(f"No image viewer found — open {path} manually")
         return False
     except Exception:
@@ -462,6 +467,7 @@ def _open_image(path: str) -> bool:
 def _discover_experiments(run_dir: str) -> list[str]:
     """Find experiment list from manifest or directory scan."""
     from pipeline.run_state import read_manifest
+
     manifest = read_manifest(run_dir)
     stages = manifest.get("stages", {})
     for stage_name in ("generate", "design", "explore"):
@@ -473,8 +479,7 @@ def _discover_experiments(run_dir: str) -> list[str]:
     exp_dir = os.path.join(run_dir, art.EXPERIMENTS_DIR)
     if os.path.isdir(exp_dir):
         return sorted(
-            d for d in os.listdir(exp_dir)
-            if os.path.isdir(os.path.join(exp_dir, d)) and not d.startswith(".")
+            d for d in os.listdir(exp_dir) if os.path.isdir(os.path.join(exp_dir, d)) and not d.startswith(".")
         )
     return []
 
@@ -492,6 +497,7 @@ def run_interactive_review(run_dir: str) -> None:
         sys.exit(1)
 
     from pipeline.context import PROJECT_ROOT
+
     ui.set_project_root(str(PROJECT_ROOT))
 
     experiments = _discover_experiments(run_dir)
@@ -594,4 +600,4 @@ def run_interactive_review(run_dir: str) -> None:
 
     review_path = ui.short_path(art.review_template_path(run_dir))
     ui.success(f"Review saved to {review_path}")
-    ui.dim(f"  Apply with: python run_once.py plot --proposal <proposal> --resume {ui.short_path(run_dir)} --review")
+    ui.dim(f"  Apply with: python cli.py plot --proposal <proposal> --resume {ui.short_path(run_dir)} --review")
