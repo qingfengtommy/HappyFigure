@@ -1,4 +1,5 @@
 """Tests for LLM provider and agent platform auth checks."""
+
 from __future__ import annotations
 
 import os
@@ -35,8 +36,10 @@ class TestProviderBaseCheckAuth:
         class MinimalProvider(LLMProvider):
             def run_prompt(self, *a, **kw):
                 return ""
+
             def run_image_prompt(self, *a, **kw):
                 return None
+
             def run_prompt_with_tools(self, *a, **kw):
                 return ToolCallResult(text="")
 
@@ -61,6 +64,7 @@ class TestOpenAIProviderCheckAuth:
 
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
             from llm.providers.openai_provider import OpenAIProvider
+
             provider = OpenAIProvider({"api_key_env": "OPENAI_API_KEY"})
         return provider, mock_client
 
@@ -93,6 +97,7 @@ class TestAnthropicProviderCheckAuth:
 
         with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):
             from llm.providers.anthropic_provider import AnthropicProvider
+
             provider = AnthropicProvider({"api_key_env": "ANTHROPIC_API_KEY"})
         return provider, mock_client
 
@@ -126,6 +131,7 @@ class TestBedrockProviderCheckAuth:
         sys.modules["boto3"] = mock_boto
 
         from llm.providers.bedrock_provider import BedrockProvider
+
         provider = BedrockProvider()
         return provider, mock_sts
 
@@ -159,6 +165,7 @@ class TestAzureProviderCheckAuth:
         """Should succeed with API key + valid endpoint."""
         with patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-key"}):
             from llm.providers.azure_provider import AzureProvider
+
             provider = AzureProvider()
 
             mock_mod = self._mock_gpt_example()
@@ -172,6 +179,7 @@ class TestAzureProviderCheckAuth:
         """Should pass with credentials but no endpoint (agents configure their own)."""
         with patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-key"}):
             from llm.providers.azure_provider import AzureProvider
+
             provider = AzureProvider()
 
             mock_mod = self._mock_gpt_example("/openai/v1")
@@ -185,6 +193,7 @@ class TestAzureProviderCheckAuth:
         """Should fail when client construction raises."""
         with patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-key"}):
             from llm.providers.azure_provider import AzureProvider
+
             provider = AzureProvider()
 
             mock_mod = self._mock_gpt_example()
@@ -197,11 +206,11 @@ class TestAzureProviderCheckAuth:
 
     def test_check_auth_no_credentials_no_identity(self):
         """Should fail when no credentials and no azure-identity."""
-        with patch.dict(os.environ, {}, clear=True), \
-             patch.dict(sys.modules, {"azure": None, "azure.identity": None}):
+        with patch.dict(os.environ, {}, clear=True), patch.dict(sys.modules, {"azure": None, "azure.identity": None}):
             # Force re-import so the import check fails
             try:
                 from llm.providers.azure_provider import AzureProvider
+
                 provider = AzureProvider()
             except (RuntimeError, ImportError):
                 # Constructor itself may fail — that's the expected path
@@ -226,6 +235,7 @@ class TestGoogleProviderCheckAuth:
 
         with patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}):
             from llm.providers.google_provider import GoogleProvider
+
             provider = GoogleProvider()
         return provider
 
@@ -266,11 +276,16 @@ class TestCheckConnections:
         import llm
 
         fake_provider.check_auth = lambda: {
-            "ok": True, "provider": "FakeProvider", "message": "OK", "error": None,
+            "ok": True,
+            "provider": "FakeProvider",
+            "message": "OK",
+            "error": None,
         }
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
 
         results = llm.check_connections()
@@ -290,10 +305,13 @@ class TestCheckConnections:
 
         def boom():
             raise RuntimeError("unexpected error")
+
         fake_provider.check_auth = boom
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
 
         results = llm.check_connections()
@@ -315,6 +333,7 @@ class TestOrchestratorCheckAuth:
         class Stub(OrchestratorBase):
             def setup(self, run_dir):
                 pass
+
             def build_agent_command(self, agent_name, prompt):
                 pass
 
@@ -325,12 +344,12 @@ class TestOrchestratorCheckAuth:
     def test_claude_check_auth_cli_present(self):
         """Claude check_auth should succeed when CLI is installed."""
         from agents import _ensure_loaded
+
         _ensure_loaded()
         from agents.claude_code import ClaudeCodeOrchestrator
 
         orch = ClaudeCodeOrchestrator({})
-        with patch("agents.claude_code.which", return_value="/usr/bin/claude"), \
-             patch("subprocess.run") as mock_run:
+        with patch("agents.claude_code.which", return_value="/usr/bin/claude"), patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0, stderr="")
             result = orch.check_auth()
 
@@ -352,8 +371,7 @@ class TestOrchestratorCheckAuth:
         from agents.codex import CodexOrchestrator
 
         orch = CodexOrchestrator({})
-        with patch("agents.codex.which", return_value="/usr/bin/codex"), \
-             patch.dict(os.environ, {}, clear=True):
+        with patch("agents.codex.which", return_value="/usr/bin/codex"), patch.dict(os.environ, {}, clear=True):
             result = orch.check_auth()
 
         assert result["ok"] is True
@@ -364,8 +382,10 @@ class TestOrchestratorCheckAuth:
         from agents.codex import CodexOrchestrator
 
         orch = CodexOrchestrator({})
-        with patch("agents.codex.which", return_value="/usr/bin/codex"), \
-             patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test"}):
+        with (
+            patch("agents.codex.which", return_value="/usr/bin/codex"),
+            patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test"}),
+        ):
             result = orch.check_auth()
 
         assert result["ok"] is True
@@ -386,8 +406,7 @@ class TestOrchestratorCheckAuth:
         from agents.gemini import GeminiOrchestrator
 
         orch = GeminiOrchestrator({})
-        with patch("agents.gemini.which", return_value="/usr/bin/gemini"), \
-             patch.dict(os.environ, {}, clear=True):
+        with patch("agents.gemini.which", return_value="/usr/bin/gemini"), patch.dict(os.environ, {}, clear=True):
             result = orch.check_auth()
 
         assert result["ok"] is True
@@ -398,8 +417,10 @@ class TestOrchestratorCheckAuth:
         from agents.gemini import GeminiOrchestrator
 
         orch = GeminiOrchestrator({})
-        with patch("agents.gemini.which", return_value="/usr/bin/gemini"), \
-             patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}):
+        with (
+            patch("agents.gemini.which", return_value="/usr/bin/gemini"),
+            patch.dict(os.environ, {"GEMINI_API_KEY": "test-key"}),
+        ):
             result = orch.check_auth()
 
         assert result["ok"] is True
@@ -421,8 +442,7 @@ class TestOrchestratorCheckAuth:
 
         orch = OpenCodeOrchestrator({"agent": {"opencode": {"provider": "azure"}}})
         env = {"AZURE_OPENAI_API_KEY": "test-key", "AZURE_OPENAI_ENDPOINT": "https://azure.example.com"}
-        with patch("agents.opencode.which", return_value="/usr/bin/opencode"), \
-             patch.dict(os.environ, env):
+        with patch("agents.opencode.which", return_value="/usr/bin/opencode"), patch.dict(os.environ, env):
             result = orch.check_auth()
 
         assert result["ok"] is True
@@ -432,9 +452,11 @@ class TestOrchestratorCheckAuth:
         from agents.opencode import OpenCodeOrchestrator
 
         orch = OpenCodeOrchestrator({"agent": {"opencode": {"provider": "azure"}}})
-        with patch("agents.opencode.which", return_value="/usr/bin/opencode"), \
-             patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-key"}, clear=True), \
-             patch.object(orch, "_resolve_endpoint", return_value=""):
+        with (
+            patch("agents.opencode.which", return_value="/usr/bin/opencode"),
+            patch.dict(os.environ, {"AZURE_OPENAI_API_KEY": "test-key"}, clear=True),
+            patch.object(orch, "_resolve_endpoint", return_value=""),
+        ):
             result = orch.check_auth()
 
         assert result["ok"] is False

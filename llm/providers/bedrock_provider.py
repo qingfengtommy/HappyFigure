@@ -1,4 +1,5 @@
 """AWS Bedrock provider — supports Anthropic Claude and Amazon models via Bedrock."""
+
 from __future__ import annotations
 
 import json
@@ -32,10 +33,7 @@ class BedrockProvider(LLMProvider):
         try:
             import boto3
         except ImportError:
-            raise ImportError(
-                "boto3 package not installed. Install with: "
-                "pip install 'happyfigure[bedrock]'"
-            )
+            raise ImportError("boto3 package not installed. Install with: pip install 'happyfigure[bedrock]'")
 
         self._client = boto3.client(
             "bedrock-runtime",
@@ -48,6 +46,7 @@ class BedrockProvider(LLMProvider):
         name = self.__class__.__name__
         try:
             import boto3
+
             sts = boto3.client("sts", region_name=self._region)
             identity = sts.get_caller_identity()
             acct = identity.get("Account", "unknown")
@@ -95,8 +94,7 @@ class BedrockProvider(LLMProvider):
         reference_images: list[str] | None = None,
     ) -> bytes | None:
         raise NotImplementedError(
-            "Bedrock image generation not yet implemented. "
-            "Use OpenAI or Google provider for the 'drawing' role."
+            "Bedrock image generation not yet implemented. Use OpenAI or Google provider for the 'drawing' role."
         )
 
     def run_prompt_with_tools(
@@ -162,21 +160,26 @@ class BedrockProvider(LLMProvider):
                 res = tool_executor(block["name"], block["input"])
                 all_tool_calls.append({"name": block["name"], "arguments": block["input"]})
                 all_tool_results.append(res)
-                tool_results_content.append({
-                    "type": "tool_result",
-                    "tool_use_id": block["id"],
-                    "content": json.dumps(res, default=str),
-                })
+                tool_results_content.append(
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": block["id"],
+                        "content": json.dumps(res, default=str),
+                    }
+                )
             messages.append({"role": "user", "content": tool_results_content})
 
         text = _extract_text(result) if result else ""
         return ToolCallResult(
-            text=text, tool_calls=all_tool_calls,
-            tool_results=all_tool_results, raw_response=result,
+            text=text,
+            tool_calls=all_tool_calls,
+            tool_results=all_tool_results,
+            raw_response=result,
         )
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
+
 
 def _build_messages(
     few_shot_messages: list[dict] | None,
@@ -202,10 +205,12 @@ def _build_messages(
                         if img_url and "," in img_url:
                             header, b64_data = img_url.split(",", 1)
                             media_type = header.split(":")[1].split(";")[0]
-                            parts.append({
-                                "type": "image",
-                                "source": {"type": "base64", "media_type": media_type, "data": b64_data},
-                            })
+                            parts.append(
+                                {
+                                    "type": "image",
+                                    "source": {"type": "base64", "media_type": media_type, "data": b64_data},
+                                }
+                            )
                 if parts:
                     messages.append({"role": role, "content": parts})
 
@@ -213,10 +218,12 @@ def _build_messages(
     if image_base64 and "," in image_base64:
         header, b64_data = image_base64.split(",", 1)
         media_type = header.split(":")[1].split(";")[0]
-        user_content.append({
-            "type": "image",
-            "source": {"type": "base64", "media_type": media_type, "data": b64_data},
-        })
+        user_content.append(
+            {
+                "type": "image",
+                "source": {"type": "base64", "media_type": media_type, "data": b64_data},
+            }
+        )
     messages.append({"role": "user", "content": user_content})
     return messages
 

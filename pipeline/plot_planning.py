@@ -1,4 +1,5 @@
 """Planner-stylist prompt building, spec validation, and plan step."""
+
 from __future__ import annotations
 
 import argparse
@@ -77,24 +78,30 @@ def build_planner_stylist_prompt(
     feedback_paths: list[str] | None = None,
 ) -> str:
     pc = PromptComposer()
-    pc.add(PromptSection(
-        "context",
-        planner_stylist_context(run_dir, experiments_dir),
-        priority=10,
-    ))
+    pc.add(
+        PromptSection(
+            "context",
+            planner_stylist_context(run_dir, experiments_dir),
+            priority=10,
+        )
+    )
     if feedback_paths:
         listing = "\n".join(f"- {p}" for p in feedback_paths)
-        pc.add(PromptSection(
-            "human_feedback_refs",
-            f"## Feedback Files (read before writing specs)\n{listing}",
-            priority=15,
-        ))
+        pc.add(
+            PromptSection(
+                "human_feedback_refs",
+                f"## Feedback Files (read before writing specs)\n{listing}",
+                priority=15,
+            )
+        )
     if include_style_directive:
-        pc.add(PromptSection(
-            "style_directive",
-            global_style_directive(run_dir),
-            priority=20,
-        ))
+        pc.add(
+            PromptSection(
+                "style_directive",
+                global_style_directive(run_dir),
+                priority=20,
+            )
+        )
 
     task_parts = [
         "Then browse style examples, plan all figures, and write detailed styled specs "
@@ -159,6 +166,7 @@ def report_plot_specs(run_dir: str, experiments: list[str], *, variant_idx: int 
 def _bundled_lines_limit() -> int:
     """Return the max_bundled_lines threshold from config."""
     from graphs.svg_utils import load_pipeline_config
+
     return load_pipeline_config().get("context", {}).get("max_bundled_lines", 200)
 
 
@@ -181,21 +189,25 @@ def build_code_agent_prompt(
 
     experiments_dir = experiments_dir or ""
     results_label = "Results directories" if "," in experiments_dir else "Results directory"
-    pc.add(PromptSection(
-        "context",
-        f"Generate the figure for experiment: {experiment}. "
-        f"Run directory: {run_dir}. "
-        f"{results_label}: {experiments_dir}. "
-        f"Styled spec: {spec_path}.",
-        priority=10,
-    ))
+    pc.add(
+        PromptSection(
+            "context",
+            f"Generate the figure for experiment: {experiment}. "
+            f"Run directory: {run_dir}. "
+            f"{results_label}: {experiments_dir}. "
+            f"Styled spec: {spec_path}.",
+            priority=10,
+        )
+    )
     if feedback_paths:
         listing = "\n".join(f"- {p}" for p in feedback_paths)
-        pc.add(PromptSection(
-            "human_feedback_refs",
-            f"## Feedback Files (read before writing code)\n{listing}",
-            priority=15,
-        ))
+        pc.add(
+            PromptSection(
+                "human_feedback_refs",
+                f"## Feedback Files (read before writing code)\n{listing}",
+                priority=15,
+            )
+        )
 
     if global_style_content and global_style_path:
         preamble = (
@@ -204,9 +216,11 @@ def build_code_agent_prompt(
             "All figures in this run MUST share the same visual style.\n\n"
         )
         pc.add_bundled(
-            "global_style", global_style_path,
+            "global_style",
+            global_style_path,
             preamble + global_style_content,
-            priority=20, max_lines=max_lines,
+            priority=20,
+            max_lines=max_lines,
         )
     elif global_style_content:
         # No path available — inline only (legacy callers)
@@ -215,44 +229,54 @@ def build_code_agent_prompt(
     # Color registry — ensures cross-figure color consistency
     color_reg_path = os.path.join(run_dir, "color_registry.json")
     if os.path.exists(color_reg_path):
-        pc.add(PromptSection(
-            "color_registry",
-            f"Color registry (cross-figure consistency): {color_reg_path}\n"
-            f"Read this JSON file and use its hex colors for ALL data categories. "
-            f"Do NOT use default matplotlib colors when registry colors are available.",
-            priority=25,
-        ))
+        pc.add(
+            PromptSection(
+                "color_registry",
+                f"Color registry (cross-figure consistency): {color_reg_path}\n"
+                f"Read this JSON file and use its hex colors for ALL data categories. "
+                f"Do NOT use default matplotlib colors when registry colors are available.",
+                priority=25,
+            )
+        )
 
     if spec_content:
         pc.add_bundled(
-            "spec_content", spec_path, spec_content,
-            priority=50, max_lines=max_lines,
+            "spec_content",
+            spec_path,
+            spec_content,
+            priority=50,
+            max_lines=max_lines,
         )
 
-    pc.add(PromptSection(
-        "task",
-        f"Write Python figure code, execute it, {critic_instruction}, "
-        f"and iterate up to {CODE_AGENT_MAX_ITERATIONS} times. "
-        f"Save figure_code.py, figure output PNGs, and critic_result.json all to {work_dir}/. "
-        f"IMPORTANT: Archive each iteration's code as figure_code_iter{{N}}.py before modifying it, "
-        f"and archive each iteration's critic result as critic_result_iter{{N}}.json. "
-        f"This preserves the full history of attempts. "
-        f"Do NOT modify {run_dir}/state.json; the orchestrator owns it.",
-        priority=60,
-    ))
+    pc.add(
+        PromptSection(
+            "task",
+            f"Write Python figure code, execute it, {critic_instruction}, "
+            f"and iterate up to {CODE_AGENT_MAX_ITERATIONS} times. "
+            f"Save figure_code.py, figure output PNGs, and critic_result.json all to {work_dir}/. "
+            f"IMPORTANT: Archive each iteration's code as figure_code_iter{{N}}.py before modifying it, "
+            f"and archive each iteration's critic result as critic_result_iter{{N}}.json. "
+            f"This preserves the full history of attempts. "
+            f"Do NOT modify {run_dir}/state.json; the orchestrator owns it.",
+            priority=60,
+        )
+    )
 
     if prior_feedback:
-        pc.add(PromptSection(
-            "prior_feedback",
-            f"IMPORTANT: This is a beam search refinement. Previous attempts received "
-            f"the following feedback history — use ALL of it to avoid repeating mistakes "
-            f"and to build on what worked:\n{prior_feedback}",
-            priority=70,
-            max_chars=3000,
-        ))
+        pc.add(
+            PromptSection(
+                "prior_feedback",
+                f"IMPORTANT: This is a beam search refinement. Previous attempts received "
+                f"the following feedback history — use ALL of it to avoid repeating mistakes "
+                f"and to build on what worked:\n{prior_feedback}",
+                priority=70,
+                max_chars=3000,
+            )
+        )
 
     # Apply budget: prefer path-ref conversion over truncation.
     from graphs.svg_utils import load_pipeline_config
+
     cfg = load_pipeline_config()
     budget = cfg.get("context", {}).get("initial_prompt_budget", 30_000)
     apply_budget(pc, budget_tokens=budget)
@@ -270,6 +294,7 @@ def step_plan_and_style(run_dir: str, args: argparse.Namespace) -> list[str]:
     experiments_dir = os.path.abspath(args.experiments_dir) if args.experiments_dir else ""
 
     from pipeline.feedback import collect_feedback_paths
+
     fb_paths = collect_feedback_paths(run_dir, "design")
 
     prompt = build_planner_stylist_prompt(
@@ -291,6 +316,7 @@ def step_plan_and_style(run_dir: str, args: argparse.Namespace) -> list[str]:
     if not validate_plot_specs(run_dir, experiments):
         ui.warn("LLM planner-stylist did not produce valid specs. Falling back to Python generator.")
         from graphs.spec_fallback import generate_specs_python
+
         experiments = generate_specs_python(run_dir, experiments_dir)
 
     if not experiments:

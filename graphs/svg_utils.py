@@ -14,6 +14,7 @@ Provides:
 - draw_samed_image for visualizing SAM3 box annotations
 - Composite image builder (side-by-side) for multimodal LLM calls
 """
+
 from __future__ import annotations
 
 import io
@@ -66,12 +67,14 @@ def load_pipeline_config() -> dict:
         try:
             if config_path.exists():
                 import yaml
+
                 raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
                 _PIPELINE_CONFIG = raw if isinstance(raw, dict) else {}
             else:
                 _PIPELINE_CONFIG = {}
         except Exception as exc:
             import warnings
+
             warnings.warn(f"Failed to load pipeline config ({exc}); using defaults", stacklevel=2)
             _PIPELINE_CONFIG = {}
         # Overlay user overrides from HAPPYFIGURE_CONFIG
@@ -79,11 +82,13 @@ def load_pipeline_config() -> dict:
         if override_path:
             try:
                 import yaml
+
                 override_raw = yaml.safe_load(Path(override_path).read_text(encoding="utf-8"))
                 if isinstance(override_raw, dict):
                     _PIPELINE_CONFIG = _deep_merge(_PIPELINE_CONFIG, override_raw)
             except Exception as exc:
                 import warnings
+
                 warnings.warn(f"Failed to load HAPPYFIGURE_CONFIG={override_path} ({exc})", stacklevel=2)
     return _PIPELINE_CONFIG
 
@@ -253,17 +258,17 @@ def get_label_font(box_width: int, box_height: int) -> Optional[ImageFont.FreeTy
 
 def extract_svg_code(content: str) -> Optional[str]:
     """Extract ``<svg>...</svg>`` from LLM response text."""
-    match = re.search(r'(<svg[\s\S]*?</svg>)', content, re.IGNORECASE)
+    match = re.search(r"(<svg[\s\S]*?</svg>)", content, re.IGNORECASE)
     if match:
         return match.group(1)
 
-    match = re.search(r'```(?:svg|xml)?\s*([\s\S]*?)```', content)
+    match = re.search(r"```(?:svg|xml)?\s*([\s\S]*?)```", content)
     if match:
         code = match.group(1).strip()
-        if code.startswith('<svg'):
+        if code.startswith("<svg"):
             return code
 
-    if content.strip().startswith('<svg'):
+    if content.strip().startswith("<svg"):
         return content.strip()
 
     return None
@@ -276,11 +281,13 @@ def validate_svg_syntax(svg_code: str) -> tuple[bool, list[str]]:
     """Validate SVG/XML syntax using lxml (preferred) or stdlib xml.etree."""
     try:
         from lxml import etree
-        etree.fromstring(svg_code.encode('utf-8'))
+
+        etree.fromstring(svg_code.encode("utf-8"))
         return True, []
     except ImportError:
         try:
             import xml.etree.ElementTree as ET
+
             ET.fromstring(svg_code)
             return True, []
         except ET.ParseError as e:
@@ -288,6 +295,7 @@ def validate_svg_syntax(svg_code: str) -> tuple[bool, list[str]]:
     except Exception as e:
         try:
             from lxml import etree
+
             if isinstance(e, etree.XMLSyntaxError):
                 errors = []
                 for err in e.error_log:
@@ -317,7 +325,7 @@ def get_svg_dimensions(svg_code: str) -> tuple[Optional[float], Optional[float]]
     def _parse_dim(attr: str) -> Optional[float]:
         m = re.search(rf'{attr}=["\']([^"\']+)["\']', svg_code, re.IGNORECASE)
         if m:
-            nm = re.match(r'([\d.]+)', m.group(1).strip())
+            nm = re.match(r"([\d.]+)", m.group(1).strip())
             if nm:
                 try:
                     return float(nm.group(1))
@@ -325,15 +333,17 @@ def get_svg_dimensions(svg_code: str) -> tuple[Optional[float], Optional[float]]
                     pass
         return None
 
-    w, h = _parse_dim('width'), _parse_dim('height')
+    w, h = _parse_dim("width"), _parse_dim("height")
     if w and h:
         return w, h
     return None, None
 
 
 def calculate_scale_factors(
-    figure_width: int, figure_height: int,
-    svg_width: float, svg_height: float,
+    figure_width: int,
+    figure_height: int,
+    svg_width: float,
+    svg_height: float,
 ) -> tuple[float, float]:
     """Return (scale_x, scale_y) from figure pixel coords to SVG coords."""
     return svg_width / figure_width, svg_height / figure_height
@@ -348,6 +358,7 @@ def svg_to_png(svg_path: str, output_path: str, scale: float | None = None) -> O
         scale = load_pipeline_config().get("svg", {}).get("render_scale", 2.0)
     try:
         import cairosvg
+
         # Render to bytes first, then flatten RGBA → RGB with white background
         png_data = cairosvg.svg2png(url=svg_path, scale=scale)
         with Image.open(io.BytesIO(png_data)) as img:
@@ -358,6 +369,7 @@ def svg_to_png(svg_path: str, output_path: str, scale: float | None = None) -> O
         try:
             from svglib.svglib import svg2rlg
             from reportlab.graphics import renderPM
+
             drawing = svg2rlg(svg_path)
             renderPM.drawToFile(drawing, output_path, fmt="PNG")
             return output_path
@@ -382,7 +394,7 @@ def validate_base64_images(svg_code: str, expected_count: int) -> tuple[bool, st
     if actual < expected_count:
         return False, f"base64 image count: expected {expected_count}, got {actual}"
 
-    for m in re.finditer(r'data:image/[^;]+;base64,([A-Za-z0-9+/=]+)', svg_code):
+    for m in re.finditer(r"data:image/[^;]+;base64,([A-Za-z0-9+/=]+)", svg_code):
         b64 = m.group(1)
         if len(b64) % 4 != 0:
             return False, f"Truncated base64 data (length {len(b64)} not multiple of 4)"
@@ -433,13 +445,13 @@ def draw_samed_image(
 
 # Per-prompt colours – cycle if more prompts than colours
 _SAM_COLORS = [
-    (66, 133, 244, 80),   # blue
-    (234, 67, 53, 80),    # red
-    (251, 188, 4, 80),    # yellow
-    (52, 168, 83, 80),    # green
-    (171, 71, 188, 80),   # purple
-    (255, 112, 67, 80),   # orange
-    (0, 172, 193, 80),    # cyan
+    (66, 133, 244, 80),  # blue
+    (234, 67, 53, 80),  # red
+    (251, 188, 4, 80),  # yellow
+    (52, 168, 83, 80),  # green
+    (171, 71, 188, 80),  # purple
+    (255, 112, 67, 80),  # orange
+    (0, 172, 193, 80),  # cyan
 ]
 
 _SAM_BORDER_COLORS = [
@@ -672,7 +684,7 @@ def _parse_review_json(response: str, agent_type: str) -> dict:
 
     if result is None:
         # Fallback: try to find JSON object in the response
-        match = re.search(r'\{.*\}', response, re.DOTALL)
+        match = re.search(r"\{.*\}", response, re.DOTALL)
         if match:
             try:
                 result = json.loads(match.group(0))
@@ -736,12 +748,12 @@ def validate_text_boundaries(svg_code: str) -> list[str]:
     # Find all <text> elements with x/y attributes
     # Match <text ...>content</text> — simplified, handles most cases
     for m in re.finditer(
-        r'<text\b([^>]*)>(.*?)</text>',
+        r"<text\b([^>]*)>(.*?)</text>",
         svg_code,
         re.DOTALL | re.IGNORECASE,
     ):
         attrs = m.group(1)
-        content = re.sub(r'<[^>]+>', '', m.group(2)).strip()  # strip inner tags like <tspan>
+        content = re.sub(r"<[^>]+>", "", m.group(2)).strip()  # strip inner tags like <tspan>
         if not content:
             continue
 
@@ -761,7 +773,7 @@ def validate_text_boundaries(svg_code: str) -> list[str]:
         # Estimate text width: ~0.6 × font_size per character
         estimated_width = len(content) * font_size * 0.6
         anchor_match = re.search(r'\btext-anchor=["\']([^"\']+)["\']', attrs)
-        text_anchor = (anchor_match.group(1).strip().lower() if anchor_match else "start")
+        text_anchor = anchor_match.group(1).strip().lower() if anchor_match else "start"
 
         # Extract id for reference
         id_match = re.search(r'\bid=["\']([^"\']+)["\']', attrs)
@@ -785,10 +797,7 @@ def validate_text_boundaries(svg_code: str) -> list[str]:
                 f"width={vb_w:.0f} by ~{overflow:.0f}px"
             )
         if left < 0:
-            warnings.append(
-                f"Text '{content[:30]}' (id={elem_id}) at x={x:.0f} "
-                f"starts before viewBox left edge"
-            )
+            warnings.append(f"Text '{content[:30]}' (id={elem_id}) at x={x:.0f} starts before viewBox left edge")
 
     return warnings
 
@@ -823,7 +832,7 @@ def _bbox_union(boxes: list[dict]) -> dict | None:
 
 
 def _parse_points_bbox(points: str) -> dict | None:
-    coords = re.findall(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', points or "")
+    coords = re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", points or "")
     if len(coords) < 4:
         return None
     xs = []
@@ -837,7 +846,7 @@ def _parse_points_bbox(points: str) -> dict | None:
 
 
 def _parse_path_bbox(path_d: str) -> dict | None:
-    tokens = re.findall(r'[MmLlHhVvCcSsQqTtAaZz]|[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', path_d or "")
+    tokens = re.findall(r"[MmLlHhVvCcSsQqTtAaZz]|[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", path_d or "")
     if not tokens:
         return None
 
@@ -860,7 +869,7 @@ def _parse_path_bbox(path_d: str) -> dict | None:
 
     while idx < len(tokens):
         token = tokens[idx]
-        if re.fullmatch(r'[MmLlHhVvCcSsQqTtAaZz]', token):
+        if re.fullmatch(r"[MmLlHhVvCcSsQqTtAaZz]", token):
             cmd = token
             idx += 1
             if cmd in "Zz":
@@ -903,10 +912,12 @@ def _parse_path_bbox(path_d: str) -> dict | None:
                 break
             x1, y1, x2, y2, x, y = pts
             if cmd == "c":
-                coords.extend([
-                    (cur_x + x1, cur_y + y1),
-                    (cur_x + x2, cur_y + y2),
-                ])
+                coords.extend(
+                    [
+                        (cur_x + x1, cur_y + y1),
+                        (cur_x + x2, cur_y + y2),
+                    ]
+                )
                 cur_x += x
                 cur_y += y
             else:
@@ -1019,17 +1030,16 @@ def _parse_semantic_group_boxes(svg_code: str) -> list[dict]:
         groups.append({"id": group_id, "bbox": bbox})
     return groups
 
+
 def _parse_svg_text_elements(svg_code: str) -> list[dict]:
     """Extract all <text> elements with position, font-size, rotation, and estimated bbox."""
     elements = []
     # Match <text ...>content</text> (single-line and multiline)
-    text_pattern = re.compile(
-        r'<text\b([^>]*)>(.*?)</text>', re.DOTALL
-    )
+    text_pattern = re.compile(r"<text\b([^>]*)>(.*?)</text>", re.DOTALL)
     for m in text_pattern.finditer(svg_code):
         attrs_str, content = m.group(1), m.group(2)
         # Strip inner tags like <tspan>
-        content_clean = re.sub(r'<[^>]+>', '', content).strip()
+        content_clean = re.sub(r"<[^>]+>", "", content).strip()
         if not content_clean:
             continue
 
@@ -1048,7 +1058,7 @@ def _parse_svg_text_elements(svg_code: str) -> list[dict]:
         # font-size from attribute or style
         font_size = _attr("font-size", 0.0)
         if font_size == 0.0:
-            fs_match = re.search(r'font-size:\s*([\d.]+)', attrs_str)
+            fs_match = re.search(r"font-size:\s*([\d.]+)", attrs_str)
             if fs_match:
                 font_size = float(fs_match.group(1))
         if font_size == 0.0:
@@ -1056,12 +1066,12 @@ def _parse_svg_text_elements(svg_code: str) -> list[dict]:
 
         # rotation from transform
         rotation = 0.0
-        rot_match = re.search(r'rotate\(\s*([-\d.]+)', attrs_str)
+        rot_match = re.search(r"rotate\(\s*([-\d.]+)", attrs_str)
         if rot_match:
             rotation = float(rot_match.group(1))
 
         anchor_match = re.search(r'text-anchor=["\']([^"\']+)["\']', attrs_str)
-        text_anchor = (anchor_match.group(1).strip().lower() if anchor_match else "start")
+        text_anchor = anchor_match.group(1).strip().lower() if anchor_match else "start"
 
         # id
         id_match = re.search(r'id=["\']([^"\']+)["\']', attrs_str)
@@ -1112,15 +1122,18 @@ def _parse_svg_text_elements(svg_code: str) -> list[dict]:
                 "y2": y + est_height - font_size,
             }
 
-        elements.append({
-            "id": elem_id,
-            "content": content_clean,
-            "x": x, "y": y,
-            "font_size": font_size,
-            "rotation": rotation,
-            "text_anchor": text_anchor,
-            "bbox": bbox,
-        })
+        elements.append(
+            {
+                "id": elem_id,
+                "content": content_clean,
+                "x": x,
+                "y": y,
+                "font_size": font_size,
+                "rotation": rotation,
+                "text_anchor": text_anchor,
+                "bbox": bbox,
+            }
+        )
     return elements
 
 
@@ -1146,18 +1159,20 @@ def check_text_overlaps(svg_code: str) -> list[dict]:
             overlap = _bbox_overlap(a["bbox"], b["bbox"])
             min_area = min(_bbox_area(a["bbox"]), _bbox_area(b["bbox"]))
             if min_area > 0 and overlap / min_area > overlap_threshold:
-                issues.append({
-                    "type": "text_text_overlap",
-                    "severity": "high",
-                    "message": (
-                        f"Text '{a['content'][:30]}' overlaps with "
-                        f"'{b['content'][:30]}' "
-                        f"(overlap ratio: {overlap / min_area:.0%})"
-                    ),
-                    "elements": [a["content"][:30], b["content"][:30]],
-                    "element_ids": [a.get("id"), b.get("id")],
-                    "bboxes": [a["bbox"], b["bbox"]],
-                })
+                issues.append(
+                    {
+                        "type": "text_text_overlap",
+                        "severity": "high",
+                        "message": (
+                            f"Text '{a['content'][:30]}' overlaps with "
+                            f"'{b['content'][:30]}' "
+                            f"(overlap ratio: {overlap / min_area:.0%})"
+                        ),
+                        "elements": [a["content"][:30], b["content"][:30]],
+                        "element_ids": [a.get("id"), b.get("id")],
+                        "bboxes": [a["bbox"], b["bbox"]],
+                    }
+                )
     return issues
 
 
@@ -1175,16 +1190,15 @@ def check_semantic_element_overlaps(svg_code: str) -> list[dict]:
                 continue
             ratio = overlap / min_area
             if ratio > overlap_threshold:
-                issues.append({
-                    "type": "semantic_element_overlap",
-                    "severity": "high",
-                    "message": (
-                        f"Element '{a['id']}' overlaps with '{b['id']}' "
-                        f"(overlap ratio: {ratio:.0%})"
-                    ),
-                    "elements": [a["id"], b["id"]],
-                    "bboxes": [a["bbox"], b["bbox"]],
-                })
+                issues.append(
+                    {
+                        "type": "semantic_element_overlap",
+                        "severity": "high",
+                        "message": (f"Element '{a['id']}' overlaps with '{b['id']}' (overlap ratio: {ratio:.0%})"),
+                        "elements": [a["id"], b["id"]],
+                        "bboxes": [a["bbox"], b["bbox"]],
+                    }
+                )
     return issues
 
 
@@ -1192,11 +1206,13 @@ def check_text_boundary_issues(svg_code: str) -> list[dict]:
     """Convert viewBox overflow warnings into structured issues."""
     issues = []
     for warning in validate_text_boundaries(svg_code):
-        issues.append({
-            "type": "text_boundary_overflow",
-            "severity": "high",
-            "message": warning,
-        })
+        issues.append(
+            {
+                "type": "text_boundary_overflow",
+                "severity": "high",
+                "message": warning,
+            }
+        )
     return issues
 
 
@@ -1239,16 +1255,18 @@ def check_text_in_boxes(
 
         tx, ty = svg_el["x"], svg_el["y"]
         if tx < bx1 or tx > bx2 or ty < by1 or ty > by2:
-            issues.append({
-                "type": "text_outside_box",
-                "severity": "high",
-                "message": (
-                    f"Text '{label[:30]}' at ({tx:.0f},{ty:.0f}) is outside "
-                    f"its box {box_id} ({bx1:.0f},{by1:.0f})-({bx2:.0f},{by2:.0f})"
-                ),
-                "text": label[:30],
-                "box_id": box_id,
-            })
+            issues.append(
+                {
+                    "type": "text_outside_box",
+                    "severity": "high",
+                    "message": (
+                        f"Text '{label[:30]}' at ({tx:.0f},{ty:.0f}) is outside "
+                        f"its box {box_id} ({bx1:.0f},{by1:.0f})-({bx2:.0f},{by2:.0f})"
+                    ),
+                    "text": label[:30],
+                    "box_id": box_id,
+                }
+            )
     return issues
 
 
@@ -1263,47 +1281,47 @@ def check_missing_labels(svg_code: str, ocr_texts: list[dict]) -> list[dict]:
         if not label or len(label) < 2:
             continue
         if label.lower() not in svg_contents_lower:
-            issues.append({
-                "type": "missing_label",
-                "severity": "medium",
-                "message": f"OCR label '{label[:40]}' not found in SVG",
-                "label": label[:40],
-            })
+            issues.append(
+                {
+                    "type": "missing_label",
+                    "severity": "medium",
+                    "message": f"OCR label '{label[:40]}' not found in SVG",
+                    "label": label[:40],
+                }
+            )
     return issues
 
 
 def check_arrow_count(svg_code: str, valid_boxes: list[dict]) -> list[dict]:
     """Compare SAM-detected arrow count vs SVG arrow elements."""
     issues = []
-    sam_arrows = sum(
-        1 for b in valid_boxes
-        if b.get("prompt", "").lower() == "arrow"
-    )
+    sam_arrows = sum(1 for b in valid_boxes if b.get("prompt", "").lower() == "arrow")
 
     # Count SVG arrows: <line>, <path> with marker-end, or elements with id containing "arrow"
-    svg_arrow_markers = len(re.findall(r'marker-end\s*=', svg_code))
+    svg_arrow_markers = len(re.findall(r"marker-end\s*=", svg_code))
     svg_arrow_ids = len(re.findall(r'id=["\'][^"\']*arrow[^"\']*["\']', svg_code, re.IGNORECASE))
     svg_arrows = max(svg_arrow_markers, svg_arrow_ids)
 
     if sam_arrows > 0 and svg_arrows == 0:
-        issues.append({
-            "type": "missing_arrows",
-            "severity": "high",
-            "message": f"SAM detected {sam_arrows} arrows but SVG has none",
-            "expected": sam_arrows,
-            "actual": svg_arrows,
-        })
+        issues.append(
+            {
+                "type": "missing_arrows",
+                "severity": "high",
+                "message": f"SAM detected {sam_arrows} arrows but SVG has none",
+                "expected": sam_arrows,
+                "actual": svg_arrows,
+            }
+        )
     elif sam_arrows > 0 and abs(svg_arrows - sam_arrows) > sam_arrows * 0.5:
-        issues.append({
-            "type": "arrow_count_mismatch",
-            "severity": "medium",
-            "message": (
-                f"Arrow count mismatch: SAM detected {sam_arrows}, "
-                f"SVG has ~{svg_arrows}"
-            ),
-            "expected": sam_arrows,
-            "actual": svg_arrows,
-        })
+        issues.append(
+            {
+                "type": "arrow_count_mismatch",
+                "severity": "medium",
+                "message": (f"Arrow count mismatch: SAM detected {sam_arrows}, SVG has ~{svg_arrows}"),
+                "expected": sam_arrows,
+                "actual": svg_arrows,
+            }
+        )
     return issues
 
 
@@ -1314,16 +1332,17 @@ def check_font_size_sanity(svg_code: str) -> list[dict]:
     text_elements = _parse_svg_text_elements(svg_code)
     for el in text_elements:
         if el["font_size"] > font_threshold:
-            issues.append({
-                "type": "oversized_font",
-                "severity": "high",
-                "message": (
-                    f"Text '{el['content'][:30]}' has font-size "
-                    f"{el['font_size']:.0f}px (>60px, likely a bug)"
-                ),
-                "element": el["content"][:30],
-                "font_size": el["font_size"],
-            })
+            issues.append(
+                {
+                    "type": "oversized_font",
+                    "severity": "high",
+                    "message": (
+                        f"Text '{el['content'][:30]}' has font-size {el['font_size']:.0f}px (>60px, likely a bug)"
+                    ),
+                    "element": el["content"][:30],
+                    "font_size": el["font_size"],
+                }
+            )
     return issues
 
 
@@ -1418,9 +1437,7 @@ def build_automated_refinement_instructions(check_result: dict, max_items: int =
                 "Move the label inward, widen the container, or wrap the text."
             )
         elif issue_type == "oversized_font":
-            instructions.append(
-                f"Reduce oversized label font and rebalance spacing: {issue.get('message', '')}"
-            )
+            instructions.append(f"Reduce oversized label font and rebalance spacing: {issue.get('message', '')}")
     return instructions
 
 
@@ -1430,21 +1447,25 @@ def _merge_issues(arch_feedback: dict, adv_feedback: dict) -> list[dict]:
 
     for dim_name, dim_data in arch_feedback.get("dimensions", {}).items():
         for issue_text in dim_data.get("issues", []):
-            issues.append({
-                "source": "architect",
-                "dimension": dim_name,
-                "issue": issue_text,
-                "severity": "high" if dim_data.get("score", 2) < 1.0 else "medium",
-            })
+            issues.append(
+                {
+                    "source": "architect",
+                    "dimension": dim_name,
+                    "issue": issue_text,
+                    "severity": "high" if dim_data.get("score", 2) < 1.0 else "medium",
+                }
+            )
 
     for dim_name, dim_data in adv_feedback.get("dimensions", {}).items():
         for issue_text in dim_data.get("issues", []):
-            issues.append({
-                "source": "advocate",
-                "dimension": dim_name,
-                "issue": issue_text,
-                "severity": "high" if dim_data.get("score", 2) < 1.0 else "medium",
-            })
+            issues.append(
+                {
+                    "source": "advocate",
+                    "dimension": dim_name,
+                    "issue": issue_text,
+                    "severity": "high" if dim_data.get("score", 2) < 1.0 else "medium",
+                }
+            )
 
     # Sort: high severity first, then by dimension
     severity_order = {"high": 0, "medium": 1, "low": 2}

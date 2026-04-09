@@ -15,6 +15,7 @@ Typical usage::
         for issue in report.issues:
             print(f"  - {issue}")
 """
+
 from __future__ import annotations
 
 import json
@@ -116,9 +117,7 @@ def _load_color_registry(path: str) -> list[str] | None:
         return None
 
 
-def _color_in_registry(
-    hex_color: str, registry_rgb: list[tuple[int, int, int]]
-) -> bool:
+def _color_in_registry(hex_color: str, registry_rgb: list[tuple[int, int, int]]) -> bool:
     """Check if *hex_color* is within tolerance of any registry color."""
     rgb = _hex_to_rgb(hex_color)
     return any(_color_distance(rgb, r) <= _COLOR_TOLERANCE for r in registry_rgb)
@@ -170,8 +169,7 @@ def lint_figure_output(
         size_bytes = os.path.getsize(figure_path)
         if size_bytes < min_file_bytes:
             issues.append(
-                f"Figure is only {size_bytes:,} bytes "
-                f"(expected >= {min_file_bytes:,} — likely blank or corrupt)"
+                f"Figure is only {size_bytes:,} bytes (expected >= {min_file_bytes:,} — likely blank or corrupt)"
             )
     except OSError as exc:
         issues.append(f"Cannot stat figure file: {exc}")
@@ -204,9 +202,7 @@ def lint_figure_output(
             arr = np.asarray(img.convert("RGB"), dtype=np.float32)
             variance = float(np.var(arr))
             if variance < 2.0:
-                issues.append(
-                    f"Image appears blank (pixel variance {variance:.2f}, threshold 2.0)"
-                )
+                issues.append(f"Image appears blank (pixel variance {variance:.2f}, threshold 2.0)")
         except ImportError:
             warnings.append("numpy not available — skipping blankness check")
         except Exception as exc:
@@ -227,8 +223,7 @@ def lint_figure_output(
                 effective_dpi = min(width_px / tw, height_px / th)
                 if effective_dpi < min_dpi:
                     issues.append(
-                        f"Effective DPI is {effective_dpi:.0f} at target size "
-                        f"{tw}x{th} in — need >= {min_dpi:.0f}"
+                        f"Effective DPI is {effective_dpi:.0f} at target size {tw}x{th} in — need >= {min_dpi:.0f}"
                     )
                 # Text legibility heuristic: at 6pt minimum, need enough
                 # pixels per point.
@@ -241,9 +236,7 @@ def lint_figure_output(
                             f"at target size ({px_per_pt:.1f} px/pt)"
                         )
         elif dpi_from_meta is not None and dpi_from_meta < min_dpi:
-            issues.append(
-                f"Image DPI from metadata is {dpi_from_meta:.0f} — need >= {min_dpi:.0f}"
-            )
+            issues.append(f"Image DPI from metadata is {dpi_from_meta:.0f} — need >= {min_dpi:.0f}")
     finally:
         img.close()
 
@@ -254,16 +247,12 @@ def lint_figure_output(
 # 2. lint_figure_code
 # ---------------------------------------------------------------------------
 
-_DESTRUCTIVE_CALLS = re.compile(
-    r"\b(?:os\.remove|os\.unlink|shutil\.rmtree|shutil\.move|os\.rmdir)\s*\("
-)
+_DESTRUCTIVE_CALLS = re.compile(r"\b(?:os\.remove|os\.unlink|shutil\.rmtree|shutil\.move|os\.rmdir)\s*\(")
 
 _SAVEFIG_RE = re.compile(r"\.savefig\s*\(")
 _DPI_IN_SAVEFIG_RE = re.compile(r"\.savefig\s*\([^)]*\bdpi\s*=\s*(\d+)")
 _BBOX_TIGHT_RE = re.compile(r"""bbox_inches\s*=\s*['"]tight['"]""")
-_BACKEND_RE = re.compile(
-    r"""matplotlib\.use\s*\(\s*['"](?:Agg|agg|PDF|pdf|SVG|svg|Cairo|cairo)['"]"""
-)
+_BACKEND_RE = re.compile(r"""matplotlib\.use\s*\(\s*['"](?:Agg|agg|PDF|pdf|SVG|svg|Cairo|cairo)['"]""")
 _RCPARAMS_RE = re.compile(r"\brcParams\b")
 _PLT_SHOW_RE = re.compile(r"\bplt\.show\s*\(")
 _PLT_CLOSE_RE = re.compile(r"\bplt\.close\s*\(")
@@ -325,15 +314,11 @@ def lint_figure_code(
 
     # --- backend ---
     if not _BACKEND_RE.search(source):
-        warnings.append(
-            "Missing matplotlib.use('Agg') — figure generation may hang in headless mode"
-        )
+        warnings.append("Missing matplotlib.use('Agg') — figure generation may hang in headless mode")
 
     # --- rcParams ---
     if not _RCPARAMS_RE.search(source):
-        warnings.append(
-            "No rcParams usage detected — figure may use default matplotlib style"
-        )
+        warnings.append("No rcParams usage detected — figure may use default matplotlib style")
 
     # --- savefig ---
     if not _SAVEFIG_RE.search(source):
@@ -343,60 +328,42 @@ def lint_figure_code(
         if dpi_match:
             dpi_val = int(dpi_match.group(1))
             if dpi_val < 300:
-                issues.append(
-                    f"savefig dpi={dpi_val} is below 300 — insufficient for publication"
-                )
+                issues.append(f"savefig dpi={dpi_val} is below 300 — insufficient for publication")
         else:
             warnings.append("savefig() call does not specify dpi=300")
 
         if not _BBOX_TIGHT_RE.search(source):
-            warnings.append(
-                "savefig() missing bbox_inches='tight' — figure may have excessive whitespace"
-            )
+            warnings.append("savefig() missing bbox_inches='tight' — figure may have excessive whitespace")
 
     # --- anti-patterns ---
     if _PLT_SHOW_RE.search(source):
-        issues.append(
-            "plt.show() detected — will block/hang in headless execution"
-        )
+        issues.append("plt.show() detected — will block/hang in headless execution")
 
     if not _PLT_CLOSE_RE.search(source):
-        warnings.append(
-            "No plt.close() call — may leak memory across multiple figure generations"
-        )
+        warnings.append("No plt.close() call — may leak memory across multiple figure generations")
 
     # --- destructive operations ---
     for match in _DESTRUCTIVE_CALLS.finditer(source):
-        lineno = source[:match.start()].count("\n") + 1
-        issues.append(
-            f"Destructive file operation at line {lineno}: {match.group().rstrip('(')}"
-        )
+        lineno = source[: match.start()].count("\n") + 1
+        issues.append(f"Destructive file operation at line {lineno}: {match.group().rstrip('(')}")
 
     # --- Nature/Science publication style enforcement ---
     if enforce_nature_style:
         if not _DESPINE_TOP_RE.search(source):
-            warnings.append(
-                "Top spine not removed — publication figures should despine top+right"
-            )
+            warnings.append("Top spine not removed — publication figures should despine top+right")
         if not _DESPINE_RIGHT_RE.search(source):
-            warnings.append(
-                "Right spine not removed — publication figures should despine top+right"
-            )
+            warnings.append("Right spine not removed — publication figures should despine top+right")
         if "legend" in source.lower() and not _LEGEND_FRAMEON_RE.search(source):
-            warnings.append(
-                "Legend may have a frame — publication style requires frameon=False"
-            )
+            warnings.append("Legend may have a frame — publication style requires frameon=False")
         # Check for grid enablement (Nature figures should not have gridlines)
         grid_patterns = [
-            r"\.grid\s*\(\s*True\s*\)",           # ax.grid(True)
-            r"\.grid\s*\(\s*visible\s*=\s*True",   # ax.grid(visible=True)
-            r"\.grid\s*\(\s*b\s*=\s*True",         # ax.grid(b=True)
-            r"rcParams.*axes\.grid.*True",          # rcParams['axes.grid'] = True
+            r"\.grid\s*\(\s*True\s*\)",  # ax.grid(True)
+            r"\.grid\s*\(\s*visible\s*=\s*True",  # ax.grid(visible=True)
+            r"\.grid\s*\(\s*b\s*=\s*True",  # ax.grid(b=True)
+            r"rcParams.*axes\.grid.*True",  # rcParams['axes.grid'] = True
         ]
         if any(re.search(p, source) for p in grid_patterns):
-            warnings.append(
-                "Gridlines enabled — publication figures should have clean white backgrounds"
-            )
+            warnings.append("Gridlines enabled — publication figures should have clean white backgrounds")
 
     # --- color registry ---
     if color_registry_path is not None:
@@ -440,9 +407,7 @@ def lint_styled_spec(spec_path: str) -> LintReport:
 
     # --- minimum length ---
     if len(lines) < 10:
-        issues.append(
-            f"Spec is only {len(lines)} lines (expected >= 10 for a usable spec)"
-        )
+        issues.append(f"Spec is only {len(lines)} lines (expected >= 10 for a usable spec)")
 
     # --- required keywords (word-boundary regex to avoid false matches) ---
     missing: list[str] = []
@@ -516,18 +481,10 @@ def lint_color_compliance(code_path: str, color_registry_path: str) -> LintRepor
 # 5. lint_cross_panel_consistency
 # ---------------------------------------------------------------------------
 
-_FIGSIZE_RE = re.compile(
-    r"figsize\s*=\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*\)"
-)
-_FONT_SIZE_RE = re.compile(
-    r"""rcParams\s*\[?\s*['"]font\.size['"]\s*\]?\s*=\s*([\d.]+)"""
-)
-_SAVEFIG_DPI_RE = re.compile(
-    r"savefig\s*\([^)]*\bdpi\s*=\s*(\d+)"
-)
-_SPINE_RE = re.compile(
-    r"""spines\s*\[\s*['"](\w+)['"]\s*\]\.set_visible\s*\(\s*(True|False)\s*\)"""
-)
+_FIGSIZE_RE = re.compile(r"figsize\s*=\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*\)")
+_FONT_SIZE_RE = re.compile(r"""rcParams\s*\[?\s*['"]font\.size['"]\s*\]?\s*=\s*([\d.]+)""")
+_SAVEFIG_DPI_RE = re.compile(r"savefig\s*\([^)]*\bdpi\s*=\s*(\d+)")
+_SPINE_RE = re.compile(r"""spines\s*\[\s*['"](\w+)['"]\s*\]\.set_visible\s*\(\s*(True|False)\s*\)""")
 
 
 def lint_cross_panel_consistency(panel_code_paths: dict[str, str]) -> LintReport:
@@ -580,8 +537,7 @@ def lint_cross_panel_consistency(panel_code_paths: dict[str, str]) -> LintReport
             smallest = min(areas, key=areas.get)  # type: ignore[arg-type]
             largest = max(areas, key=areas.get)  # type: ignore[arg-type]
             issues.append(
-                f"Figure sizes vary by > 2x: {smallest} = {figsizes[smallest]}, "
-                f"{largest} = {figsizes[largest]}"
+                f"Figure sizes vary by > 2x: {smallest} = {figsizes[smallest]}, {largest} = {figsizes[largest]}"
             )
 
     # --- font size ---
@@ -604,8 +560,7 @@ def lint_cross_panel_consistency(panel_code_paths: dict[str, str]) -> LintReport
         unique_configs = set(spine_sets.values())
         if len(unique_configs) > 1:
             warnings.append(
-                "Spine visibility settings differ across panels — "
-                "may look inconsistent in multi-panel layout"
+                "Spine visibility settings differ across panels — may look inconsistent in multi-panel layout"
             )
 
     return LintReport(passed=len(issues) == 0, issues=issues, warnings=warnings)

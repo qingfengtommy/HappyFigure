@@ -1,4 +1,5 @@
 """Agent subprocess execution — pipe, PTY, retry logic, doom-loop detection."""
+
 from __future__ import annotations
 
 import collections
@@ -69,7 +70,7 @@ class FailurePatternDetector:
             errors = self._recent_errors.setdefault(agent_name, [])
             errors.append(error_sig)
             if len(errors) > self._window_size:
-                self._recent_errors[agent_name] = errors[-self._window_size:]
+                self._recent_errors[agent_name] = errors[-self._window_size :]
 
     def detect(self, agent_name: str) -> str | None:
         """Return corrective guidance if a cross-session doom loop is detected
@@ -123,7 +124,6 @@ def _extract_error_signature(output_tail: str) -> str:
 
 # Module-level detector shared across retries within one orchestrator run.
 _doom_detector = FailurePatternDetector()
-
 
 
 def run_agent(
@@ -303,12 +303,7 @@ def run_agent(
 
         retry_checker = getattr(orch, "should_retry_with_dangerous_sandbox", None)
         retry_builder = getattr(orch, "build_fallback_agent_command", None)
-        if (
-            rc != 0
-            and callable(retry_checker)
-            and callable(retry_builder)
-            and retry_checker(output_tail)
-        ):
+        if rc != 0 and callable(retry_checker) and callable(retry_builder) and retry_checker(output_tail):
             retry_ac = retry_builder(prompt)
             if retry_ac is not None:
                 ui.warn("Detected Codex sandbox bootstrap failure; retrying with danger-full-access")

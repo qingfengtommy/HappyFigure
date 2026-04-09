@@ -1,4 +1,5 @@
 """Tests for scripts/evaluate_pipeline.py."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -17,9 +18,11 @@ class TestCheckAuth:
             "error": None,
         }
 
-        with patch.object(ep, "_check_agent_available", return_value=True), \
-             patch("agents.create_orchestrator", return_value=fake_orch) as mock_create, \
-             patch("scripts.evaluate_pipeline._load_env"):
+        with (
+            patch.object(ep, "_check_agent_available", return_value=True),
+            patch("agents.create_orchestrator", return_value=fake_orch) as mock_create,
+            patch("scripts.evaluate_pipeline._load_env"),
+        ):
             results = ep._check_auth(["codex"], sample_pipeline_config)
 
         assert results["codex"]["ok"] is True
@@ -34,9 +37,11 @@ class TestCheckAuth:
             "error": "Set AZURE_OPENAI_API_KEY, or install azure-identity",
         }
 
-        with patch.object(ep, "_check_agent_available", return_value=True), \
-             patch("agents.create_orchestrator", return_value=fake_orch), \
-             patch("scripts.evaluate_pipeline._load_env"):
+        with (
+            patch.object(ep, "_check_agent_available", return_value=True),
+            patch("agents.create_orchestrator", return_value=fake_orch),
+            patch("scripts.evaluate_pipeline._load_env"),
+        ):
             results = ep._check_auth(["opencode"], sample_pipeline_config)
 
         assert results["opencode"]["ok"] is False
@@ -44,8 +49,10 @@ class TestCheckAuth:
         assert "AZURE_OPENAI_API_KEY" in results["opencode"]["detail"]
 
     def test_marks_missing_cli_unavailable(self, sample_pipeline_config):
-        with patch.object(ep, "_check_agent_available", return_value=False), \
-             patch("scripts.evaluate_pipeline._load_env"):
+        with (
+            patch.object(ep, "_check_agent_available", return_value=False),
+            patch("scripts.evaluate_pipeline._load_env"),
+        ):
             results = ep._check_auth(["gemini"], sample_pipeline_config)
 
         assert results["gemini"] == {"ok": False, "detail": "CLI not found on PATH"}

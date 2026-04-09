@@ -1,4 +1,5 @@
 """Tests for the orchestrator registry in orchestrator/__init__.py."""
+
 from __future__ import annotations
 
 import os
@@ -76,6 +77,7 @@ class TestOrchestratorBase:
         class Dummy(OrchestratorBase):
             def setup(self, run_dir):
                 pass
+
             def build_agent_command(self, agent_name, prompt):
                 return AgentCommand(cmd=[])
 
@@ -93,6 +95,7 @@ class TestOrchestratorBase:
         class Dummy(OrchestratorBase):
             def setup(self, run_dir):
                 pass
+
             def build_agent_command(self, agent_name, prompt):
                 return AgentCommand(cmd=[])
 
@@ -107,6 +110,7 @@ class TestOrchestratorBase:
         class Dummy(OrchestratorBase):
             def setup(self, run_dir):
                 pass
+
             def build_agent_command(self, agent_name, prompt):
                 return AgentCommand(cmd=[])
 
@@ -120,6 +124,7 @@ class TestOrchestratorBase:
         class Dummy(OrchestratorBase):
             def setup(self, run_dir):
                 self._run_dir = run_dir
+
             def build_agent_command(self, agent_name, prompt):
                 return AgentCommand(cmd=[])
 
@@ -147,11 +152,13 @@ class TestPlatformRegistry:
         class TestPlat(OrchestratorBase):
             def setup(self, run_dir):
                 pass
+
             def build_agent_command(self, agent_name, prompt):
                 return AgentCommand(cmd=["test"])
 
         # Mark as loaded to prevent re-import
         import agents
+
         agents._loaded = True
 
         orch = create_orchestrator("test_plat", {"x": 1})
@@ -192,6 +199,7 @@ class TestPlatformRegistry:
         class MyPlat(OrchestratorBase):
             def setup(self, run_dir):
                 pass
+
             def build_agent_command(self, agent_name, prompt):
                 return AgentCommand(cmd=[])
 

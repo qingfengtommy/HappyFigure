@@ -1,4 +1,5 @@
 """HTTP client for the BEN2 background-removal service."""
+
 import base64
 import io
 from typing import Optional
@@ -29,7 +30,12 @@ class BEN2ServiceClient:
         return Image.open(io.BytesIO(img_bytes)).convert("RGBA")
 
     def remove_background_region(
-        self, image_path: str, x1: int, y1: int, x2: int, y2: int,
+        self,
+        image_path: str,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
     ) -> Image.Image:
         """Remove background from a cropped region."""
         resp = requests.post(

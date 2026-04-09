@@ -106,8 +106,7 @@ def _write_plot_design_summary(
     }
     if variant_specs:
         payload["beam_variant_specs"] = {
-            exp: [orch_art.normalize_relative_path(run_dir, p) for p in paths]
-            for exp, paths in variant_specs.items()
+            exp: [orch_art.normalize_relative_path(run_dir, p) for p in paths] for exp, paths in variant_specs.items()
         }
     path = orch_art.design_summary_path(run_dir)
     with open(path, "w", encoding="utf-8") as f:
@@ -175,8 +174,7 @@ def _design_plot(exploration: ExplorationResult, args: argparse.Namespace, mode:
     if variant_specs:
         vs_path = os.path.join(run_dir, "beam_variant_specs.json")
         normalized_variant_specs = {
-            exp: [orch_art.normalize_relative_path(run_dir, p) for p in paths]
-            for exp, paths in variant_specs.items()
+            exp: [orch_art.normalize_relative_path(run_dir, p) for p in paths] for exp, paths in variant_specs.items()
         }
         with open(vs_path, "w", encoding="utf-8") as f:
             json.dump(normalized_variant_specs, f, indent=2)
@@ -240,11 +238,13 @@ def _design_paper_composite(exploration: ExplorationResult, args: argparse.Names
     if experiments:
         try:
             from pipeline.plot_planning import step_plan_and_style
+
             experiments = step_plan_and_style(run_dir, args)
             design_artifacts[ArtifactKeys.GLOBAL_STYLE] = orch_art.GLOBAL_STYLE
             design_artifacts[ArtifactKeys.PLAN] = orch_art.MULTI_FIGURE_PLAN
         except Exception as exc:
             import ui
+
             ui.warn(f"Plot planning skipped for paper_composite: {exc}")
 
     # Ensure diagram design artifacts if method description exists
@@ -303,7 +303,6 @@ def _generate_plot(run_dir: str, args: argparse.Namespace, design: DesignResult,
     execute_plot_strategy(execution, run_dir, args, design)
 
 
-
 def _generate_composite(run_dir: str, args: argparse.Namespace, _design: DesignResult, _mode: str) -> None:
     from pipeline.drawing import step_svg_build, step_svg_refine, step_viz_compose
     from pipeline.pipeline_backend import start_services, stop_services
@@ -336,6 +335,7 @@ def _generate_paper_composite(run_dir: str, args: argparse.Namespace, _design: D
 
     if needs_services:
         from pipeline.pipeline_backend import start_services, stop_services
+
         start_services()
         try:
             run_composite_pipeline(run_dir, args, _design)

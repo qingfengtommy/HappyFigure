@@ -4,6 +4,7 @@ Generates ``.claude/agents/<name>.md`` files from shared prompts and launches
 agents via ``claude -p --agent <name>``. Claude Code has built-in
 Bash/Read/Glob/Grep tools matching what the agent prompts expect.
 """
+
 from __future__ import annotations
 
 import json
@@ -51,12 +52,21 @@ class ClaudeCodeOrchestrator(OrchestratorBase):
     def check_auth(self) -> dict:
         name = "claude"
         if not which("claude"):
-            return {"ok": False, "platform": name, "message": "Claude Code CLI not found", "error": "Install from https://docs.anthropic.com/en/docs/claude-code"}
+            return {
+                "ok": False,
+                "platform": name,
+                "message": "Claude Code CLI not found",
+                "error": "Install from https://docs.anthropic.com/en/docs/claude-code",
+            }
         # Claude Code manages its own auth (OAuth / API key) — check via `claude --version`
         import subprocess
+
         try:
             proc = subprocess.run(
-                ["claude", "--version"], capture_output=True, text=True, timeout=10,
+                ["claude", "--version"],
+                capture_output=True,
+                text=True,
+                timeout=10,
             )
             if proc.returncode != 0:
                 return {"ok": False, "platform": name, "message": "Claude CLI error", "error": proc.stderr.strip()}
@@ -70,8 +80,7 @@ class ClaudeCodeOrchestrator(OrchestratorBase):
 
         if not which("claude"):
             raise RuntimeError(
-                "Claude Code CLI not found. Install from: "
-                "https://docs.anthropic.com/en/docs/claude-code"
+                "Claude Code CLI not found. Install from: https://docs.anthropic.com/en/docs/claude-code"
             )
 
         claude_cfg = self.config.get("agent", {}).get("claude", {})
@@ -111,7 +120,8 @@ class ClaudeCodeOrchestrator(OrchestratorBase):
 
         logger.info(
             "Generated %d Claude agent files in %s",
-            len(self.list_agents()), agents_dir,
+            len(self.list_agents()),
+            agents_dir,
         )
 
     def build_agent_command(self, agent_name: str, prompt: str) -> AgentCommand:
@@ -127,14 +137,19 @@ class ClaudeCodeOrchestrator(OrchestratorBase):
 
         cmd = [
             "claude",
-            "-p",                          # non-interactive (print mode)
-            "--agent", agent_name,         # use .claude/agents/<name>.md
-            "--model", model,
-            "--verbose",                   # required for stream-json
-            "--output-format", "stream-json",
-            "--permission-mode", "acceptEdits",
-            "--settings", settings,
-            "--",                           # terminate flags; prompt follows
+            "-p",  # non-interactive (print mode)
+            "--agent",
+            agent_name,  # use .claude/agents/<name>.md
+            "--model",
+            model,
+            "--verbose",  # required for stream-json
+            "--output-format",
+            "stream-json",
+            "--permission-mode",
+            "acceptEdits",
+            "--settings",
+            settings,
+            "--",  # terminate flags; prompt follows
             prompt,
         ]
         return AgentCommand(cmd=cmd, stream_format="claude-stream-json")

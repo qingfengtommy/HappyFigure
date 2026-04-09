@@ -1,4 +1,5 @@
 """Tests for the provider registry in llm/providers/__init__.py."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -76,10 +77,13 @@ class TestRegistry:
         class DummyProvider(LLMProvider):
             def run_prompt(self, *a, **kw):
                 return ""
+
             def run_image_prompt(self, *a, **kw):
                 return None
+
             def run_prompt_with_tools(self, *a, **kw):
                 from llm.providers import ToolCallResult
+
                 return ToolCallResult(text="")
 
         assert "test_dummy" in _REGISTRY
@@ -93,16 +97,21 @@ class TestRegistry:
         class CreateProvider(LLMProvider):
             def __init__(self, config):
                 self.config = config
+
             def run_prompt(self, *a, **kw):
                 return ""
+
             def run_image_prompt(self, *a, **kw):
                 return None
+
             def run_prompt_with_tools(self, *a, **kw):
                 from llm.providers import ToolCallResult
+
                 return ToolCallResult(text="")
 
         # Mark as loaded so _ensure_providers_loaded doesn't clear our test registration
         import llm.providers as prov
+
         prov._providers_loaded = True
 
         instance = create_provider("test_create", {"key": "val"})

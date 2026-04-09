@@ -6,6 +6,7 @@ expose a stable non-interactive agent execution interface.  The generated
 agent files follow the ``.github/agents/`` convention used by GitHub Copilot
 Extensions but may not be consumed by the current CLI version.
 """
+
 from __future__ import annotations
 
 import logging
@@ -61,10 +62,7 @@ class CopilotOrchestrator(OrchestratorBase):
         self._store_mode(mode, execution)
 
         if not which("copilot"):
-            raise RuntimeError(
-                "Copilot CLI not found. Install from: "
-                "https://github.com/github/copilot-cli"
-            )
+            raise RuntimeError("Copilot CLI not found. Install from: https://github.com/github/copilot-cli")
 
         copilot_cfg = self.config.get("agent", {}).get("copilot", {})
         self._model = copilot_cfg.get("model", "gpt-5.4")
@@ -88,7 +86,8 @@ class CopilotOrchestrator(OrchestratorBase):
 
         logger.info(
             "Generated %d Copilot agent files in %s",
-            len(self.list_agents()), agents_dir,
+            len(self.list_agents()),
+            agents_dir,
         )
 
     def build_agent_command(self, agent_name: str, prompt: str) -> AgentCommand:
@@ -96,10 +95,13 @@ class CopilotOrchestrator(OrchestratorBase):
         cmd = [
             "copilot",
             f"--agent={agent_name}",
-            "-p", prompt,
-            "--model", model,
+            "-p",
+            prompt,
+            "--model",
+            model,
             "--allow-all-tools",
-            "--output-format", "json",
+            "--output-format",
+            "json",
         ]
         return AgentCommand(cmd=cmd, stream_format="copilot-json")
 

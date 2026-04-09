@@ -118,6 +118,7 @@ def human_experiment_feedback_path(run_dir: str, experiment: str) -> str:
 
 def style_preferences_path() -> str:
     from pathlib import Path
+
     return str(Path(__file__).resolve().parent.parent.parent / STYLE_PREFERENCES_REL)
 
 
@@ -215,7 +216,5 @@ def plot_experiment_index_entry(
         "figure_output": os.path.join(output_dir, "figure.png"),
     }
     if beam_variant_specs:
-        entry["beam_variant_specs"] = [
-            normalize_relative_path(run_dir, path) for path in beam_variant_specs
-        ]
+        entry["beam_variant_specs"] = [normalize_relative_path(run_dir, path) for path in beam_variant_specs]
     return entry

@@ -1,4 +1,5 @@
 """Tests for tools/critic_tools.py and tools/tool_schemas.py."""
+
 from __future__ import annotations
 
 import sys
@@ -23,6 +24,7 @@ from tools.tool_schemas import (  # noqa: E402
 # ---------------------------------------------------------------------------
 # Helper: build a valid review dict
 # ---------------------------------------------------------------------------
+
 
 def _valid_review(**overrides):
     base = {
@@ -55,8 +57,7 @@ class TestValidateReviewValid:
     def test_zero_score_valid(self):
         dims = {k: 0 for k in _DIMENSION_RANGES}
         dims["confusion_penalty"] = 0
-        review = _valid_review(score=0.0, verdict="NEEDS_IMPROVEMENT",
-                               dimension_scores=dims)
+        review = _valid_review(score=0.0, verdict="NEEDS_IMPROVEMENT", dimension_scores=dims)
         assert _validate_review(review) is None
 
     def test_max_score_valid(self):
@@ -68,8 +69,7 @@ class TestValidateReviewValid:
             "publication_readiness": 2.0,
             "confusion_penalty": 0,
         }
-        review = _valid_review(score=10.0, verdict="ACCEPT",
-                               dimension_scores=dims)
+        review = _valid_review(score=10.0, verdict="ACCEPT", dimension_scores=dims)
         assert _validate_review(review) is None
 
     def test_empty_issues_list(self):
@@ -77,11 +77,15 @@ class TestValidateReviewValid:
         assert _validate_review(review) is None
 
     def test_issue_with_optional_fields(self):
-        review = _valid_review(issues=[{
-            "description": "font too small",
-            "code_snippet": "plt.xlabel('x', fontsize=4)",
-            "fix_suggestion": "Use fontsize=8",
-        }])
+        review = _valid_review(
+            issues=[
+                {
+                    "description": "font too small",
+                    "code_snippet": "plt.xlabel('x', fontsize=4)",
+                    "fix_suggestion": "Use fontsize=8",
+                }
+            ]
+        )
         assert _validate_review(review) is None
 
 
@@ -302,30 +306,36 @@ class TestConvertSchemaForGemini:
         assert result["type"] == "OBJECT"
 
     def test_removes_additional_properties(self):
-        result = _convert_schema_for_gemini({
-            "type": "object",
-            "additionalProperties": False,
-            "properties": {"x": {"type": "string"}},
-        })
+        result = _convert_schema_for_gemini(
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {"x": {"type": "string"}},
+            }
+        )
         assert "additionalProperties" not in result
 
     def test_removes_dollar_schema(self):
-        result = _convert_schema_for_gemini({
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "object",
-        })
+        result = _convert_schema_for_gemini(
+            {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+            }
+        )
         assert "$schema" not in result
 
     def test_recursive_conversion(self):
-        result = _convert_schema_for_gemini({
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                }
-            },
-        })
+        result = _convert_schema_for_gemini(
+            {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    }
+                },
+            }
+        )
         assert result["properties"]["items"]["type"] == "ARRAY"
         assert result["properties"]["items"]["items"]["type"] == "STRING"
 

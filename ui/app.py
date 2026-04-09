@@ -5,6 +5,7 @@ output (agent subprocess streams, JSON from pipeline_cli.py).
 
 Respects NO_COLOR, CI, TERM=dumb, and HAPPYFIGURE_OUTPUT env vars.
 """
+
 from __future__ import annotations
 
 import os
@@ -27,6 +28,7 @@ from rich.theme import Theme
 # Output mode detection
 # ---------------------------------------------------------------------------
 
+
 def _detect_mode() -> str:
     """Returns 'rich' or 'plain'."""
     explicit = os.environ.get("HAPPYFIGURE_OUTPUT", "").lower()
@@ -46,6 +48,7 @@ _USE_COLOR = _MODE == "rich"
 # ---------------------------------------------------------------------------
 # Dynamic terminal size (re-read on every call so resizes take effect)
 # ---------------------------------------------------------------------------
+
 
 def term_width() -> int:
     """Current terminal width, re-queried each call to handle live resizing."""
@@ -118,7 +121,7 @@ def short_path(path: str) -> str:
     if path == root_bare or path == _project_root:
         return "."
     if path.startswith(_project_root):
-        rel = path[len(_project_root):]
+        rel = path[len(_project_root) :]
         return rel or "."
     return path
 
@@ -145,21 +148,22 @@ def _smart_path_truncate(path: str, limit: int) -> str:
     parts = path.split("/")
     # Always keep the last 2 components (dir + filename)
     if len(parts) <= 2:
-        return path[:limit - 1] + "…"
+        return path[: limit - 1] + "…"
     # Try keeping more from the right until it fits
     for keep in range(2, len(parts)):
         tail = "/".join(parts[-keep:])
         if len(tail) + 2 <= limit:  # "…/" prefix
             continue
         # Previous keep count was the max that fits
-        tail = "/".join(parts[-(keep - 1):])
+        tail = "/".join(parts[-(keep - 1) :])
         return f"…/{tail}"
-    return path[:limit - 1] + "…"
+    return path[: limit - 1] + "…"
 
 
 # ---------------------------------------------------------------------------
 # Pipeline cost tracking
 # ---------------------------------------------------------------------------
+
 
 class CostTracker:
     """Accumulates cost, tokens, and duration across agent sessions."""
@@ -182,8 +186,13 @@ class CostTracker:
         role: str = "subagent",
     ) -> None:
         with self._lock:
-            entry = {"role": role, "cost": cost, "duration_ms": duration_ms,
-                     "input_tokens": input_tokens, "output_tokens": output_tokens}
+            entry = {
+                "role": role,
+                "cost": cost,
+                "duration_ms": duration_ms,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+            }
             self.sessions.append(entry)
             if cost is not None:
                 if self.total_cost is None:
@@ -211,22 +220,24 @@ def get_cost_tracker() -> CostTracker:
     return _cost_tracker
 
 
-_THEME = Theme({
-    "orch.cyan": "bold #7dd3fc",
-    "orch.green": "bold #86efac",
-    "orch.yellow": "bold #facc15",
-    "orch.red": "bold #fda4af",
-    "orch.dim": "#94a3b8",
-    "orch.bold": "bold #f8fafc",
-    "orch.magenta": "bold #c4b5fd",
-    "orch.border": "#475569",
-    "orch.border.active": "#38bdf8",
-    "orch.border.success": "#22c55e",
-    "orch.border.warn": "#f59e0b",
-    "orch.border.error": "#ef4444",
-    "orch.title": "bold #f8fafc",
-    "orch.label": "bold #cbd5e1",
-})
+_THEME = Theme(
+    {
+        "orch.cyan": "bold #7dd3fc",
+        "orch.green": "bold #86efac",
+        "orch.yellow": "bold #facc15",
+        "orch.red": "bold #fda4af",
+        "orch.dim": "#94a3b8",
+        "orch.bold": "bold #f8fafc",
+        "orch.magenta": "bold #c4b5fd",
+        "orch.border": "#475569",
+        "orch.border.active": "#38bdf8",
+        "orch.border.success": "#22c55e",
+        "orch.border.warn": "#f59e0b",
+        "orch.border.error": "#ef4444",
+        "orch.title": "bold #f8fafc",
+        "orch.label": "bold #cbd5e1",
+    }
+)
 
 console = Console(
     stderr=True,
@@ -310,6 +321,7 @@ def _panel(title: str, body, *, border_style: str = "orch.border") -> Panel:
 # ANSI helpers for stdout inline output (agent stream decorations)
 # ---------------------------------------------------------------------------
 
+
 def _ansi(code: str, text: str) -> str:
     """Wrap text in ANSI escape if color is enabled."""
     return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
@@ -374,6 +386,7 @@ def _get_label_prefix() -> tuple[str, str]:
 # Logging context manager (replaces _TeeWriter + _orchestrator_log)
 # ---------------------------------------------------------------------------
 
+
 @contextmanager
 def orchestrator_log(run_dir: str):
     """Context manager: tees orchestrator output to run_dir/logs/orchestrator.log.
@@ -396,6 +409,7 @@ def orchestrator_log(run_dir: str):
 # ---------------------------------------------------------------------------
 # Core output functions (stderr — orchestrator chrome)
 # ---------------------------------------------------------------------------
+
 
 def info(msg: str) -> None:
     _print(f"[orch.cyan]>[/] {msg}")
@@ -434,6 +448,7 @@ def section(title: str) -> None:
 # Structured output (stderr — orchestrator chrome)
 # ---------------------------------------------------------------------------
 
+
 def banner(
     command: str,
     platform: str,
@@ -445,8 +460,10 @@ def banner(
 ) -> None:
     """Boxless startup header — styled text lines."""
     # Title line
-    _print(f"[orch.title]HappyFigure[/]  [orch.cyan]{command}[/] [orch.dim]·[/] "
-           f"[orch.magenta]{platform}[/] [orch.dim]·[/] [orch.bold]{model}[/]")
+    _print(
+        f"[orch.title]HappyFigure[/]  [orch.cyan]{command}[/] [orch.dim]·[/] "
+        f"[orch.magenta]{platform}[/] [orch.dim]·[/] [orch.bold]{model}[/]"
+    )
     # Tags line: orchestrator mode + execution
     tags: list[str] = []
     if orchestrator_mode:
@@ -521,26 +538,33 @@ def agent_start(name: str, platform: str, model: str, prompt: str, *, role: str 
         tw = term_width()
         meta = Table.grid(padding=(0, 2))
         meta.add_column()
-        meta.add_row(Text.assemble(
-            (f"{name} ", "orch.cyan"),
-            ("· ", "orch.dim"),
-            (model, "orch.bold"),
-        ))
+        meta.add_row(
+            Text.assemble(
+                (f"{name} ", "orch.cyan"),
+                ("· ", "orch.dim"),
+                (model, "orch.bold"),
+            )
+        )
         prompt_limit = _prompt_limit(tw)
         meta.add_row(Text(truncate_text(prompt, prompt_limit), style="orch.dim"))
         _print(_panel(f"▹ {name}", Group(meta), border_style="orch.border"))
 
 
 def agent_done(
-    turns=None, duration_ms=None, cost=None,
+    turns=None,
+    duration_ms=None,
+    cost=None,
     *,
     role: str = "subagent",
-    input_tokens: int = 0, output_tokens: int = 0,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
 ) -> None:
     """Agent completion footer. Also records cost/token data in the tracker."""
     _cost_tracker.record(
-        cost=cost, duration_ms=duration_ms,
-        input_tokens=input_tokens, output_tokens=output_tokens,
+        cost=cost,
+        duration_ms=duration_ms,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
         role=role,
     )
     parts = ["Done"]
@@ -676,6 +700,7 @@ def service_status(healthy: list[str], failed: list[str]) -> None:
 # Raw pass-through (for agent subprocess output — stdout)
 # ---------------------------------------------------------------------------
 
+
 def raw(text: str, log_file=None) -> None:
     """Write raw text to stdout (agent subprocess pass-through).
 
@@ -741,7 +766,7 @@ def raw_tool_call(name: str, summary: str, *, indent: int = 0) -> str:
     summary = _shorten_paths_in_text(summary)
     # Tree connector for nested subagent calls
     if indent > 0:
-        tree = _ansi('2', '│') if _USE_COLOR else "│"
+        tree = _ansi("2", "│") if _USE_COLOR else "│"
         pad = f"  {tree} "
         plain_pad = "  │ "
     else:
@@ -901,7 +926,7 @@ IDLE_STATE_TOOL = "executing tool"
 IDLE_STATE_WORKING = "working"
 
 _SPINNER_FRAMES = [".", "..", "..."]
-_SPINNER_DELAY = 2.0   # seconds before spinner appears
+_SPINNER_DELAY = 2.0  # seconds before spinner appears
 _SPINNER_INTERVAL = 0.4  # seconds between frame changes
 
 
@@ -943,7 +968,9 @@ class IdleSpinner:
             self._last_event = time.monotonic()
         self._stop.clear()
         self._thread = threading.Thread(
-            target=self._run, name="idle-spinner", daemon=True,
+            target=self._run,
+            name="idle-spinner",
+            daemon=True,
         )
         self._thread.start()
 
@@ -1004,6 +1031,7 @@ class IdleSpinner:
 # ---------------------------------------------------------------------------
 # Parallel execution progress dashboard
 # ---------------------------------------------------------------------------
+
 
 def _abbreviate(name: str, max_len: int = 24) -> str:
     """Shorten a name intelligently for dashboard display.

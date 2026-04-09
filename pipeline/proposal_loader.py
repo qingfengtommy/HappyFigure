@@ -3,6 +3,7 @@
 Agent-first mode: the agent reads files directly — this module just gathers paths.
 Python-stages / LangGraph: ``extract_text()`` provides inline-able text for prompts.
 """
+
 from __future__ import annotations
 
 import logging
@@ -29,15 +30,9 @@ def gather_proposal_files(path: Path) -> list[Path]:
     if not path.is_dir():
         return []
 
-    files = sorted(
-        f for f in path.glob("*")
-        if f.is_file() and f.suffix.lower() in PROPOSAL_EXTENSIONS
-    )
+    files = sorted(f for f in path.glob("*") if f.is_file() and f.suffix.lower() in PROPOSAL_EXTENSIONS)
     if not files:
-        files = sorted(
-            f for f in path.glob("*/*")
-            if f.is_file() and f.suffix.lower() in PROPOSAL_EXTENSIONS
-        )
+        files = sorted(f for f in path.glob("*/*") if f.is_file() and f.suffix.lower() in PROPOSAL_EXTENSIONS)
     return files
 
 
@@ -69,8 +64,7 @@ def _extract_pdf(path: Path) -> str:
         import fitz  # pymupdf
     except ImportError:
         logger.warning(
-            "pymupdf not installed — cannot extract text from %s. "
-            "Install with: pip install pymupdf",
+            "pymupdf not installed — cannot extract text from %s. Install with: pip install pymupdf",
             path.name,
         )
         return f"[PDF: {path.name} — install pymupdf for text extraction]"

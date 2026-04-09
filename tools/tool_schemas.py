@@ -18,8 +18,7 @@ from __future__ import annotations
 _LIST_DATA_FILES = {
     "name": "list_data_files",
     "description": (
-        "Find data files matching a glob pattern within the results directory. "
-        "Returns paths with file sizes and types."
+        "Find data files matching a glob pattern within the results directory. Returns paths with file sizes and types."
     ),
     "input_schema": {
         "type": "object",
@@ -67,9 +66,7 @@ _READ_DATA_FILE = {
 
 _SEARCH_DATA = {
     "name": "search_data",
-    "description": (
-        "Search across data files for column names, cell values, or filename patterns."
-    ),
+    "description": ("Search across data files for column names, cell values, or filename patterns."),
     "input_schema": {
         "type": "object",
         "properties": {
@@ -128,10 +125,7 @@ DATA_TOOL_SCHEMAS = [
 
 _SUBMIT_REVIEW = {
     "name": "submit_review",
-    "description": (
-        "Submit a structured figure quality review. Call this exactly once "
-        "after evaluating the figure."
-    ),
+    "description": ("Submit a structured figure quality review. Call this exactly once after evaluating the figure."),
     "input_schema": {
         "type": "object",
         "properties": {
@@ -157,8 +151,12 @@ _SUBMIT_REVIEW = {
                     "confusion_penalty": {"type": "number", "minimum": -2, "maximum": 0},
                 },
                 "required": [
-                    "data_accuracy", "clarity", "accessibility",
-                    "layout", "publication_readiness", "confusion_penalty",
+                    "data_accuracy",
+                    "clarity",
+                    "accessibility",
+                    "layout",
+                    "publication_readiness",
+                    "confusion_penalty",
                 ],
             },
             "strengths": {
@@ -286,14 +284,16 @@ def to_openai_tools(schemas: list[dict]) -> list[dict]:
     """
     tools = []
     for s in schemas:
-        tools.append({
-            "type": "function",
-            "function": {
-                "name": s["name"],
-                "description": s.get("description", ""),
-                "parameters": s["input_schema"],
-            },
-        })
+        tools.append(
+            {
+                "type": "function",
+                "function": {
+                    "name": s["name"],
+                    "description": s.get("description", ""),
+                    "parameters": s["input_schema"],
+                },
+            }
+        )
     return tools
 
 

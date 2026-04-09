@@ -1,4 +1,5 @@
 """Tests for terminal UI sizing helpers."""
+
 from __future__ import annotations
 
 import sys

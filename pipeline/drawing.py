@@ -1,4 +1,5 @@
 """SVG/diagram/sketch/composite pipeline steps."""
+
 from __future__ import annotations
 
 import argparse
@@ -17,6 +18,7 @@ from pipeline.context import PROJECT_ROOT
 # ---------------------------------------------------------------------------
 # Step: init drawing image (skip method-explore when image is provided)
 # ---------------------------------------------------------------------------
+
 
 def step_init_drawing_image(args: argparse.Namespace) -> str:
     """Skip method-explore when a drawing image is provided.
@@ -38,6 +40,7 @@ def step_init_drawing_image(args: argparse.Namespace) -> str:
 
     # Copy drawing image to run_dir/figure.png
     import shutil
+
     src = os.path.abspath(args.drawing_image)
     dst = os.path.join(run_dir, "figure.png")
     shutil.copy2(src, dst)
@@ -56,10 +59,15 @@ def step_init_drawing_image(args: argparse.Namespace) -> str:
     # Run pipeline init to create state.json
     llm_preset = getattr(args, "llm_preset", None)
     init_cmd = [
-        sys.executable, "scripts/pipeline_cli.py", "init",
-        "--proposal", proposal,
-        "--run-dir", run_dir,
-        "--mode", "composite",
+        sys.executable,
+        "scripts/pipeline_cli.py",
+        "init",
+        "--proposal",
+        proposal,
+        "--run-dir",
+        run_dir,
+        "--mode",
+        "composite",
     ]
     if llm_preset:
         init_cmd.extend(["--llm-preset", llm_preset])
@@ -85,6 +93,7 @@ def step_init_drawing_image(args: argparse.Namespace) -> str:
 # ---------------------------------------------------------------------------
 # Step 1: method exploration
 # ---------------------------------------------------------------------------
+
 
 def step_method_explore(args: argparse.Namespace) -> str:
     """Step 1: Run @method-explore agent.
@@ -137,10 +146,15 @@ def step_method_explore(args: argparse.Namespace) -> str:
     # Run pipeline init to create state.json
     llm_preset = getattr(args, "llm_preset", None)
     init_cmd = [
-        sys.executable, "scripts/pipeline_cli.py", "init",
-        "--proposal", proposal,
-        "--run-dir", run_dir,
-        "--mode", "composite",
+        sys.executable,
+        "scripts/pipeline_cli.py",
+        "init",
+        "--proposal",
+        proposal,
+        "--run-dir",
+        run_dir,
+        "--mode",
+        "composite",
     ]
     if llm_preset:
         init_cmd.extend(["--llm-preset", llm_preset])
@@ -166,6 +180,7 @@ def step_method_explore(args: argparse.Namespace) -> str:
 # ---------------------------------------------------------------------------
 # Step 2: SVG building
 # ---------------------------------------------------------------------------
+
 
 def step_svg_build(run_dir: str, args: argparse.Namespace) -> None:
     """Step 2: Run @svg-builder agent.
@@ -222,6 +237,7 @@ def step_svg_build(run_dir: str, args: argparse.Namespace) -> None:
 # Step 3: SVG refinement
 # ---------------------------------------------------------------------------
 
+
 def step_svg_refine(run_dir: str, args: argparse.Namespace) -> None:
     """Step 3: Run @svg-refiner agent.
 
@@ -270,6 +286,7 @@ def step_svg_refine(run_dir: str, args: argparse.Namespace) -> None:
 # Step 4: visualization composition
 # ---------------------------------------------------------------------------
 
+
 def step_viz_compose(run_dir: str, args: argparse.Namespace) -> None:
     """Step 4: Run @viz-composer agent.
 
@@ -296,8 +313,7 @@ def step_viz_compose(run_dir: str, args: argparse.Namespace) -> None:
     )
 
     log_dir = os.path.join(run_dir, "logs")
-    rc = spawn_subagent("viz-composer", prompt,
-                     verbose=getattr(args, "verbose", False), log_dir=log_dir)
+    rc = spawn_subagent("viz-composer", prompt, verbose=getattr(args, "verbose", False), log_dir=log_dir)
     require_agent_success("viz-composer", rc)
 
     # Check outputs
@@ -320,6 +336,7 @@ def step_viz_compose(run_dir: str, args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 # Step 2 (sketch mode): agent-driven SVG authoring
 # ---------------------------------------------------------------------------
+
 
 def step_svg_author(run_dir: str, args: argparse.Namespace) -> None:
     """Step 2 (agent_svg mode): Run @svg-author agent.

@@ -167,7 +167,9 @@ def prepare_agent_session_run(args: argparse.Namespace, mode: str) -> str:
 
 
 def build_orchestrator_session_prompt(
-    run_dir: str, args: argparse.Namespace, mode: str,
+    run_dir: str,
+    args: argparse.Namespace,
+    mode: str,
 ) -> str:
     proposal = _ensure_session_proposal(run_dir, args)
     raw_exp = getattr(args, "experiments_dir", None) or ""
@@ -192,9 +194,11 @@ def build_orchestrator_session_prompt(
     common = (
         f"Run directory: {run_dir}. "
         + proposal_info
-        + (f"Results directories: {results_display}. "
-           if len(results_dirs) > 1
-           else f"Results directory: {results_display}. ")
+        + (
+            f"Results directories: {results_display}. "
+            if len(results_dirs) > 1
+            else f"Results directory: {results_display}. "
+        )
         + f"Artifact layout source of truth: {PROJECT_ROOT / 'pipeline' / 'orchestrator' / 'artifacts.py'}. "
         "You are the single main HappyFigure orchestrator session. "
         "You may spawn bounded subagents when useful, but you keep global state, artifact consistency, "
@@ -204,6 +208,7 @@ def build_orchestrator_session_prompt(
     # Inject feedback/preference file paths (always check — preferences persist
     # across runs even without --review; review feedback only exists after --review).
     from pipeline.feedback import collect_feedback_paths
+
     paths = collect_feedback_paths(run_dir, stage="all")
     if paths:
         listing = "; ".join(paths)
@@ -214,8 +219,7 @@ def build_orchestrator_session_prompt(
         )
     if mode == "exp_plot":
         return (
-            common
-            + f"Plot execution strategy: {execution}. "
+            common + f"Plot execution strategy: {execution}. "
             "Workflow: "
             "1) EXPLORE: first do a quick directory scan (find/ls) to count files and top-level subdirs. "
             "If the results dir is small (≤100 files or ≤5 subdirs), spawn one @data-explore for the whole dir. "
@@ -252,8 +256,7 @@ def build_orchestrator_session_prompt(
     if mode == "paper_composite":
         execution = getattr(args, "execution", "parallel")
         return (
-            common
-            + f"Paper-level composite mode. Execution: {execution}. "
+            common + f"Paper-level composite mode. Execution: {execution}. "
             "Generate ALL figures for the paper — statistical plots, diagrams, and hybrids — in one run. "
             "1) DISCOVER: spawn @data-explore and @method-explore in parallel. "
             "After both return, classify each figure by type "
@@ -341,9 +344,7 @@ def collect_explore_artifacts(run_dir: str, mode: str) -> dict[str, str]:
     if mode == "paper_composite":
         _collect_plot_explore_artifacts(run_dir, artifacts)
         # Paper composite also collects method exploration + figure classification
-        for key, rel in (
-            (ArtifactKeys.METHOD_DESC, "method_description.md"),
-        ):
+        for key, rel in ((ArtifactKeys.METHOD_DESC, "method_description.md"),):
             if os.path.exists(os.path.join(run_dir, rel)):
                 artifacts[key] = rel
         fc_rel = orch_art.FIGURE_CLASSIFICATION
@@ -441,7 +442,9 @@ def validate_agent_session_outputs(run_dir: str, mode: str, design: DesignResult
     return sorted(set(missing))
 
 
-def collect_design_artifacts(run_dir: str, mode: str, experiments: list[str]) -> tuple[dict[str, str], dict[str, list[str]] | None]:
+def collect_design_artifacts(
+    run_dir: str, mode: str, experiments: list[str]
+) -> tuple[dict[str, str], dict[str, list[str]] | None]:
     artifacts: dict[str, str] = {}
     variant_specs: dict[str, list[str]] | None = None
 
@@ -520,9 +523,7 @@ def sync_agent_session_manifest(run_dir: str, args: argparse.Namespace, mode: st
 
     missing = validate_agent_session_outputs(run_dir, mode, design)
     if missing:
-        raise RuntimeError(
-            "Agent-session run is missing required outputs: " + ", ".join(missing)
-        )
+        raise RuntimeError("Agent-session run is missing required outputs: " + ", ".join(missing))
 
     now = datetime.datetime.now().isoformat()
     write_manifest_stage(
@@ -580,8 +581,7 @@ def _scan_results_dir(results_dir: str) -> tuple[int, list[str]]:
         if not os.path.isdir(rd):
             continue
         all_subdirs.extend(
-            os.path.join(rd, d) for d in os.listdir(rd)
-            if os.path.isdir(os.path.join(rd, d)) and not d.startswith(".")
+            os.path.join(rd, d) for d in os.listdir(rd) if os.path.isdir(os.path.join(rd, d)) and not d.startswith(".")
         )
         total_files += sum(len(files) for _, _, files in os.walk(rd))
     return total_files, sorted(set(all_subdirs))
@@ -674,16 +674,10 @@ def step_explore_plot(args: argparse.Namespace) -> str:
 
     # Quick scan to decide single vs parallel exploration (scans all dirs)
     file_count, subdirs = _scan_results_dir(experiments_dir)
-    use_parallel = (
-        file_count > _PARALLEL_EXPLORE_FILE_THRESHOLD
-        and len(subdirs) > _PARALLEL_EXPLORE_SUBDIR_THRESHOLD
-    )
+    use_parallel = file_count > _PARALLEL_EXPLORE_FILE_THRESHOLD and len(subdirs) > _PARALLEL_EXPLORE_SUBDIR_THRESHOLD
 
     if use_parallel:
-        ui.info(
-            f"Large results dir ({file_count} files, {len(subdirs)} subdirs) — "
-            f"running parallel exploration"
-        )
+        ui.info(f"Large results dir ({file_count} files, {len(subdirs)} subdirs) — running parallel exploration")
         groups = _partition_subdirs(subdirs)
         part_paths: list[str] = []
 
@@ -716,9 +710,7 @@ def step_explore_plot(args: argparse.Namespace) -> str:
 
         # Spawn parallel exploration subagents
         with ThreadPoolExecutor(max_workers=min(len(groups), 4)) as pool:
-            futures = {
-                pool.submit(_run_part, i, g): i for i, g in enumerate(groups)
-            }
+            futures = {pool.submit(_run_part, i, g): i for i, g in enumerate(groups)}
             for fut in as_completed(futures):
                 idx, rc = fut.result()
                 require_agent_success(f"data-explore-part{idx}", rc)
@@ -896,7 +888,9 @@ def collect_generate_artifacts(
                 artifacts[ArtifactKeys.figure(exp)] = fig
             # Critic result lives in workspace (experiments/<exp>/), not outputs/
             ws_crit = os.path.join(
-                orch_art.EXPERIMENTS_DIR, exp, orch_art.CRITIC_RESULT,
+                orch_art.EXPERIMENTS_DIR,
+                exp,
+                orch_art.CRITIC_RESULT,
             )
             if os.path.exists(os.path.join(run_dir, ws_crit)):
                 artifacts[f"critic_workspace/{exp}"] = ws_crit

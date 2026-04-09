@@ -1,4 +1,5 @@
 """Tests for pipeline.figure_lint deterministic validation module."""
+
 from __future__ import annotations
 
 import json
@@ -319,6 +320,7 @@ class TestLintFigureOutput:
         """Generate a real PNG and verify it passes."""
         try:
             import matplotlib
+
             matplotlib.use("Agg")
             import matplotlib.pyplot as plt
         except ImportError:
@@ -359,17 +361,20 @@ class TestLintStyledSpec:
         assert any("lines" in i for i in report.issues)
 
     def test_valid_spec(self, tmp_path):
-        spec = "\n".join([
-            "# Figure Spec",
-            "## Data source and mapping",
-            "Read from results.csv",
-            "## Color palette",
-            "Condition colors: #4C78A8, #F58518",
-            "## Axes and scales",
-            "Y-axis: 0-1.0",
-            "DPI: 300",
-            "figsize = (6, 4) inches",
-        ] + ["additional detail"] * 5)
+        spec = "\n".join(
+            [
+                "# Figure Spec",
+                "## Data source and mapping",
+                "Read from results.csv",
+                "## Color palette",
+                "Condition colors: #4C78A8, #F58518",
+                "## Axes and scales",
+                "Y-axis: 0-1.0",
+                "DPI: 300",
+                "figsize = (6, 4) inches",
+            ]
+            + ["additional detail"] * 5
+        )
         path = tmp_path / "styled_spec.md"
         path.write_text(spec)
         report = lint_styled_spec(str(path))
@@ -450,12 +455,8 @@ class TestLintCrossPanelConsistency:
         assert report.passed
 
     def test_inconsistent_figsize(self, tmp_path):
-        (tmp_path / "small.py").write_text(
-            "fig, ax = plt.subplots(figsize=(3, 2))\nfig.savefig('out.png', dpi=300)\n"
-        )
-        (tmp_path / "huge.py").write_text(
-            "fig, ax = plt.subplots(figsize=(12, 9))\nfig.savefig('out.png', dpi=300)\n"
-        )
+        (tmp_path / "small.py").write_text("fig, ax = plt.subplots(figsize=(3, 2))\nfig.savefig('out.png', dpi=300)\n")
+        (tmp_path / "huge.py").write_text("fig, ax = plt.subplots(figsize=(12, 9))\nfig.savefig('out.png', dpi=300)\n")
         paths = {"small": str(tmp_path / "small.py"), "huge": str(tmp_path / "huge.py")}
         report = lint_cross_panel_consistency(paths)
         assert not report.passed
@@ -538,6 +539,7 @@ class TestDetectIterationStuck:
 # PIL assembly tests
 # ---------------------------------------------------------------------------
 
+
 class TestPILAssembly:
     """Tests for pipeline.assembly.assemble_pil."""
 
@@ -555,9 +557,7 @@ class TestPILAssembly:
             "figure_id": "Test",
             "dpi": 150,
             "layout": {
-                "rows": [{"row_index": 0, "panels": [
-                    {"panel_id": "a"}, {"panel_id": "b"}
-                ]}],
+                "rows": [{"row_index": 0, "panels": [{"panel_id": "a"}, {"panel_id": "b"}]}],
             },
             "panel_labels": {"scheme": "lowercase"},
         }

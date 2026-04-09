@@ -3,6 +3,7 @@
 Contains the base state type, node functions (load_markdown, data_explorer,
 method_proposer), constants, and helpers used by the SVG method pipeline.
 """
+
 from __future__ import annotations
 
 import datetime
@@ -134,9 +135,7 @@ def _build_method_explorer_seed(results_dir_path: Path) -> tuple[str, str]:
     for item in files[:_METHOD_EXPLORER_FILE_SAMPLE_LIMIT]:
         tree_lines.append(f"- {item.get('path')}")
     if len(files) > _METHOD_EXPLORER_FILE_SAMPLE_LIMIT:
-        tree_lines.append(
-            f"- ... ({len(files) - _METHOD_EXPLORER_FILE_SAMPLE_LIMIT} more)"
-        )
+        tree_lines.append(f"- ... ({len(files) - _METHOD_EXPLORER_FILE_SAMPLE_LIMIT} more)")
     tree_text = _truncate_for_prompt(
         "\n".join(tree_lines),
         _METHOD_EXPLORER_TREE_CHARS_MAX,
@@ -148,10 +147,7 @@ def _build_method_explorer_seed(results_dir_path: Path) -> tuple[str, str]:
     prioritized = sorted(
         files,
         key=lambda item: (
-            0
-            if Path(str(item.get("path") or "")).suffix.lower()
-            in {".csv", ".tsv", ".json"}
-            else 1,
+            0 if Path(str(item.get("path") or "")).suffix.lower() in {".csv", ".tsv", ".json"} else 1,
             str(item.get("path") or ""),
         ),
     )
@@ -170,11 +166,7 @@ def _build_method_explorer_seed(results_dir_path: Path) -> tuple[str, str]:
             continue
         ftype = str(meta.get("type") or "")
         if ftype in {"tabular", "json"}:
-            cols = [
-                str(c.get("name"))
-                for c in (meta.get("columns") or [])
-                if isinstance(c, dict) and c.get("name")
-            ]
+            cols = [str(c.get("name")) for c in (meta.get("columns") or []) if isinstance(c, dict) and c.get("name")]
             shown = ", ".join(cols[:12]) if cols else "(no columns detected)"
             if len(cols) > 12:
                 shown += f", ... (+{len(cols) - 12} more)"
@@ -212,7 +204,7 @@ def load_markdown_node(state: MethodDrawingPipelineState) -> MethodDrawingPipeli
     # Skip if already bootstrapped from a reuse_run_dir (run_dir + method_description pre-set)
     if state.get("run_dir") and state.get("method_description"):
         if state.get("verbose"):
-            logger.info("load_markdown SKIPPED — reusing run_dir=%s", state['run_dir'])
+            logger.info("load_markdown SKIPPED — reusing run_dir=%s", state["run_dir"])
         return {}
 
     input_dir = state.get("input_dir", "")
@@ -309,7 +301,7 @@ def method_data_explorer_node(state: MethodDrawingPipelineState) -> MethodDrawin
     user_text = (
         user_text.strip()
         + "\n\nFocus on architecture/method-diagram-relevant findings: module names, pipeline stages, "
-          "experiment groups, and key metric tables that explain method flow."
+        "experiment groups, and key metric tables that explain method flow."
     )
     if state.get("verbose"):
         _save_prompt_input(
@@ -350,6 +342,7 @@ def method_data_explorer_node(state: MethodDrawingPipelineState) -> MethodDrawin
                 last_error = str(e)
                 if attempt < 2:
                     import time as _time
+
                     _time.sleep(2 * (attempt + 1))
     except ImportError:
         pass
@@ -364,6 +357,7 @@ def method_data_explorer_node(state: MethodDrawingPipelineState) -> MethodDrawin
                 last_error = str(e)
                 if attempt < 2:
                     import time as _time
+
                     _time.sleep(2 * (attempt + 1))
 
     if not report:
@@ -455,7 +449,13 @@ def method_proposer_node(state: MethodDrawingPipelineState) -> MethodDrawingPipe
 
     if state.get("verbose"):
         from llm import get_backend, get_model_display
-        logger.info("Method description generated (%d chars, backend=%s, model=%s)", len(response), get_backend(), get_model_display('chat'))
+
+        logger.info(
+            "Method description generated (%d chars, backend=%s, model=%s)",
+            len(response),
+            get_backend(),
+            get_model_display("chat"),
+        )
 
     return {"method_description": response}
 
@@ -465,7 +465,7 @@ def _extract_drawing_instruction(method_description: str) -> str:
 
     Falls back to the full description if the section is not found.
     """
-    pattern = r'#{2,3}\s*Drawing\s+Instruction\s*\n(.*?)(?=\n#{2,3}\s|\Z)'
+    pattern = r"#{2,3}\s*Drawing\s+Instruction\s*\n(.*?)(?=\n#{2,3}\s|\Z)"
     match = re.search(pattern, method_description, re.DOTALL | re.IGNORECASE)
     if match:
         return match.group(1).strip()

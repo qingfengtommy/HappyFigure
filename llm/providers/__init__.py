@@ -7,6 +7,7 @@ by name. The router in ``llm/__init__.py`` looks up providers from
 Providers lazily import their SDKs — only the SDK for the configured
 provider needs to be installed.
 """
+
 from __future__ import annotations
 
 import logging
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ToolCallResult:
     """Result of a tool-calling prompt session."""
+
     text: str
     tool_calls: list[dict] = field(default_factory=list)
     tool_results: list[Any] = field(default_factory=list)
@@ -101,7 +103,6 @@ class LLMProvider(ABC):
         ...
 
 
-
 # ── Provider Registry ────────────────────────────────────────────────
 
 _REGISTRY: dict[str, type[LLMProvider]] = {}
@@ -109,9 +110,11 @@ _REGISTRY: dict[str, type[LLMProvider]] = {}
 
 def register_provider(name: str):
     """Decorator to register a provider class by name."""
+
     def decorator(cls: type[LLMProvider]):
         _REGISTRY[name] = cls
         return cls
+
     return decorator
 
 
@@ -121,9 +124,7 @@ def get_provider_class(name: str) -> type[LLMProvider]:
     _ensure_providers_loaded()
     if name not in _REGISTRY:
         available = ", ".join(sorted(_REGISTRY.keys()))
-        raise ValueError(
-            f"Unknown provider: {name!r}. Available: {available}"
-        )
+        raise ValueError(f"Unknown provider: {name!r}. Available: {available}")
     return _REGISTRY[name]
 
 
@@ -152,6 +153,7 @@ def _ensure_providers_loaded():
     _providers_loaded = True
     # Import each provider module — they self-register via @register_provider
     import importlib
+
     for mod_name in [
         "llm.providers.openai_provider",
         "llm.providers.azure_provider",

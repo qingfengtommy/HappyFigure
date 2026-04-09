@@ -1,4 +1,5 @@
 """Subprocess calls to pipeline_cli.py and microservice management."""
+
 from __future__ import annotations
 
 import json
@@ -18,10 +19,15 @@ def run_pipeline_init(
 ) -> None:
     """Run pipeline init to create state.json."""
     init_cmd = [
-        sys.executable, str(PROJECT_ROOT / "scripts" / "pipeline_cli.py"),
-        "init", "--proposal", proposal,
-        "--run-dir", run_dir,
-        "--mode", mode,
+        sys.executable,
+        str(PROJECT_ROOT / "scripts" / "pipeline_cli.py"),
+        "init",
+        "--proposal",
+        proposal,
+        "--run-dir",
+        run_dir,
+        "--mode",
+        mode,
     ]
     if llm_preset:
         init_cmd.extend(["--llm-preset", llm_preset])
@@ -48,7 +54,9 @@ def start_services() -> None:
     ui.dim("SAM3 model loading can take 2-5 min on first run.")
     result = subprocess.run(
         [sys.executable, "scripts/pipeline_cli.py", "services", "start"],
-        cwd=str(PROJECT_ROOT), capture_output=True, text=True,
+        cwd=str(PROJECT_ROOT),
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         ui.warn("Services may not have started cleanly.")
@@ -71,6 +79,8 @@ def stop_services() -> None:
     ui.info("Stopping microservices...")
     subprocess.run(
         [sys.executable, "scripts/pipeline_cli.py", "services", "stop"],
-        cwd=str(PROJECT_ROOT), capture_output=True, text=True,
+        cwd=str(PROJECT_ROOT),
+        capture_output=True,
+        text=True,
     )
     ui.success("Services stopped.")

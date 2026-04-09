@@ -6,6 +6,7 @@ icon replacement → SVG render → advocate review →
 
 Reuses the llm module for LLM calls and the SAM3 service for segmentation.
 """
+
 from __future__ import annotations
 
 import io
@@ -39,6 +40,7 @@ from graphs.figure_pipeline import (
     _build_style_few_shot_messages,
 )
 from graphs.svg_utils import extract_json_block, _parse_review_json, _merge_issues
+
 # architect_review_node + advocate_review_node now defined locally
 from graphs.svg_utils import (
     merge_overlapping_boxes,
@@ -82,18 +84,47 @@ def _get_valid_classes() -> tuple[list[str], list[str]]:
     """Return (structural, complex) valid class lists from config."""
     cfg = _get_sam_config()
     vc = cfg.get("valid_classes", {})
-    structural = vc.get("structural", [
-        "rectangle", "rounded_rectangle", "arrow", "circle", "diamond",
-        "text_block", "dashed_rectangle", "dotted_rectangle",
-        "dash_dot_rectangle", "dashed_rounded_rectangle",
-        "dotted_rounded_rectangle", "dash_dot_rounded_rectangle",
-        "bracket", "line", "dashed_line", "dotted_line",
-        "stack", "cube", "cuboid", "grid", "document",
-        "hexagon", "triangle", "star",
-    ])
-    complex_ = vc.get("complex", [
-        "icon", "graph", "subfigure", "logo", "robot", "animal", "person",
-    ])
+    structural = vc.get(
+        "structural",
+        [
+            "rectangle",
+            "rounded_rectangle",
+            "arrow",
+            "circle",
+            "diamond",
+            "text_block",
+            "dashed_rectangle",
+            "dotted_rectangle",
+            "dash_dot_rectangle",
+            "dashed_rounded_rectangle",
+            "dotted_rounded_rectangle",
+            "dash_dot_rounded_rectangle",
+            "bracket",
+            "line",
+            "dashed_line",
+            "dotted_line",
+            "stack",
+            "cube",
+            "cuboid",
+            "grid",
+            "document",
+            "hexagon",
+            "triangle",
+            "star",
+        ],
+    )
+    complex_ = vc.get(
+        "complex",
+        [
+            "icon",
+            "graph",
+            "subfigure",
+            "logo",
+            "robot",
+            "animal",
+            "person",
+        ],
+    )
     return structural, complex_
 
 
@@ -105,8 +136,7 @@ def _normalize_class_name(name: str) -> str:
 from graphs.svg_utils import load_prompt as _load_prompt  # noqa: E402 — unified prompt loader
 
 
-def _save_node_prompt(run_dir: str, node_name: str, system_prompt: str, user_prompt: str,
-                      suffix: str = "") -> None:
+def _save_node_prompt(run_dir: str, node_name: str, system_prompt: str, user_prompt: str, suffix: str = "") -> None:
     """Save system + user prompts for a node to disk for debugging."""
     if not run_dir:
         return
@@ -153,11 +183,13 @@ def _dedup_boxes_by_iou(
             iou_value = _iou(box, kept)
             if iou_value > iou_threshold:
                 removed_labels.append(box.get("label", "?"))
-                removed_pairs.append({
-                    "kept": dict(kept),
-                    "removed": dict(box),
-                    "iou": iou_value,
-                })
+                removed_pairs.append(
+                    {
+                        "kept": dict(kept),
+                        "removed": dict(box),
+                        "iou": iou_value,
+                    }
+                )
                 suppressed = True
                 break
         if not suppressed:
@@ -189,8 +221,7 @@ def _dedup_boxes_by_iou(
                 text_x = min(kept_box["x1"], removed_box["x1"])
                 text_y = max(0, min(kept_box["y1"], removed_box["y1"]) - 18)
                 label_text = (
-                    f"keep {kept_box.get('label', '?')} / "
-                    f"drop {removed_box.get('label', '?')} IoU={iou_value:.2f}"
+                    f"keep {kept_box.get('label', '?')} / drop {removed_box.get('label', '?')} IoU={iou_value:.2f}"
                 )
                 draw.rectangle(
                     [text_x, text_y, min(base.width, text_x + 260), text_y + 16],
@@ -231,17 +262,20 @@ def _build_box_context(valid_boxes: list, icon_infos: list) -> str:
         is_icon = box.get("is_icon", label_clean in icon_labels)
         desc = box.get("description", "")
         desc_note = f" ({desc})" if desc else ""
-        kind = "ICON (keep as gray placeholder — will be replaced with image later)" if is_icon \
+        kind = (
+            "ICON (keep as gray placeholder — will be replaced with image later)"
+            if is_icon
             else f"STRUCTURAL/{prompt} (replicate with SVG code — rect, path, line, text, etc.)"
+        )
         coords = f"({box['x1']},{box['y1']})-({box['x2']},{box['y2']})"
-        w, h = box['x2'] - box['x1'], box['y2'] - box['y1']
+        w, h = box["x2"] - box["x1"], box["y2"] - box["y1"]
         lines.append(f"- {label} [{kind}] at {coords} ({w}x{h}){desc_note}")
         # List contained texts with their own bboxes and font size estimates
         for t in box.get("texts", []):
             fs = t.get("font_size_est")
             fs_note = f" font_size~{fs}px" if fs is not None else ""
             tc = f"({t['x1']},{t['y1']})-({t['x2']},{t['y2']})" if "x1" in t else ""
-            lines.append(f"    text: \"{t['text']}\"{fs_note} at {tc}")
+            lines.append(f'    text: "{t["text"]}"{fs_note} at {tc}')
     return "\n".join(lines)
 
 
@@ -258,7 +292,7 @@ def _build_ocr_context(ocr_texts: list) -> str:
         "`font_size` is estimated from the SHORT axis of the bbox "
         "(correctly handles both horizontal and vertical text). "
         "`rotation` indicates text orientation (-90 = vertical/bottom-to-top). "
-        "For rotated text, use `transform=\"rotate(-90 cx cy)\"` in SVG. "
+        'For rotated text, use `transform="rotate(-90 cx cy)"` in SVG. '
         "`in_boxes` lists which AF region(s) contain this text — "
         "ensure those SVG boxes visually contain their labeled texts without clipping.",
         "",
@@ -277,7 +311,7 @@ def _build_ocr_context(ocr_texts: list) -> str:
             box_note = f" in_boxes={boxes}" if boxes else ""
             lines.append(
                 f'- "{text}" at ({ocr["x1"]},{ocr["y1"]})-({ocr["x2"]},{ocr["y2"]})'
-                f'{fs_note}{rot_note}{box_note} conf={conf:.2f}'
+                f"{fs_note}{rot_note}{box_note} conf={conf:.2f}"
             )
         else:
             lines.append(f'- "{text}" conf={conf:.2f}')
@@ -290,25 +324,27 @@ def _diff_svg_boxes(svg_code: str, valid_boxes: list) -> list:
     Returns a list of dicts — one per SAM icon box — with position deltas.
     """
     # Build label → SAM box map (only icon boxes have AF placeholders)
-    label_to_sam = {
-        b["label"].replace("<", "").replace(">", ""): b
-        for b in valid_boxes if b.get("is_icon")
-    }
+    label_to_sam = {b["label"].replace("<", "").replace(">", ""): b for b in valid_boxes if b.get("is_icon")}
 
     # Extract AF groups: <g id="AF01"> ... <rect x y width height> ... </g>
-    svg_af_ids: set = set(re.findall(
-        r'<g\b[^>]*\bid=["\']?(AF\d+)["\']?', svg_code, re.IGNORECASE,
-    ))
+    svg_af_ids: set = set(
+        re.findall(
+            r'<g\b[^>]*\bid=["\']?(AF\d+)["\']?',
+            svg_code,
+            re.IGNORECASE,
+        )
+    )
 
     diffs = []
     for g_m in re.finditer(
         r'<g\b[^>]*\bid=["\']?(AF\d+)["\']?[^>]*>(.*?)</g>',
-        svg_code, re.DOTALL | re.IGNORECASE,
+        svg_code,
+        re.DOTALL | re.IGNORECASE,
     ):
         af_id = g_m.group(1)
         g_content = g_m.group(2)
 
-        rect_m = re.search(r'<rect\b([^/]*?)(?:/>|>)', g_content, re.DOTALL | re.IGNORECASE)
+        rect_m = re.search(r"<rect\b([^/]*?)(?:/>|>)", g_content, re.DOTALL | re.IGNORECASE)
         if not rect_m:
             diffs.append({"label": af_id, "issue": "no_rect"})
             continue
@@ -334,13 +370,15 @@ def _diff_svg_boxes(svg_code: str, valid_boxes: list) -> list:
         dy1 = svg_y1 - sam["y1"]
         dx2 = svg_x2 - sam["x2"]
         dy2 = svg_y2 - sam["y2"]
-        diffs.append({
-            "label": af_id,
-            "svg": (int(svg_x1), int(svg_y1), int(svg_x2), int(svg_y2)),
-            "sam": (sam["x1"], sam["y1"], sam["x2"], sam["y2"]),
-            "delta": (int(dx1), int(dy1), int(dx2), int(dy2)),
-            "max_err": int(max(abs(dx1), abs(dy1), abs(dx2), abs(dy2))),
-        })
+        diffs.append(
+            {
+                "label": af_id,
+                "svg": (int(svg_x1), int(svg_y1), int(svg_x2), int(svg_y2)),
+                "sam": (sam["x1"], sam["y1"], sam["x2"], sam["y2"]),
+                "delta": (int(dx1), int(dy1), int(dx2), int(dy2)),
+                "max_err": int(max(abs(dx1), abs(dy1), abs(dx2), abs(dy2))),
+            }
+        )
 
     # SAM icon boxes not found in SVG at all
     for lab in label_to_sam:
@@ -356,6 +394,7 @@ def _diff_ocr_texts(png_path: str, original_ocr: list) -> dict:
     Returns matched / missing / extra text sets, or {"error": ...} on failure.
     """
     from services.ocr.client import OcrServiceClient
+
     ocr_url = os.environ.get("OCR_SERVICE_URL", "http://127.0.0.1:8002")
     client = OcrServiceClient(ocr_url)
     try:
@@ -370,11 +409,7 @@ def _diff_ocr_texts(png_path: str, original_ocr: list) -> dict:
         if t and float(det.get("score", 0)) >= ocr_conf:
             svg_texts.add(t)
 
-    orig_texts = {
-        ocr.get("text", "").strip()
-        for ocr in original_ocr
-        if ocr.get("text", "").strip()
-    }
+    orig_texts = {ocr.get("text", "").strip() for ocr in original_ocr if ocr.get("text", "").strip()}
     return {
         "matched": sorted(orig_texts & svg_texts),
         "missing": sorted(orig_texts - svg_texts),
@@ -382,8 +417,7 @@ def _diff_ocr_texts(png_path: str, original_ocr: list) -> dict:
     }
 
 
-def _print_svg_diff(svg_code: str, png_path: str | None,
-                    valid_boxes: list, original_ocr: list, tag: str) -> None:
+def _print_svg_diff(svg_code: str, png_path: str | None, valid_boxes: list, original_ocr: list, tag: str) -> None:
     """Print box and OCR diff to stdout (verbose-only helper)."""
     # Box diff
     box_diffs = _diff_svg_boxes(svg_code, valid_boxes)
@@ -392,11 +426,12 @@ def _print_svg_diff(svg_code: str, png_path: str | None,
         for d in box_diffs:
             lab = d["label"]
             if "issue" in d:
-                logger.debug("    %s: %s", lab, d['issue'].upper())
+                logger.debug("    %s: %s", lab, d["issue"].upper())
             else:
                 ok = "✓" if d["max_err"] <= 5 else ("~" if d["max_err"] <= 20 else "✗")
-                logger.debug("    %s: SVG=%s SAM=%s Δ=%s max=%spx %s",
-                             lab, d['svg'], d['sam'], d['delta'], d['max_err'], ok)
+                logger.debug(
+                    "    %s: SVG=%s SAM=%s Δ=%s max=%spx %s", lab, d["svg"], d["sam"], d["delta"], d["max_err"], ok
+                )
     else:
         logger.debug("  [%s] No AF icon boxes to compare", tag)
 
@@ -404,16 +439,16 @@ def _print_svg_diff(svg_code: str, png_path: str | None,
     if png_path and Path(png_path).exists():
         ocr_diff = _diff_ocr_texts(png_path, original_ocr)
         if "error" in ocr_diff:
-            logger.debug("  [%s] OCR diff failed: %s", tag, ocr_diff['error'])
+            logger.debug("  [%s] OCR diff failed: %s", tag, ocr_diff["error"])
         else:
             n_match = len(ocr_diff["matched"])
             n_miss = len(ocr_diff["missing"])
             n_extra = len(ocr_diff["extra"])
             logger.debug("  [%s] OCR diff — matched=%d, missing=%d, extra=%d", tag, n_match, n_miss, n_extra)
             if ocr_diff["missing"]:
-                logger.debug("    Missing: %s", ocr_diff['missing'][:10])
+                logger.debug("    Missing: %s", ocr_diff["missing"][:10])
             if ocr_diff["extra"]:
-                logger.debug("    Extra:   %s", ocr_diff['extra'][:10])
+                logger.debug("    Extra:   %s", ocr_diff["extra"][:10])
 
 
 def _strip_base64_from_svg(svg_code: str) -> str:
@@ -422,6 +457,7 @@ def _strip_base64_from_svg(svg_code: str) -> str:
     This keeps the SVG structure intact (id, x, y, width, height) but removes
     the massive base64 payloads so the LLM can focus on layout, not data.
     """
+
     def _replacer(m: re.Match) -> str:
         return m.group(1) + "BASE64_DATA_STRIPPED" + m.group(2)
 
@@ -442,13 +478,15 @@ def _restore_base64_in_svg(new_svg: str, original_svg: str) -> str:
     id_to_href: dict[str, str] = {}
     for m in re.finditer(
         r'<image[^>]*\bid=["\']([^"\']+)["\'][^>]*href=["\']([^"\']+)["\']',
-        original_svg, re.IGNORECASE,
+        original_svg,
+        re.IGNORECASE,
     ):
         id_to_href[m.group(1)] = m.group(2)
     # Also match href before id
     for m in re.finditer(
         r'<image[^>]*href=["\']([^"\']+)["\'][^>]*\bid=["\']([^"\']+)["\']',
-        original_svg, re.IGNORECASE,
+        original_svg,
+        re.IGNORECASE,
     ):
         id_to_href[m.group(2)] = m.group(1)
 
@@ -460,7 +498,7 @@ def _restore_base64_in_svg(new_svg: str, original_svg: str) -> str:
         # Find image tags with this id that have stripped data
         pattern = (
             rf'(<image[^>]*\bid=["\']?{re.escape(img_id)}["\']?[^>]*href=["\'])'
-            r'data:image/[^;]+;base64,BASE64_DATA_STRIPPED'
+            r"data:image/[^;]+;base64,BASE64_DATA_STRIPPED"
             r'(["\'])'
         )
         result = re.sub(pattern, lambda m, h=full_href: m.group(1) + h + m.group(2), result, flags=re.IGNORECASE)
@@ -468,7 +506,7 @@ def _restore_base64_in_svg(new_svg: str, original_svg: str) -> str:
         # Also handle href before id
         pattern2 = (
             r'(<image[^>]*href=["\'])'
-            r'data:image/[^;]+;base64,BASE64_DATA_STRIPPED'
+            r"data:image/[^;]+;base64,BASE64_DATA_STRIPPED"
             rf'(["\'][^>]*\bid=["\']?{re.escape(img_id)}["\']?)'
         )
         result = re.sub(pattern2, lambda m, h=full_href: m.group(1) + h + m.group(2), result, flags=re.IGNORECASE)
@@ -483,53 +521,53 @@ class SVGMethodPipelineState(MethodDrawingPipelineState, total=False):
     """State for the SVG method drawing pipeline."""
 
     # Image generation
-    generated_image_path: str         # Gemini raster output (figure.png)
-    skip_image_generation: bool       # Use existing figure.png for testing
-    reuse_image_dir: str              # Copy figure.png from this dir instead of generating
+    generated_image_path: str  # Gemini raster output (figure.png)
+    skip_image_generation: bool  # Use existing figure.png for testing
+    reuse_image_dir: str  # Copy figure.png from this dir instead of generating
 
     # SAM3 segmentation
-    samed_image_path: str             # Annotated image with gray boxes
-    boxlib_path: str                  # JSON with box coordinates
-    valid_boxes: list                 # List of detected box dicts
+    samed_image_path: str  # Annotated image with gray boxes
+    boxlib_path: str  # JSON with box coordinates
+    valid_boxes: list  # List of detected box dicts
 
     # SAM3 params
-    sam_prompts: str                  # Comma-separated SAM3 text prompts
-    sam_min_score: float              # Min confidence threshold
-    sam_merge_threshold: float        # Box overlap merge threshold
+    sam_prompts: str  # Comma-separated SAM3 text prompts
+    sam_min_score: float  # Min confidence threshold
+    sam_merge_threshold: float  # Box overlap merge threshold
 
     # Two-stage SAM detection
-    sam_stage1_prompts: list          # Supported prompts used for stage 1
-    sam_stage2_prompts: list          # Additional prompts from review stage
-    sam_stage1_results: list          # Raw detections from stage 1
-    sam_stage2_results: list          # Raw detections from stage 2
-    sam_stage1_overlay_path: str      # Labeled overlay for review
-    sam_agent_classified: bool        # True when agent pre-classified boxes (OpenCode mode)
+    sam_stage1_prompts: list  # Supported prompts used for stage 1
+    sam_stage2_prompts: list  # Additional prompts from review stage
+    sam_stage1_results: list  # Raw detections from stage 1
+    sam_stage2_results: list  # Raw detections from stage 2
+    sam_stage1_overlay_path: str  # Labeled overlay for review
+    sam_agent_classified: bool  # True when agent pre-classified boxes (OpenCode mode)
 
     # OCR text detection
-    ocr_texts: list                   # Per-box OCR text results
+    ocr_texts: list  # Per-box OCR text results
 
     # Icon extraction
-    icon_infos: list                  # Per-icon metadata dicts
-    visualization_icons: list         # Subset of icon_infos routed to codegen
-    codegen_icon_paths: dict          # {label_clean: generated_png_path}
+    icon_infos: list  # Per-icon metadata dicts
+    visualization_icons: list  # Subset of icon_infos routed to codegen
+    codegen_icon_paths: dict  # {label_clean: generated_png_path}
 
     # SVG generation
-    template_svg_path: str            # Initial template SVG
-    optimized_svg_path: str           # After LLM optimization
-    final_svg_path: str               # After icon replacement
-    svg_code: str                     # Current SVG code in memory
+    template_svg_path: str  # Initial template SVG
+    optimized_svg_path: str  # After LLM optimization
+    final_svg_path: str  # After icon replacement
+    svg_code: str  # Current SVG code in memory
 
     # SVG validation
     svg_valid: bool
     svg_errors: list
     svg_fix_iteration: int
-    max_svg_fix_iterations: int       # default: 3
+    max_svg_fix_iterations: int  # default: 3
 
     # Coordinate alignment
-    scale_factors: tuple              # (scale_x, scale_y)
+    scale_factors: tuple  # (scale_x, scale_y)
 
     # SVG optimization
-    optimize_iterations: int          # LLM optimization iterations (0 = skip)
+    optimize_iterations: int  # LLM optimization iterations (0 = skip)
 
     # Agent team review
     architecture_review_feedback: dict
@@ -541,11 +579,11 @@ class SVGMethodPipelineState(MethodDrawingPipelineState, total=False):
     review_history: list
 
     # Routing
-    refinement_action: str            # "accept" | "refine" | "regenerate"
+    refinement_action: str  # "accept" | "refine" | "regenerate"
     team_iteration: int
-    max_team_iterations: int          # default: 3
+    max_team_iterations: int  # default: 3
     # Refinement
-    refined_prompt: str               # Enhanced prompt for regeneration
+    refined_prompt: str  # Enhanced prompt for regeneration
 
 
 # ── Nodes ─────────────────────────────────────────────────────────────
@@ -601,10 +639,7 @@ def image_generation_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
     if refined_prompt:
         drawing_prompt = refined_prompt
     else:
-        drawing_prompt = (
-            f"{SCIENTIFIC_DIAGRAM_GUIDELINES}\n\n"
-            f"ARCHITECTURE DIAGRAM REQUEST:\n\n{drawing_instruction}"
-        )
+        drawing_prompt = f"{SCIENTIFIC_DIAGRAM_GUIDELINES}\n\nARCHITECTURE DIAGRAM REQUEST:\n\n{drawing_instruction}"
 
     few_shots = state.get("architecture_few_shots") or []
     reference_images = []
@@ -617,7 +652,12 @@ def image_generation_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
                 pass  # Skip unreadable or invalid reference images
 
     if state.get("verbose"):
-        logger.info("Generating image (iteration %d, backend=%s, model=%s)...", iteration, get_backend(), get_model_display('drawing'))
+        logger.info(
+            "Generating image (iteration %d, backend=%s, model=%s)...",
+            iteration,
+            get_backend(),
+            get_model_display("drawing"),
+        )
 
     try:
         image_data = run_image_prompt(
@@ -658,6 +698,7 @@ def _run_sam3_prompts(
     Raises RuntimeError if the SAM3 service is unreachable.
     """
     from services.sam3.client import Sam3ServiceClient
+
     sam3_url = os.environ.get("SAM3_SERVICE_URL", "http://127.0.0.1:8001")
     client = Sam3ServiceClient(sam3_url)
     abs_image_path = str(Path(image_path).resolve())
@@ -680,12 +721,16 @@ def _run_sam3_prompts(
             if score_val >= min_score:
                 bbox = det["bbox"]
                 prompt = det.get("prompt", "unknown")
-                all_detected.append({
-                    "x1": int(bbox[0]), "y1": int(bbox[1]),
-                    "x2": int(bbox[2]), "y2": int(bbox[3]),
-                    "score": score_val,
-                    "prompt": prompt,
-                })
+                all_detected.append(
+                    {
+                        "x1": int(bbox[0]),
+                        "y1": int(bbox[1]),
+                        "x2": int(bbox[2]),
+                        "y2": int(bbox[3]),
+                        "score": score_val,
+                        "prompt": prompt,
+                    }
+                )
         if verbose:
             # Summarize by prompt
             prompt_counts = {}
@@ -709,12 +754,16 @@ def _run_sam3_prompts(
                     score_val = float(det.get("score", 0))
                     if score_val >= min_score:
                         bbox = det["bbox"]
-                        all_detected.append({
-                            "x1": int(bbox[0]), "y1": int(bbox[1]),
-                            "x2": int(bbox[2]), "y2": int(bbox[3]),
-                            "score": score_val,
-                            "prompt": prompt,
-                        })
+                        all_detected.append(
+                            {
+                                "x1": int(bbox[0]),
+                                "y1": int(bbox[1]),
+                                "x2": int(bbox[2]),
+                                "y2": int(bbox[3]),
+                                "score": score_val,
+                                "prompt": prompt,
+                            }
+                        )
                         count += 1
                 if verbose:
                     logger.debug("    '%s': %d objects", prompt, count)
@@ -726,8 +775,7 @@ def _run_sam3_prompts(
         # If ALL prompts failed, the service is likely down
         if failed_count == len(prompt_list):
             raise RuntimeError(
-                f"SAM3 service unreachable: all {len(prompt_list)} prompts failed. "
-                f"Check SAM3 at {sam3_url}"
+                f"SAM3 service unreachable: all {len(prompt_list)} prompts failed. Check SAM3 at {sam3_url}"
             )
 
     if verbose:
@@ -747,28 +795,52 @@ def _get_sam_supported_prompts() -> list[str]:
     Also exposed to OpenCode agents as vocabulary reference.
     """
     cfg = _get_sam_config()
-    return cfg.get("supported_prompts", [
-        "rectangle", "rounded rectangle", "arrow", "circle", "diamond",
-        "icon", "text block", "dashed rectangle", "dotted rectangle",
-        "dash-dot rectangle", "dashed rounded rectangle",
-        "dotted rounded rectangle", "dash-dot rounded rectangle",
-        "bracket", "line", "stack", "cube", "cuboid", "grid",
-        "document", "hexagon", "triangle", "star",
-    ])
+    return cfg.get(
+        "supported_prompts",
+        [
+            "rectangle",
+            "rounded rectangle",
+            "arrow",
+            "circle",
+            "diamond",
+            "icon",
+            "text block",
+            "dashed rectangle",
+            "dotted rectangle",
+            "dash-dot rectangle",
+            "dashed rounded rectangle",
+            "dotted rounded rectangle",
+            "dash-dot rounded rectangle",
+            "bracket",
+            "line",
+            "stack",
+            "cube",
+            "cuboid",
+            "grid",
+            "document",
+            "hexagon",
+            "triangle",
+            "star",
+        ],
+    )
 
 
 def _boxes_from_detections(detections: list[dict], start_id: int = 0) -> list[dict]:
     """Convert raw detection dicts into labeled box dicts."""
     boxes = []
     for i, det in enumerate(detections):
-        boxes.append({
-            "id": start_id + i,
-            "label": f"<AF>{start_id + i + 1:02d}",
-            "x1": det["x1"], "y1": det["y1"],
-            "x2": det["x2"], "y2": det["y2"],
-            "score": det["score"],
-            "prompt": det["prompt"],
-        })
+        boxes.append(
+            {
+                "id": start_id + i,
+                "label": f"<AF>{start_id + i + 1:02d}",
+                "x1": det["x1"],
+                "y1": det["y1"],
+                "x2": det["x2"],
+                "y2": det["y2"],
+                "score": det["score"],
+                "prompt": det["prompt"],
+            }
+        )
     return boxes
 
 
@@ -876,6 +948,7 @@ def sam3_review_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState:
 
         ensure_gpt()
         from llm import run_prompt, encode_image_to_data_url
+
         overlay_url = encode_image_to_data_url(overlay_path)
 
         # Summarize stage 1 detections by prompt
@@ -927,7 +1000,7 @@ def sam3_review_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState:
                 raw_path.write_text(response, encoding="utf-8")
 
             json_text = extract_json_block(response)
-            arr_match = re.search(r'\[[\s\S]*?\]', json_text)
+            arr_match = re.search(r"\[[\s\S]*?\]", json_text)
             if arr_match:
                 parsed = json.loads(arr_match.group(0))
                 if isinstance(parsed, list):
@@ -996,6 +1069,7 @@ def _classify_boxes_with_llm(valid_boxes, image, run_dir, run_path, verbose):
 
     ensure_gpt()
     from llm import run_prompt, encode_image_to_data_url
+
     overlay_url = encode_image_to_data_url(temp_overlay_path)
 
     box_lines = []
@@ -1054,7 +1128,7 @@ def _classify_boxes_with_llm(valid_boxes, image, run_dir, run_path, verbose):
             logger.debug("  Raw LLM filtering response saved → %s", raw_path.name)
 
         json_text = extract_json_block(response)
-        arr_match = re.search(r'\[[\s\S]*\]', json_text)
+        arr_match = re.search(r"\[[\s\S]*\]", json_text)
         classifications = []
         if arr_match:
             classifications = json.loads(arr_match.group(0))
@@ -1080,7 +1154,7 @@ def _classify_boxes_with_llm(valid_boxes, image, run_dir, run_path, verbose):
 
             if corrected == "spurious":
                 if verbose:
-                    logger.debug("    %s: SPURIOUS (removed) — %s", b['label'], desc)
+                    logger.debug("    %s: SPURIOUS (removed) — %s", b["label"], desc)
                 continue
 
             # Normalize class name and validate
@@ -1105,16 +1179,26 @@ def _classify_boxes_with_llm(valid_boxes, image, run_dir, run_path, verbose):
         icon_count = sum(1 for b in valid_boxes if b.get("is_icon"))
 
         if verbose:
-            logger.info("  LLM classified %d boxes → %d valid (%d icon, %d structural)",
-                        original_len, len(valid_boxes), icon_count, len(valid_boxes) - icon_count)
+            logger.info(
+                "  LLM classified %d boxes → %d valid (%d icon, %d structural)",
+                original_len,
+                len(valid_boxes),
+                icon_count,
+                len(valid_boxes) - icon_count,
+            )
             if icon_labels:
                 logger.debug("    Icons: %s", icon_labels)
             for cls in classifications:
                 if isinstance(cls, dict):
-                    logger.debug("    %s: %s (icon=%s, viz=%s, bg=%s) — %s",
-                                 cls.get('label', '?'), cls.get('corrected_class', '?'),
-                                 cls.get('is_icon', '?'), cls.get('is_visualization', '?'),
-                                 cls.get('needs_bg_removal', '?'), cls.get('description', '')[:80])
+                    logger.debug(
+                        "    %s: %s (icon=%s, viz=%s, bg=%s) — %s",
+                        cls.get("label", "?"),
+                        cls.get("corrected_class", "?"),
+                        cls.get("is_icon", "?"),
+                        cls.get("is_visualization", "?"),
+                        cls.get("needs_bg_removal", "?"),
+                        cls.get("description", "")[:80],
+                    )
 
     except Exception as e:
         if verbose:
@@ -1160,10 +1244,7 @@ def sam3_merge_classify_node(state: SVGMethodPipelineState) -> SVGMethodPipeline
 
     # Validate agent boxes have all required fields
     if agent_classified and agent_boxes:
-        valid_agent = all(
-            all(b.get(f) is not None for f in _AGENT_REQUIRED_FIELDS)
-            for b in agent_boxes
-        )
+        valid_agent = all(all(b.get(f) is not None for f in _AGENT_REQUIRED_FIELDS) for b in agent_boxes)
         if not valid_agent:
             if verbose:
                 logger.warning("  Agent-classified boxes missing required fields, falling back to LLM classification")
@@ -1186,7 +1267,12 @@ def sam3_merge_classify_node(state: SVGMethodPipelineState) -> SVGMethodPipeline
         all_prompts = stage1_prompts + stage2_prompts
 
         if verbose:
-            logger.info("SAM3 Merge: %d stage-1 + %d stage-2 = %d total detections", len(stage1), len(stage2), len(all_detections))
+            logger.info(
+                "SAM3 Merge: %d stage-1 + %d stage-2 = %d total detections",
+                len(stage1),
+                len(stage2),
+                len(all_detections),
+            )
 
         # Build labeled boxes
         valid_boxes = _boxes_from_detections(all_detections)
@@ -1270,6 +1356,7 @@ def ocr_text_detection_node(state: SVGMethodPipelineState) -> SVGMethodPipelineS
         return {"ocr_texts": []}
 
     from services.ocr.client import OcrServiceClient
+
     ocr_url = os.environ.get("OCR_SERVICE_URL", "http://127.0.0.1:8002")
     client = OcrServiceClient(ocr_url)
 
@@ -1389,8 +1476,7 @@ def icon_extraction_node(state: SVGMethodPipelineState) -> SVGMethodPipelineStat
     all_boxes = boxlib_data.get("boxes", [])
 
     # Filter to icon boxes only (LLM-classified is_icon, or prompt-based fallback)
-    boxes = [b for b in all_boxes
-             if b.get("is_icon", b.get("prompt", "").lower() in _get_icon_prompts())]
+    boxes = [b for b in all_boxes if b.get("is_icon", b.get("prompt", "").lower() in _get_icon_prompts())]
 
     if not boxes:
         if state.get("verbose"):
@@ -1401,6 +1487,7 @@ def icon_extraction_node(state: SVGMethodPipelineState) -> SVGMethodPipelineStat
     if boxes_needing_bg_removal:
         try:
             from services.ben2.client import BEN2ServiceClient
+
             ben2_endpoint = os.environ.get(
                 "BEN2_SERVICE_URL",
                 load_pipeline_config().get("services", {}).get("ben2_endpoint", "http://127.0.0.1:8003"),
@@ -1430,7 +1517,11 @@ def icon_extraction_node(state: SVGMethodPipelineState) -> SVGMethodPipelineStat
         if needs_bg_removal and use_ben2 and ben2_client is not None:
             try:
                 foreground = ben2_client.remove_background_region(
-                    image_path, x1, y1, x2, y2,
+                    image_path,
+                    x1,
+                    y1,
+                    x2,
+                    y2,
                 )
                 nobg_path = str(icons_dir / f"icon_{label_clean}_nobg.png")
                 foreground.save(nobg_path)
@@ -1443,22 +1534,28 @@ def icon_extraction_node(state: SVGMethodPipelineState) -> SVGMethodPipelineStat
             nobg_path = str(icons_dir / f"icon_{label_clean}_nobg.png")
             cropped.convert("RGBA").save(nobg_path)
 
-        icon_infos.append({
-            "id": box_info["id"],
-            "label": label,
-            "label_clean": label_clean,
-            "x1": x1, "y1": y1, "x2": x2, "y2": y2,
-            "width": x2 - x1, "height": y2 - y1,
-            "score": box_info.get("score", 0.0),
-            "prompt": box_info.get("prompt", ""),
-            "corrected_class": box_info.get("corrected_class", box_info.get("prompt", "")),
-            "is_icon": box_info.get("is_icon", True),
-            "is_visualization": box_info.get("is_visualization", False),
-            "needs_bg_removal": needs_bg_removal,
-            "description": box_info.get("description", ""),
-            "crop_path": crop_path,
-            "nobg_path": nobg_path,
-        })
+        icon_infos.append(
+            {
+                "id": box_info["id"],
+                "label": label,
+                "label_clean": label_clean,
+                "x1": x1,
+                "y1": y1,
+                "x2": x2,
+                "y2": y2,
+                "width": x2 - x1,
+                "height": y2 - y1,
+                "score": box_info.get("score", 0.0),
+                "prompt": box_info.get("prompt", ""),
+                "corrected_class": box_info.get("corrected_class", box_info.get("prompt", "")),
+                "is_icon": box_info.get("is_icon", True),
+                "is_visualization": box_info.get("is_visualization", False),
+                "needs_bg_removal": needs_bg_removal,
+                "description": box_info.get("description", ""),
+                "crop_path": crop_path,
+                "nobg_path": nobg_path,
+            }
+        )
 
     if state.get("verbose"):
         ben2_count = sum(1 for icon in icon_infos if icon.get("needs_bg_removal"))
@@ -1534,7 +1631,7 @@ def architecture_review_node(state: SVGMethodPipelineState) -> SVGMethodPipeline
 
     if state.get("verbose"):
         verdict = "pass" if normalized.get("pass") else "fail"
-        logger.info("Architecture review: %s (%.1f/10)", verdict, normalized.get('score', 0))
+        logger.info("Architecture review: %s (%.1f/10)", verdict, normalized.get("score", 0))
 
     if run_dir:
         out_path = Path(run_dir) / f"architecture_review_v{arch_iter + 1}.json"
@@ -1634,9 +1731,11 @@ def visualization_code_gen_node(state: SVGMethodPipelineState) -> SVGMethodPipel
         )
         if exec_result.returncode != 0 or not out_path.exists():
             if state.get("verbose"):
-                logger.error("Visualization icon execution failed for %s: %s",
-                             label_clean,
-                             (exec_result.stderr or exec_result.stdout or '').strip()[:200])
+                logger.error(
+                    "Visualization icon execution failed for %s: %s",
+                    label_clean,
+                    (exec_result.stderr or exec_result.stdout or "").strip()[:200],
+                )
             visualization_icons.append(
                 {
                     "label_clean": label_clean,
@@ -1694,6 +1793,7 @@ def svg_generation_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
         composite_path = Path(image_path)
 
     from llm import encode_image_to_data_url
+
     composite_url = encode_image_to_data_url(str(composite_path))
 
     system_prompt = _load_prompt(
@@ -1731,7 +1831,7 @@ def svg_generation_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
         "3. Each detected region below is classified as STRUCTURAL or ICON:",
         "   - STRUCTURAL regions: Replicate these with SVG code (rect, path, line, text, polygon, etc.) "
         "matching the colors, shapes, and positions visible in the LEFT image.",
-        "   - ICON regions: Create a gray placeholder <g id=\"AFxx\"> with <rect fill=\"#808080\" stroke=\"black\"/> "
+        '   - ICON regions: Create a gray placeholder <g id="AFxx"> with <rect fill="#808080" stroke="black"/> '
         "and centered white <text> label. These will be replaced with actual images later.",
         "4. Use the exact coordinates provided below for positioning.",
         "",
@@ -1745,7 +1845,7 @@ def svg_generation_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
     user_parts.append(
         f"\nThere are {num_boxes} detected regions. Include each region ONCE. "
         "If two regions cover the same visual element (similar coordinates), include only the one with the better description. "
-        "For ICON regions, use <g id=\"AFxx\"><rect fill=\"#808080\" .../><text>AFxx</text></g>. "
+        'For ICON regions, use <g id="AFxx"><rect fill="#808080" .../><text>AFxx</text></g>. '
         "For STRUCTURAL regions, replicate the visual appearance from the LEFT image using SVG elements. "
         "Focus on reproducing ALL arrows and connectors visible in the original — arrows are critical for showing data flow."
     )
@@ -1755,7 +1855,8 @@ def svg_generation_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
 
     if state.get("verbose"):
         from llm import get_backend, get_model_display
-        logger.info("Generating SVG template (backend=%s, model=%s)...", get_backend(), get_model_display('chat'))
+
+        logger.info("Generating SVG template (backend=%s, model=%s)...", get_backend(), get_model_display("chat"))
         _save_node_prompt(run_dir, "svg_generation", system_prompt, user_text)
 
     for attempt in range(3):
@@ -1820,8 +1921,9 @@ def svg_validation_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
         if is_valid:
             dims = get_svg_dimensions(svg_code)
             n_b64 = count_base64_images(svg_code)
-            logger.info("  SVG syntax valid (dims=%sx%s, %d base64 images, %d chars)",
-                        dims[0], dims[1], n_b64, len(svg_code))
+            logger.info(
+                "  SVG syntax valid (dims=%sx%s, %d base64 images, %d chars)", dims[0], dims[1], n_b64, len(svg_code)
+            )
             if text_warnings:
                 logger.warning("  Text boundary warnings (%d):", len(text_warnings))
                 for w in text_warnings[:5]:
@@ -1992,16 +2094,20 @@ def svg_optimization_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
             opt_parts.append("## Automated Post-Render Check Results (from previous iteration)")
             opt_parts.append(last_check_summary)
             opt_parts.append("")
-            opt_parts.append("FIX the issues above before making other changes. These are concrete, programmatically-detected errors.")
-        opt_parts.extend([
-            "",
-            "CRITICAL INSTRUCTIONS:",
-            "1. Optimize the SVG to better match the LEFT (original) figure.",
-            "2. Output ONLY the optimized SVG code for a SINGLE unified diagram.",
-            "3. STRUCTURAL regions: improve their SVG code (colors, shapes, positions) to match the original.",
-            "4. ICON placeholder regions: keep them as <g id=\"AFxx\"> gray boxes — do NOT modify or remove.",
-            "5. Where the SVG has href=\"...BASE64_DATA_STRIPPED...\", preserve that <image> tag exactly as-is.",
-        ])
+            opt_parts.append(
+                "FIX the issues above before making other changes. These are concrete, programmatically-detected errors."
+            )
+        opt_parts.extend(
+            [
+                "",
+                "CRITICAL INSTRUCTIONS:",
+                "1. Optimize the SVG to better match the LEFT (original) figure.",
+                "2. Output ONLY the optimized SVG code for a SINGLE unified diagram.",
+                "3. STRUCTURAL regions: improve their SVG code (colors, shapes, positions) to match the original.",
+                '4. ICON placeholder regions: keep them as <g id="AFxx"> gray boxes — do NOT modify or remove.',
+                '5. Where the SVG has href="...BASE64_DATA_STRIPPED...", preserve that <image> tag exactly as-is.',
+            ]
+        )
         user_text = "\n".join(opt_parts)
 
         if state.get("verbose"):
@@ -2009,7 +2115,8 @@ def svg_optimization_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
 
         try:
             response = run_prompt(
-                "chat", user_text,
+                "chat",
+                user_text,
                 system_prompt=system_prompt,
                 image_base64=comp_url,
             ).strip()
@@ -2066,7 +2173,7 @@ def svg_optimization_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
             pass  # Non-critical: skip saving check results if write fails
 
         if state.get("verbose"):
-            logger.info("    Post-render checks: %d issue(s)", len(check_result['issues']))
+            logger.info("    Post-render checks: %d issue(s)", len(check_result["issues"]))
             if check_result["has_critical"]:
                 logger.warning("    Critical issues detected — will inject into next iteration prompt")
 
@@ -2079,8 +2186,10 @@ def svg_optimization_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
             if render_ok:
                 logger.debug("    Optimized SVG iter %d preview → %s", iteration, iter_png_path.name)
                 _print_svg_diff(
-                    current_svg, str(iter_png_path),
-                    valid_boxes, state.get("ocr_texts") or [],
+                    current_svg,
+                    str(iter_png_path),
+                    valid_boxes,
+                    state.get("ocr_texts") or [],
                     f"opt_iter{iteration}",
                 )
 
@@ -2168,9 +2277,8 @@ def icon_replacement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
         # removed by optimization or refinement as a duplicate)
         # Check for: <g id="AFxx">, <text>&lt;AF&gt;xx</text>, <text>AFxx</text>
         g_pat = rf'<g[^>]*\bid=["\']?{re.escape(label_clean)}["\']?'
-        text_pat = rf'(?:&lt;AF&gt;|<AF>|(?<=[>\s])){re.escape(label_clean)}(?=[<\s])'
-        if not re.search(g_pat, svg_content, re.IGNORECASE) and \
-           not re.search(text_pat, svg_content, re.IGNORECASE):
+        text_pat = rf"(?:&lt;AF&gt;|<AF>|(?<=[>\s])){re.escape(label_clean)}(?=[<\s])"
+        if not re.search(g_pat, svg_content, re.IGNORECASE) and not re.search(text_pat, svg_content, re.IGNORECASE):
             if state.get("verbose"):
                 logger.debug("    Skipping %s — no placeholder found in SVG", label_clean)
             continue
@@ -2191,9 +2299,13 @@ def icon_replacement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
 
             # Extract translate transform
             tx, ty = 0.0, 0.0
-            g_tag = re.match(r'<g[^>]*>', g_content, re.IGNORECASE)
+            g_tag = re.match(r"<g[^>]*>", g_content, re.IGNORECASE)
             if g_tag:
-                tm = re.search(r'transform=["\'][^"\']*translate\s*\(\s*([\d.-]+)[\s,]+([\d.-]+)\s*\)', g_tag.group(0), re.IGNORECASE)
+                tm = re.search(
+                    r'transform=["\'][^"\']*translate\s*\(\s*([\d.-]+)[\s,]+([\d.-]+)\s*\)',
+                    g_tag.group(0),
+                    re.IGNORECASE,
+                )
                 if tm:
                     tx, ty = float(tm.group(1)), float(tm.group(2))
 
@@ -2222,21 +2334,23 @@ def icon_replacement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
                     svg_content = svg_content.replace(g_content, image_tag)
                     replaced = True
                     if state.get("verbose"):
-                        logger.debug("    %s: replaced via <g> group match (x=%s, y=%s, w=%s, h=%s)", label_clean, x, y, w, h)
+                        logger.debug(
+                            "    %s: replaced via <g> group match (x=%s, y=%s, w=%s, h=%s)", label_clean, x, y, w, h
+                        )
                     break
 
         # Method 2: Match <text> containing the label
         if not replaced:
             text_patterns = [
-                rf'<text[^>]*>[^<]*{re.escape(label)}[^<]*</text>',
-                rf'<text[^>]*>[^<]*&lt;AF&gt;{label_clean[2:]}[^<]*</text>',
+                rf"<text[^>]*>[^<]*{re.escape(label)}[^<]*</text>",
+                rf"<text[^>]*>[^<]*&lt;AF&gt;{label_clean[2:]}[^<]*</text>",
             ]
             for tp in text_patterns:
                 tm = re.search(tp, svg_content, re.IGNORECASE)
                 if tm:
                     text_pos = tm.start()
                     preceding = svg_content[:text_pos]
-                    rect_matches = list(re.finditer(r'<rect[^>]*/?\s*>', preceding, re.IGNORECASE))
+                    rect_matches = list(re.finditer(r"<rect[^>]*/?\s*>", preceding, re.IGNORECASE))
                     if rect_matches:
                         rect_content = rect_matches[-1].group(0)
                         xm = re.search(r'\bx=["\']?([\d.]+)', rect_content)
@@ -2254,11 +2368,18 @@ def icon_replacement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
                                 f'href="data:image/png;base64,{icon_b64}" '
                                 f'preserveAspectRatio="xMidYMid meet"/>'
                             )
-                            svg_content = svg_content.replace(tm.group(0), '')
+                            svg_content = svg_content.replace(tm.group(0), "")
                             svg_content = svg_content.replace(rect_content, image_tag, 1)
                             replaced = True
                             if state.get("verbose"):
-                                logger.debug("    %s: replaced via <text> match (x=%s, y=%s, w=%s, h=%s)", label_clean, x, y, w, h)
+                                logger.debug(
+                                    "    %s: replaced via <text> match (x=%s, y=%s, w=%s, h=%s)",
+                                    label_clean,
+                                    x,
+                                    y,
+                                    w,
+                                    h,
+                                )
                             break
 
         # Fallback: append at original coordinates
@@ -2273,7 +2394,7 @@ def icon_replacement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
                 f'href="data:image/png;base64,{icon_b64}" '
                 f'preserveAspectRatio="xMidYMid meet"/>'
             )
-            svg_content = svg_content.replace('</svg>', f'  {image_tag}\n</svg>')
+            svg_content = svg_content.replace("</svg>", f"  {image_tag}\n</svg>")
             if state.get("verbose"):
                 logger.debug("    %s: FALLBACK — appended at (%.1f, %.1f, %.1fx%.1f)", label_clean, x1, y1, w, h)
 
@@ -2300,18 +2421,22 @@ def svg_render_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState:
     if not svg_path or not Path(svg_path).exists():
         return {}
 
-    check_result = run_post_render_checks(
-        svg_code,
-        state.get("valid_boxes") or [],
-        state.get("ocr_texts") or [],
-    ) if svg_code else {
-        "issues": [],
-        "summary": "",
-        "counts": {},
-        "has_critical": False,
-        "blocking_issues": [],
-        "has_blocking_overlap": False,
-    }
+    check_result = (
+        run_post_render_checks(
+            svg_code,
+            state.get("valid_boxes") or [],
+            state.get("ocr_texts") or [],
+        )
+        if svg_code
+        else {
+            "issues": [],
+            "summary": "",
+            "counts": {},
+            "has_critical": False,
+            "blocking_issues": [],
+            "has_blocking_overlap": False,
+        }
+    )
 
     iteration = state.get("team_iteration", 0)
     iter_png = str(Path(run_dir) / f"method_architecture_v{iteration}.png")
@@ -2325,7 +2450,7 @@ def svg_render_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState:
         if state.get("verbose"):
             logger.info("  SVG rendered to PNG: %s", png_path)
             if check_result.get("issues"):
-                logger.info("  %s", check_result['summary'])
+                logger.info("  %s", check_result["summary"])
         return {
             "figure_path": png_path,
             "post_render_checks": check_result,
@@ -2396,8 +2521,15 @@ def _run_review_node(
 
     if state.get("verbose"):
         from llm import get_backend, get_model_display
-        logger.info("%s reviewing (iteration %d/%d, backend=%s, model=%s)...",
-                    role.capitalize(), iteration + 1, max_iterations, get_backend(), get_model_display('chat'))
+
+        logger.info(
+            "%s reviewing (iteration %d/%d, backend=%s, model=%s)...",
+            role.capitalize(),
+            iteration + 1,
+            max_iterations,
+            get_backend(),
+            get_model_display("chat"),
+        )
 
     import time as _time
 
@@ -2410,7 +2542,7 @@ def _run_review_node(
         with Image.open(figure_path) as _render:
             render_img = _render.copy()
         composite = build_composite_image(orig_img, render_img)
-        comp_path = Path(state.get("run_dir", "")) / f"review_composite_{comp_tag}_v{iteration+1}.png"
+        comp_path = Path(state.get("run_dir", "")) / f"review_composite_{comp_tag}_v{iteration + 1}.png"
         composite.save(str(comp_path))
         image_url = encode_image_to_data_url(str(comp_path))
         orig_img.close()
@@ -2435,7 +2567,9 @@ def _run_review_node(
         )
 
     if state.get("verbose"):
-        _save_node_prompt(state.get("run_dir", ""), f"{role}_review", system_prompt, user_prompt, suffix=f"v{iteration+1}")
+        _save_node_prompt(
+            state.get("run_dir", ""), f"{role}_review", system_prompt, user_prompt, suffix=f"v{iteration + 1}"
+        )
 
     response = None
     for _attempt in range(3):
@@ -2473,7 +2607,7 @@ def _run_review_node(
     }
 
     if state.get("verbose"):
-        logger.info("  %s score: %s/12", role.capitalize(), feedback.get('overall_score', 0))
+        logger.info("  %s score: %s/12", role.capitalize(), feedback.get("overall_score", 0))
 
     run_dir = state.get("run_dir", "")
     if run_dir:
@@ -2533,9 +2667,7 @@ def advocate_review_node(state: SVGMethodPipelineState) -> SVGMethodPipelineStat
     threshold = QUALITY_THRESHOLDS.get(doc_type.lower(), QUALITY_THRESHOLDS["default"])
 
     # Pre-compute action for review_history (mirrors _route_after_advocate logic)
-    review_unreliable = (
-        adv_feedback.get("review_skipped") or adv_feedback.get("parse_failure")
-    )
+    review_unreliable = adv_feedback.get("review_skipped") or adv_feedback.get("parse_failure")
     if review_unreliable and iteration + 1 < max_iter:
         action = "refine"
     elif adv_score >= threshold or iteration + 1 >= max_iter:
@@ -2588,16 +2720,20 @@ def advocate_review_node(state: SVGMethodPipelineState) -> SVGMethodPipelineStat
                             result["figure_path"] = best_png
                             result["combined_score"] = best_score
                             if state.get("verbose"):
-                                logger.info("  Restored best SVG from iteration %d (score %.1f vs current %.1f)", best_iter, best_score, adv_score)
+                                logger.info(
+                                    "  Restored best SVG from iteration %d (score %.1f vs current %.1f)",
+                                    best_iter,
+                                    best_score,
+                                    adv_score,
+                                )
                             break
 
     post_render_checks = state.get("post_render_checks") or {}
     if post_render_checks.get("has_blocking_overlap") and iteration + 1 >= max_iter:
         top_messages = [issue.get("message", "") for issue in post_render_checks.get("blocking_issues", [])[:3]]
         message = "; ".join(msg for msg in top_messages if msg)
-        result["error"] = (
-            f"Critical overlap issues remained after {max_iter} refinement iterations"
-            + (f": {message}" if message else ".")
+        result["error"] = f"Critical overlap issues remained after {max_iter} refinement iterations" + (
+            f": {message}" if message else "."
         )
     elif _feedback_mentions_overlap(adv_feedback) and iteration + 1 >= max_iter:
         result["error"] = (
@@ -2606,7 +2742,14 @@ def advocate_review_node(state: SVGMethodPipelineState) -> SVGMethodPipelineStat
         )
 
     if state.get("verbose"):
-        logger.info("  Review: adv=%.1f/12 (threshold: %s, iter %d/%d) → %s", adv_score, threshold, iteration + 1, max_iter, action)
+        logger.info(
+            "  Review: adv=%.1f/12 (threshold: %s, iter %d/%d) → %s",
+            adv_score,
+            threshold,
+            iteration + 1,
+            max_iter,
+            action,
+        )
 
     return result
 
@@ -2643,29 +2786,38 @@ def consensus_router_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
     review_history = list(state.get("review_history") or [])
 
     if state.get("verbose"):
-        logger.info("  Consensus: arch=%.1f adv=%.1f combined=%.1f/12 (threshold: %s, iter %d/%d)",
-                    arch_score, adv_score, combined, threshold, iteration + 1, max_iter)
+        logger.info(
+            "  Consensus: arch=%.1f adv=%.1f combined=%.1f/12 (threshold: %s, iter %d/%d)",
+            arch_score,
+            adv_score,
+            combined,
+            threshold,
+            iteration + 1,
+            max_iter,
+        )
         # Show dimension breakdown
         for dim_name, dim_data in arch_feedback.get("dimensions", {}).items():
             dim_score = dim_data.get("score", "?")
             dim_issues = dim_data.get("issues", [])
-            issue_str = " — %s" % '; '.join(dim_issues[:2]) if dim_issues else ""
+            issue_str = " — %s" % "; ".join(dim_issues[:2]) if dim_issues else ""
             logger.debug("    arch/%s: %s%s", dim_name, dim_score, issue_str)
         for dim_name, dim_data in adv_feedback.get("dimensions", {}).items():
             dim_score = dim_data.get("score", "?")
             dim_issues = dim_data.get("issues", [])
-            issue_str = " — %s" % '; '.join(dim_issues[:2]) if dim_issues else ""
+            issue_str = " — %s" % "; ".join(dim_issues[:2]) if dim_issues else ""
             logger.debug("    adv/%s: %s%s", dim_name, dim_score, issue_str)
         if combined_issues:
             logger.debug("  Top issues (%d total):", len(combined_issues))
             for iss in combined_issues[:5]:
-                logger.debug("    [%s] %s/%s: %s", iss['severity'], iss['source'], iss['dimension'], iss['issue'][:100])
+                logger.debug("    [%s] %s/%s: %s", iss["severity"], iss["source"], iss["dimension"], iss["issue"][:100])
 
     # If either review was skipped or failed to parse, force refinement
     # regardless of score — fabricated scores must not drive acceptance.
     review_unreliable = (
-        arch_feedback.get("review_skipped") or arch_feedback.get("parse_failure")
-        or adv_feedback.get("review_skipped") or adv_feedback.get("parse_failure")
+        arch_feedback.get("review_skipped")
+        or arch_feedback.get("parse_failure")
+        or adv_feedback.get("review_skipped")
+        or adv_feedback.get("parse_failure")
     )
 
     if review_unreliable and iteration + 1 < max_iter:
@@ -2678,8 +2830,7 @@ def consensus_router_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
             review_entry["unreviewed_final"] = True
         if iteration + 1 >= max_iter and combined < threshold:
             # Find best-scoring iteration and restore its SVG if it was better
-            best_entry = max(review_history + [review_entry],
-                            key=lambda e: e.get("combined_score", 0))
+            best_entry = max(review_history + [review_entry], key=lambda e: e.get("combined_score", 0))
             best_score = best_entry.get("combined_score", 0)
             best_iter = best_entry.get("iteration", iteration + 1)
             if best_score > combined:
@@ -2703,11 +2854,18 @@ def consensus_router_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSta
                                 review_entry["_best_iter"] = best_iter
                                 review_entry["_best_score"] = best_score
                                 if state.get("verbose"):
-                                    logger.info("  Restored best SVG from iteration %d (score %.1f vs current %.1f)", best_iter, best_score, combined)
+                                    logger.info(
+                                        "  Restored best SVG from iteration %d (score %.1f vs current %.1f)",
+                                        best_iter,
+                                        best_score,
+                                        combined,
+                                    )
                                 break
             if state.get("verbose"):
                 qualifier = " (UNREVIEWED)" if review_unreliable else ""
-                logger.info("  Max iterations reached — accepting best effort (%.1f/12)%s", max(combined, best_score), qualifier)
+                logger.info(
+                    "  Max iterations reached — accepting best effort (%.1f/12)%s", max(combined, best_score), qualifier
+                )
     else:
         arch_dims = arch_feedback.get("dimensions", {})
         structural = arch_dims.get("structural_accuracy", {}).get("score", 2.0)
@@ -2759,7 +2917,8 @@ def svg_refinement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
 
     if state.get("verbose"):
         from llm import get_backend, get_model_display
-        logger.info("Refining SVG (backend=%s, model=%s)...", get_backend(), get_model_display('chat'))
+
+        logger.info("Refining SVG (backend=%s, model=%s)...", get_backend(), get_model_display("chat"))
 
     # Build feedback text from advocate only
     parts = []
@@ -2815,8 +2974,7 @@ def svg_refinement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
 
     valid_boxes = state.get("valid_boxes") or []
     icon_infos_ref = state.get("icon_infos") or []
-    if original_path and Path(original_path).exists() and \
-       rendered_path and Path(rendered_path).exists():
+    if original_path and Path(original_path).exists() and rendered_path and Path(rendered_path).exists():
         with Image.open(original_path) as _o:
             orig_img = _o.copy()
         with Image.open(rendered_path) as _r:
@@ -2877,17 +3035,19 @@ def svg_refinement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
     if ocr_context:
         ref_parts.append("")
         ref_parts.append(ocr_context)
-    ref_parts.extend([
-        "",
-        f"## Agent Feedback\n{feedback_text}",
-        "",
-        "CRITICAL INSTRUCTIONS:",
-        "1. Refine the SVG to address ALL feedback points.",
-        "2. Output ONLY the refined SVG code for a SINGLE unified diagram.",
-        "3. STRUCTURAL regions: improve colors, shapes, positions to match the original figure.",
-        "4. ICON placeholder regions (<g id=\"AFxx\"> or <image id=\"icon_AFxx\">): keep exactly as-is. Do NOT remove or modify.",
-        "5. Where the SVG has href=\"...BASE64_DATA_STRIPPED...\", preserve that <image> tag exactly as-is.",
-    ])
+    ref_parts.extend(
+        [
+            "",
+            f"## Agent Feedback\n{feedback_text}",
+            "",
+            "CRITICAL INSTRUCTIONS:",
+            "1. Refine the SVG to address ALL feedback points.",
+            "2. Output ONLY the refined SVG code for a SINGLE unified diagram.",
+            "3. STRUCTURAL regions: improve colors, shapes, positions to match the original figure.",
+            '4. ICON placeholder regions (<g id="AFxx"> or <image id="icon_AFxx">): keep exactly as-is. Do NOT remove or modify.',
+            '5. Where the SVG has href="...BASE64_DATA_STRIPPED...", preserve that <image> tag exactly as-is.',
+        ]
+    )
     user_text = "\n".join(ref_parts)
 
     if state.get("verbose"):
@@ -2897,7 +3057,8 @@ def svg_refinement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
     for attempt in range(3):
         try:
             response = run_prompt(
-                "chat", user_text,
+                "chat",
+                user_text,
                 system_prompt=system_prompt,
                 image_base64=image_url,
             ).strip()
@@ -2952,7 +3113,11 @@ def svg_refinement_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState
 
     if new_issues > old_issues and new_check.get("has_critical"):
         if state.get("verbose"):
-            logger.warning("  Regression guard: refinement worsened issues (%d → %d) — keeping original SVG", old_issues, new_issues)
+            logger.warning(
+                "  Regression guard: refinement worsened issues (%d → %d) — keeping original SVG",
+                old_issues,
+                new_issues,
+            )
             if run_dir:
                 rejected_path = Path(run_dir) / f"refinement_regressed_v{iteration}.svg"
                 rejected_path.write_text(refined_svg, encoding="utf-8")
@@ -2999,15 +3164,9 @@ def regenerate_prompt_node(state: SVGMethodPipelineState) -> SVGMethodPipelineSt
         if summary:
             improvements.append(summary)
         improvements.extend(
-            f"Add or restore missing component: {item}"
-            for item in arch_feedback.get("missing_components", [])
-            if item
+            f"Add or restore missing component: {item}" for item in arch_feedback.get("missing_components", []) if item
         )
-        improvements.extend(
-            f"Fix architecture issue: {item}"
-            for item in arch_feedback.get("issues", [])
-            if item
-        )
+        improvements.extend(f"Fix architecture issue: {item}" for item in arch_feedback.get("issues", []) if item)
     else:
         key_critique = adv_feedback.get("key_critique", "")
         if key_critique:
@@ -3118,7 +3277,7 @@ def fail_end_node(state: SVGMethodPipelineState) -> SVGMethodPipelineState:
     return {
         "success": False,
         "error": f"SVG validation failed after {state.get('svg_fix_iteration', 0)} fix attempts. "
-                 f"Errors: {'; '.join(svg_errors[:3])}",
+        f"Errors: {'; '.join(svg_errors[:3])}",
     }
 
 
@@ -3209,9 +3368,7 @@ def _route_after_advocate(state: SVGMethodPipelineState) -> str:
     doc_type = state.get("doc_type", "journal")
     threshold = QUALITY_THRESHOLDS.get(doc_type.lower(), QUALITY_THRESHOLDS["default"])
 
-    review_unreliable = (
-        adv_feedback.get("review_skipped") or adv_feedback.get("parse_failure")
-    )
+    review_unreliable = adv_feedback.get("review_skipped") or adv_feedback.get("parse_failure")
     blocking_overlap = bool(state.get("post_render_has_blocking_overlap"))
     reviewer_overlap = _feedback_mentions_overlap(adv_feedback)
 

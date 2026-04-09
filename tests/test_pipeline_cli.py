@@ -1,4 +1,5 @@
 """Tests for utility functions in scripts/pipeline_cli.py."""
+
 from __future__ import annotations
 
 import argparse
@@ -57,6 +58,7 @@ class TestLoadSaveState:
         """default=str in json.dump should handle Path objects etc."""
         run_dir = str(tmp_path)
         from datetime import datetime
+
         data = {"created": datetime(2026, 1, 15, 12, 0, 0)}
         _save_state(run_dir, data)
         loaded = _load_state(run_dir)

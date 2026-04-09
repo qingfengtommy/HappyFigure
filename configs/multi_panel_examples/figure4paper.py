@@ -82,6 +82,7 @@ class FigureStyle:
 
 # --- Internal Helpers ---
 
+
 def _require(condition: bool, message: str) -> None:
     """Internal assertion-style validator."""
     if not condition:
@@ -106,6 +107,7 @@ def _as_2d_array(name: str, values: Any) -> npt.NDArray[np.float64]:
 
 # --- Core API ---
 
+
 def apply_publication_style(style: FigureStyle | None = None) -> None:
     """Configures matplotlib with publication-ready defaults.
 
@@ -114,34 +116,33 @@ def apply_publication_style(style: FigureStyle | None = None) -> None:
     """
     s = style or FigureStyle()
 
-    plt.rcParams.update({
-        "text.usetex": s.use_tex,
-        "font.family": "sans-serif",
-        "font.sans-serif": list(s.font_family),
-        "font.size": s.font_size,
-        "axes.labelsize": s.font_size,
-        "axes.titlesize": s.font_size + 2,
-        "axes.linewidth": s.axes_linewidth,
-        "axes.spines.right": False,
-        "axes.spines.top": False,
-        "legend.frameon": False,
-        "legend.fontsize": s.font_size - 2,
-        "xtick.direction": "out",
-        "ytick.direction": "out",
-        "svg.fonttype": "none",
-        "pdf.fonttype": 42,
-        "ps.fonttype": 42,
-        "savefig.bbox": "tight",
-        "savefig.transparent": False,
-    })
+    plt.rcParams.update(
+        {
+            "text.usetex": s.use_tex,
+            "font.family": "sans-serif",
+            "font.sans-serif": list(s.font_family),
+            "font.size": s.font_size,
+            "axes.labelsize": s.font_size,
+            "axes.titlesize": s.font_size + 2,
+            "axes.linewidth": s.axes_linewidth,
+            "axes.spines.right": False,
+            "axes.spines.top": False,
+            "legend.frameon": False,
+            "legend.fontsize": s.font_size - 2,
+            "xtick.direction": "out",
+            "ytick.direction": "out",
+            "svg.fonttype": "none",
+            "pdf.fonttype": 42,
+            "ps.fonttype": 42,
+            "savefig.bbox": "tight",
+            "savefig.transparent": False,
+        }
+    )
     logger.debug("Applied publication style configuration.")
 
 
 def create_subplots(
-    nrows: int = 1,
-    ncols: int = 1,
-    figsize: tuple[float, float] | None = None,
-    **kwargs: Any
+    nrows: int = 1, ncols: int = 1, figsize: tuple[float, float] | None = None, **kwargs: Any
 ) -> tuple[Figure, npt.NDArray[np.object_]]:
     """Creates a figure and a flattened array of axes.
 
@@ -167,7 +168,7 @@ def finalize_figure(
     dpi: int = 300,
     close: bool = True,
     pad: float = 0.05,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> list[Path]:
     """Saves the figure in multiple formats and closes it.
 
@@ -218,6 +219,7 @@ def finalize_figure(
 
 # --- Specialized Plotting Helpers ---
 
+
 def make_trend(
     ax: Axes,
     x: Sequence[float],
@@ -226,7 +228,7 @@ def make_trend(
     colors: Sequence[str] | None = None,
     ylabel: str | None = None,
     xlabel: str | None = None,
-    show_shadow: bool = True
+    show_shadow: bool = True,
 ) -> None:
     """Renders multiple line trends with optional confidence shadows."""
     x_arr = _as_1d_array("x", x)
@@ -239,8 +241,7 @@ def make_trend(
         color = color_map[i % len(color_map)]
         if show_shadow:
             span = np.ptp(y_arr) or 1.0
-            ax.fill_between(x_arr, y_arr - 0.03*span, y_arr + 0.03*span,
-                           color=color, alpha=0.1, lw=0)
+            ax.fill_between(x_arr, y_arr - 0.03 * span, y_arr + 0.03 * span, color=color, alpha=0.1, lw=0)
 
         ax.plot(x_arr, y_arr, label=labels[i], color=color, lw=2.5, alpha=0.9)
 
@@ -258,7 +259,7 @@ def make_grouped_bar(
     labels: Sequence[str],
     ylabel: str = "Value",
     colors: Sequence[str] | None = None,
-    annotate: bool = False
+    annotate: bool = False,
 ) -> BarContainer:
     """Renders a high-contrast grouped bar chart."""
     data = _as_2d_array("series", series)
@@ -273,8 +274,9 @@ def make_grouped_bar(
     last_bars = None
     for i in range(n_series):
         offset = (i - (n_series - 1) / 2) * width
-        bars = ax.bar(x + offset, data[i], width, label=labels[i],
-                      color=color_map[i % len(color_map)], edgecolor="white", lw=0.5)
+        bars = ax.bar(
+            x + offset, data[i], width, label=labels[i], color=color_map[i % len(color_map)], edgecolor="white", lw=0.5
+        )
         last_bars = bars
         if annotate:
             annotate_bars(ax, bars)
@@ -286,21 +288,19 @@ def make_grouped_bar(
     return last_bars
 
 
-def annotate_bars(
-    ax: Axes,
-    bars: BarContainer,
-    fmt: str = "{:.2f}",
-    fontsize: int = 10,
-    padding: float = 3
-) -> None:
+def annotate_bars(ax: Axes, bars: BarContainer, fmt: str = "{:.2f}", fontsize: int = 10, padding: float = 3) -> None:
     """Adds text labels above bars in a BarContainer."""
     for bar in bars:
         height = bar.get_height()
-        ax.annotate(fmt.format(height),
-                    xy=(bar.get_x() + bar.get_width() / 2, height),
-                    xytext=(0, padding),
-                    textcoords="offset points",
-                    ha='center', va='bottom', fontsize=fontsize)
+        ax.annotate(
+            fmt.format(height),
+            xy=(bar.get_x() + bar.get_width() / 2, height),
+            xytext=(0, padding),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=fontsize,
+        )
 
 
 def make_heatmap(
@@ -310,7 +310,7 @@ def make_heatmap(
     y_labels: Sequence[str] | None = None,
     cmap: str = "magma",
     cbar_label: str | None = None,
-    annotate: bool = False
+    annotate: bool = False,
 ) -> AxesImage:
     """Renders a cleaned heatmap with optional text annotations."""
     data = _as_2d_array("matrix", matrix)
@@ -345,24 +345,22 @@ def make_scatter(
     label: str | None = None,
     color: str | None = None,
     size: float = 50,
-    alpha: float = 0.7
+    alpha: float = 0.7,
 ) -> None:
     """Renders a publication-style scatter plot."""
     x_arr = _as_1d_array("x", x)
     y_arr = _as_1d_array("y", y)
     _require(len(x_arr) == len(y_arr), "Length mismatch in scatter")
 
-    ax.scatter(x_arr, y_arr, s=size, label=label,
-               color=color or PALETTE["blue_main"], alpha=alpha, edgecolors="white", lw=0.5)
+    ax.scatter(
+        x_arr, y_arr, s=size, label=label, color=color or PALETTE["blue_main"], alpha=alpha, edgecolors="white", lw=0.5
+    )
     if label:
         ax.legend()
 
 
 def make_sphere_illustration(
-    ax: Axes,
-    light_dir: tuple[float, float, float] = (-0.5, 0.5, 0.8),
-    resolution: int = 128,
-    alpha: float = 0.6
+    ax: Axes, light_dir: tuple[float, float, float] = (-0.5, 0.5, 0.8), resolution: int = 128, alpha: float = 0.6
 ) -> None:
     """Draws a shaded 2D sphere to mimic 3D lighting."""
     xs = np.linspace(-1, 1, resolution)
@@ -386,8 +384,7 @@ def make_sphere_illustration(
     img = np.ones((resolution, resolution), dtype=float)
     img[mask] = shade[mask]
 
-    ax.imshow(img, cmap="gray", origin="lower", extent=[-1, 1, -1, 1],
-              vmin=0, vmax=1, alpha=alpha)
+    ax.imshow(img, cmap="gray", origin="lower", extent=[-1, 1, -1, 1], vmin=0, vmax=1, alpha=alpha)
     ax.set_axis_off()
 
 
@@ -440,16 +437,18 @@ def demo() -> None:
     # Panel C: feature correlation heatmap from structured synthetic data.
     n_features = 8
     base = rng.normal(size=(600, n_features))
-    transform = np.array([
-        [1.0, 0.68, 0.14, -0.22, 0.39, 0.12, -0.15, 0.28],
-        [0.68, 1.0, 0.10, -0.19, 0.35, 0.18, -0.20, 0.24],
-        [0.14, 0.10, 1.0, 0.63, -0.08, 0.55, 0.30, -0.16],
-        [-0.22, -0.19, 0.63, 1.0, -0.12, 0.44, 0.26, -0.21],
-        [0.39, 0.35, -0.08, -0.12, 1.0, 0.14, -0.10, 0.58],
-        [0.12, 0.18, 0.55, 0.44, 0.14, 1.0, 0.46, -0.09],
-        [-0.15, -0.20, 0.30, 0.26, -0.10, 0.46, 1.0, -0.27],
-        [0.28, 0.24, -0.16, -0.21, 0.58, -0.09, -0.27, 1.0],
-    ])
+    transform = np.array(
+        [
+            [1.0, 0.68, 0.14, -0.22, 0.39, 0.12, -0.15, 0.28],
+            [0.68, 1.0, 0.10, -0.19, 0.35, 0.18, -0.20, 0.24],
+            [0.14, 0.10, 1.0, 0.63, -0.08, 0.55, 0.30, -0.16],
+            [-0.22, -0.19, 0.63, 1.0, -0.12, 0.44, 0.26, -0.21],
+            [0.39, 0.35, -0.08, -0.12, 1.0, 0.14, -0.10, 0.58],
+            [0.12, 0.18, 0.55, 0.44, 0.14, 1.0, 0.46, -0.09],
+            [-0.15, -0.20, 0.30, 0.26, -0.10, 0.46, 1.0, -0.27],
+            [0.28, 0.24, -0.16, -0.21, 0.58, -0.09, -0.27, 1.0],
+        ]
+    )
     corr = np.corrcoef(base @ transform, rowvar=False)
     labels = [f"F{i}" for i in range(1, n_features + 1)]
     make_heatmap(

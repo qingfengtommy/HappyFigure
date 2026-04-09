@@ -1,4 +1,5 @@
 """HTTP client for the PaddleOCR service."""
+
 import itertools
 import threading
 from typing import Dict, List, Optional
@@ -24,7 +25,9 @@ class OcrServiceClient:
         if regions is not None:
             payload["regions"] = regions
         resp = requests.post(
-            f"{self.base_url}/predict", json=payload, timeout=self.timeout,
+            f"{self.base_url}/predict",
+            json=payload,
+            timeout=self.timeout,
         )
         resp.raise_for_status()
         return resp.json()

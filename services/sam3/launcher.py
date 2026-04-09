@@ -7,6 +7,7 @@ Usage:
     # ... run pipeline ...
     shutdown_sam3_service(proc)
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -43,19 +44,29 @@ def ensure_sam3_service(
         config_p = Path(__file__).resolve().parent.parent / config_path
     if not config_p.exists():
         import logging
+
         logging.getLogger(__name__).error("Config not found: %s", config_p)
         return None
 
     cmd = [
-        sys.executable, "-m", "services.sam3.server",
-        "--host", host,
-        "--port", str(port),
-        "--config", str(config_p),
-        "--device", device or resolve_device(),
+        sys.executable,
+        "-m",
+        "services.sam3.server",
+        "--host",
+        host,
+        "--port",
+        str(port),
+        "--config",
+        str(config_p),
+        "--device",
+        device or resolve_device(),
     ]
 
     return ensure_service(
-        "sam3", cmd, host, port,
+        "sam3",
+        cmd,
+        host,
+        port,
         env=resolve_hf_env(),
         startup_timeout=startup_timeout,
     )

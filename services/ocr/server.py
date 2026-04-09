@@ -7,6 +7,7 @@ models for higher-accuracy text detection and recognition.
 Usage:
     python -m services.ocr.server --host 0.0.0.0 --port 8002
 """
+
 import argparse
 import asyncio
 import os
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 # ---- Request / Response schemas ----
+
 
 class OcrRequest(BaseModel):
     image_path: str = Field(..., description="Path to image file the server can read")
@@ -59,6 +61,7 @@ class OcrResponse(BaseModel):
 
 
 # ---- Runtime ----
+
 
 class OcrRuntime:
     def __init__(self, lang: str = "en") -> None:
@@ -98,7 +101,7 @@ class OcrRuntime:
 
         items: list[OcrTextItem] = []
         for text, score, poly in zip(texts, scores, polys):
-            score_val = float(score) if hasattr(score, 'item') else float(score)
+            score_val = float(score) if hasattr(score, "item") else float(score)
             poly_list = poly.tolist() if hasattr(poly, "tolist") else poly
             items.append(OcrTextItem(text=text, score=score_val, poly=poly_list))
 
@@ -151,6 +154,7 @@ class OcrRuntime:
 
 # ---- FastAPI app ----
 
+
 def create_app(runtime: OcrRuntime) -> FastAPI:
     app = FastAPI(title="PPStructureV3 OCR Service", version="2.0.0")
 
@@ -171,6 +175,7 @@ def create_app(runtime: OcrRuntime) -> FastAPI:
 
 
 # ---- CLI ----
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Start PPStructureV3 OCR HTTP service")

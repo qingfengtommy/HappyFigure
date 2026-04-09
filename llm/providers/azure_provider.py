@@ -1,4 +1,5 @@
 """Azure OpenAI provider."""
+
 from __future__ import annotations
 
 import os
@@ -48,7 +49,8 @@ class AzureProvider(LLMProvider):
                 import azure.identity  # noqa: F401
             except ImportError:
                 return {
-                    "ok": False, "provider": name,
+                    "ok": False,
+                    "provider": name,
                     "message": "Azure auth failed",
                     "error": f"No credentials: set {self._api_key_env}, or install azure-identity",
                 }
@@ -56,6 +58,7 @@ class AzureProvider(LLMProvider):
         # 2. Check endpoint URL.
         try:
             from llm.gpt_example import _resolve_base_url
+
             base_url = _resolve_base_url()
         except Exception:
             base_url = ""
@@ -64,7 +67,8 @@ class AzureProvider(LLMProvider):
 
         if not base_url or base_url.rstrip("/") in ("", "/openai/v1"):
             return {
-                "ok": True, "provider": name,
+                "ok": True,
+                "provider": name,
                 "message": f"Azure credentials present ({cred_type}), no endpoint in env (agents may configure their own)",
                 "error": None,
             }
@@ -72,38 +76,50 @@ class AzureProvider(LLMProvider):
         # 3. Verify client construction
         try:
             from llm.gpt_example import get_azure_client
+
             get_azure_client(api_key_env=self._api_key_env)
         except Exception as e:
             return {"ok": False, "provider": name, "message": "Azure client init failed", "error": str(e)}
 
         return {"ok": True, "provider": name, "message": f"Azure auth OK ({cred_type})", "error": None}
 
-    def run_prompt(self, model, prompt, *, system_prompt=None,
-                   image_base64=None, few_shot_messages=None) -> str:
+    def run_prompt(self, model, prompt, *, system_prompt=None, image_base64=None, few_shot_messages=None) -> str:
         from llm.gpt_example import run_prompt
+
         return run_prompt(
-            model, prompt,
+            model,
+            prompt,
             system_prompt=system_prompt,
             image_base64=image_base64,
             few_shot_messages=few_shot_messages,
             api_key_env=self._api_key_env,
         )
 
-    def run_image_prompt(self, model, prompt, *,
-                         reference_images=None) -> bytes | None:
+    def run_image_prompt(self, model, prompt, *, reference_images=None) -> bytes | None:
         from llm.gpt_example import run_image_prompt
-        return run_image_prompt(prompt, reference_images=reference_images,
-                                model_name=model,
-                                api_key_env=self._api_key_env)
 
-    def run_prompt_with_tools(self, model, prompt, *, system_prompt=None,
-                              image_base64=None, few_shot_messages=None,
-                              tools=None, tool_choice=None,
-                              tool_executor=None,
-                              max_tool_rounds=5) -> ToolCallResult:
+        return run_image_prompt(
+            prompt, reference_images=reference_images, model_name=model, api_key_env=self._api_key_env
+        )
+
+    def run_prompt_with_tools(
+        self,
+        model,
+        prompt,
+        *,
+        system_prompt=None,
+        image_base64=None,
+        few_shot_messages=None,
+        tools=None,
+        tool_choice=None,
+        tool_executor=None,
+        max_tool_rounds=5,
+    ) -> ToolCallResult:
         from llm.gpt_example import run_prompt_with_tools as _run
+
         result = _run(
-            model, prompt,
+            model,
+            prompt,
             system_prompt=system_prompt,
             image_base64=image_base64,
             few_shot_messages=few_shot_messages,

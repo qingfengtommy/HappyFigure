@@ -1,4 +1,5 @@
 """OpenAI provider — standard OpenAI API (api.openai.com)."""
+
 from __future__ import annotations
 
 import json
@@ -27,16 +28,12 @@ class OpenAIProvider(LLMProvider):
 
         api_key = os.environ.get(api_key_env, "")
         if not api_key:
-            raise RuntimeError(
-                f"OpenAI API key not found. Set {api_key_env} environment variable."
-            )
+            raise RuntimeError(f"OpenAI API key not found. Set {api_key_env} environment variable.")
 
         try:
             from openai import OpenAI
         except ImportError:
-            raise ImportError(
-                "openai package not installed. Install with: pip install openai"
-            )
+            raise ImportError("openai package not installed. Install with: pip install openai")
 
         kwargs: dict[str, Any] = {"api_key": api_key}
         if base_url:
@@ -84,12 +81,17 @@ class OpenAIProvider(LLMProvider):
 
         try:
             from graphs.svg_utils import load_pipeline_config
+
             img_size = load_pipeline_config().get("image_generation", {}).get("size", "1024x1024")
         except ImportError:
             img_size = "1024x1024"
 
         response = self._client.images.generate(
-            model=model, prompt=full_prompt, n=1, size=img_size, quality="high",
+            model=model,
+            prompt=full_prompt,
+            n=1,
+            size=img_size,
+            quality="high",
         )
         if not response.data:
             return None
@@ -98,6 +100,7 @@ class OpenAIProvider(LLMProvider):
             return base64.b64decode(item.b64_json)
         if getattr(item, "url", None):
             import urllib.request
+
             with urllib.request.urlopen(item.url) as resp:
                 return resp.read()
         return None
@@ -158,11 +161,13 @@ class OpenAIProvider(LLMProvider):
                 all_tool_calls.append({"name": fc.name, "arguments": args})
                 all_tool_results.append(result)
                 messages.append(fc)
-                messages.append({
-                    "type": "function_call_output",
-                    "call_id": fc.call_id,
-                    "output": json.dumps(result, default=str),
-                })
+                messages.append(
+                    {
+                        "type": "function_call_output",
+                        "call_id": fc.call_id,
+                        "output": json.dumps(result, default=str),
+                    }
+                )
 
             tool_choice = None
 
@@ -173,12 +178,15 @@ class OpenAIProvider(LLMProvider):
             except ValueError:
                 pass
         return ToolCallResult(
-            text=text, tool_calls=all_tool_calls,
-            tool_results=all_tool_results, raw_response=response,
+            text=text,
+            tool_calls=all_tool_calls,
+            tool_results=all_tool_results,
+            raw_response=response,
         )
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
+
 
 def _build_messages(
     system_prompt: str | None,
@@ -188,10 +196,12 @@ def _build_messages(
 ) -> list[dict]:
     messages: list[dict] = []
     if system_prompt:
-        messages.append({
-            "role": "developer",
-            "content": [{"type": "input_text", "text": system_prompt}],
-        })
+        messages.append(
+            {
+                "role": "developer",
+                "content": [{"type": "input_text", "text": system_prompt}],
+            }
+        )
     if few_shot_messages:
         messages.extend(few_shot_messages)
     user_content: list[dict] = [{"type": "input_text", "text": prompt}]
@@ -213,6 +223,7 @@ def _convert_tools(tools: list[dict] | None) -> list[dict] | None:
         return None
     try:
         from tools.tool_schemas import to_openai_tools
+
         return to_openai_tools(tools)
     except ImportError:
         return tools

@@ -8,6 +8,7 @@ The run manifest (`run_manifest.json`) is a stage-oriented index that
 augments (not replaces) `state.json`.  It tracks what completed, when, and
 where the key outputs live.
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
@@ -144,11 +145,7 @@ class FigureClassification:
     @property
     def needs_services(self) -> bool:
         """Whether any panel requires SAM3/OCR/BEN2 services."""
-        return any(
-            panel.services_needed
-            for fig in self.figures.values()
-            for panel in fig.panels.values()
-        )
+        return any(panel.services_needed for fig in self.figures.values() for panel in fig.panels.values())
 
     def to_dict(self) -> dict:
         return {

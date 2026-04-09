@@ -1,4 +1,5 @@
 """Tests for graphs/spec_fallback.py — deterministic spec generation."""
+
 from __future__ import annotations
 
 import json
@@ -33,16 +34,19 @@ from graphs.spec_fallback import (  # noqa: E402
 
 
 class TestGridForN:
-    @pytest.mark.parametrize("n, expected", [
-        (1, (1, 1)),
-        (2, (1, 2)),
-        (3, (1, 3)),
-        (4, (2, 2)),
-        (5, (2, 3)),
-        (6, (2, 3)),
-        (7, (2, 4)),
-        (8, (2, 4)),
-    ])
+    @pytest.mark.parametrize(
+        "n, expected",
+        [
+            (1, (1, 1)),
+            (2, (1, 2)),
+            (3, (1, 3)),
+            (4, (2, 2)),
+            (5, (2, 3)),
+            (6, (2, 3)),
+            (7, (2, 4)),
+            (8, (2, 4)),
+        ],
+    )
     def test_known_layouts(self, n, expected):
         assert _grid_for_n(n) == expected
 
@@ -162,8 +166,7 @@ class TestDetectComparisonStructure:
             "MethodA": {"accuracy": 0.9, "f1": 0.85},
             "MethodB": {"accuracy": 0.8, "f1": 0.75},
         }
-        exp = {"data": data, "methods": [], "classifiers": [],
-               "metrics": {}, "categories": []}
+        exp = {"data": data, "methods": [], "classifiers": [], "metrics": {}, "categories": []}
         _detect_comparison_structure(exp)
         assert "MethodA" in exp["methods"]
         assert "MethodB" in exp["methods"]
@@ -174,8 +177,7 @@ class TestDetectComparisonStructure:
             "logistic_regression": {"accuracy": 0.9, "f1": 0.85},
             "svm": {"accuracy": 0.8, "f1": 0.75},
         }
-        exp = {"data": data, "methods": [], "classifiers": [],
-               "metrics": {}, "categories": []}
+        exp = {"data": data, "methods": [], "classifiers": [], "metrics": {}, "categories": []}
         _detect_comparison_structure(exp)
         assert "logistic_regression" in exp["classifiers"]
 
@@ -184,8 +186,7 @@ class TestDetectComparisonStructure:
             "section": "cat_test",
             "categories": {"cancer": {}, "normal": {}},
         }
-        exp = {"data": data, "methods": [], "classifiers": [],
-               "metrics": {}, "categories": []}
+        exp = {"data": data, "methods": [], "classifiers": [], "metrics": {}, "categories": []}
         _detect_comparison_structure(exp)
         assert "cancer" in exp["categories"]
         assert "normal" in exp["categories"]
@@ -195,8 +196,7 @@ class TestDetectComparisonStructure:
             "section": "flat",
             "clustering": {"nmi": 0.8, "ari": 0.7},
         }
-        exp = {"data": data, "methods": [], "classifiers": [],
-               "metrics": {}, "categories": []}
+        exp = {"data": data, "methods": [], "classifiers": [], "metrics": {}, "categories": []}
         _detect_comparison_structure(exp)
         assert "nmi" in exp["metrics"]
         assert exp["metrics"]["nmi"] == 0.8
@@ -338,8 +338,14 @@ class TestGenerateSpec:
 class TestGenerateMultiFigurePlan:
     def test_produces_markdown(self):
         discovered = [
-            {"section": "exp1", "path": "/p", "methods": ["A", "B"],
-             "classifiers": [], "categories": [], "metrics": {}},
+            {
+                "section": "exp1",
+                "path": "/p",
+                "methods": ["A", "B"],
+                "classifiers": [],
+                "categories": [],
+                "metrics": {},
+            },
         ]
         plan = generate_multi_figure_plan(discovered, ["exp1"])
         assert "# Multi-Figure Plan" in plan
@@ -348,10 +354,8 @@ class TestGenerateMultiFigurePlan:
 
     def test_skips_experiments_not_in_list(self):
         discovered = [
-            {"section": "inc", "path": "/p", "methods": ["A"],
-             "classifiers": [], "categories": [], "metrics": {}},
-            {"section": "exc", "path": "/p2", "methods": ["B"],
-             "classifiers": [], "categories": [], "metrics": {}},
+            {"section": "inc", "path": "/p", "methods": ["A"], "classifiers": [], "categories": [], "metrics": {}},
+            {"section": "exc", "path": "/p2", "methods": ["B"], "classifiers": [], "categories": [], "metrics": {}},
         ]
         plan = generate_multi_figure_plan(discovered, ["inc"])
         assert "inc" in plan

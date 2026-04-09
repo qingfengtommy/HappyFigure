@@ -13,6 +13,7 @@ A section can be ``"inline"`` (text embedded in the prompt) or
 ``add_bundled`` auto-selects: inline when content is short, path_ref when it
 exceeds ``max_lines``.
 """
+
 from __future__ import annotations
 
 import os
@@ -86,14 +87,16 @@ class PromptComposer:
         """Inline *content* if it fits within *max_lines*, else emit a path ref."""
         if max_lines is not None and len(content.splitlines()) > max_lines:
             line_count = len(content.splitlines())
-            hint = (
-                f"The full content is at {path} ({line_count} lines). "
-                f"Read the file if you need it."
+            hint = f"The full content is at {path} ({line_count} lines). Read the file if you need it."
+            return self.add(
+                PromptSection(
+                    name=name,
+                    content=hint,
+                    priority=priority,
+                    mode="path_ref",
+                    path=path,
+                )
             )
-            return self.add(PromptSection(
-                name=name, content=hint, priority=priority,
-                mode="path_ref", path=path,
-            ))
         # Inline — include the raw content with clear delimiters.
         wrapped = (
             f"The content of {os.path.basename(path)} is included below — "
@@ -102,10 +105,15 @@ class PromptComposer:
             f"{content}\n"
             f"--- END {os.path.basename(path)} ---"
         )
-        return self.add(PromptSection(
-            name=name, content=wrapped, priority=priority,
-            mode="inline", path=path,
-        ))
+        return self.add(
+            PromptSection(
+                name=name,
+                content=wrapped,
+                priority=priority,
+                mode="inline",
+                path=path,
+            )
+        )
 
     def remove(self, name: str) -> "PromptComposer":
         self._sections.pop(name, None)
@@ -128,10 +136,7 @@ class PromptComposer:
         if section is None or section.mode == "path_ref" or not section.path:
             return self
         line_count = len(section.content.splitlines())
-        hint = (
-            f"The full content is at {section.path} ({line_count} lines). "
-            f"Read the file if you need it."
-        )
+        hint = f"The full content is at {section.path} ({line_count} lines). Read the file if you need it."
         self._sections[name] = replace(section, content=hint, mode="path_ref")
         return self
 

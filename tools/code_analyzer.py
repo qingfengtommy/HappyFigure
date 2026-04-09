@@ -24,52 +24,129 @@ from typing import Any
 
 _TORCH_LAYER_MODULES = {
     # Linear
-    "Linear", "Bilinear", "LazyLinear",
+    "Linear",
+    "Bilinear",
+    "LazyLinear",
     # Convolution
-    "Conv1d", "Conv2d", "Conv3d", "ConvTranspose1d", "ConvTranspose2d",
-    "ConvTranspose3d", "LazyConv1d", "LazyConv2d", "LazyConv3d",
+    "Conv1d",
+    "Conv2d",
+    "Conv3d",
+    "ConvTranspose1d",
+    "ConvTranspose2d",
+    "ConvTranspose3d",
+    "LazyConv1d",
+    "LazyConv2d",
+    "LazyConv3d",
     # Pooling
-    "MaxPool1d", "MaxPool2d", "MaxPool3d", "AvgPool1d", "AvgPool2d",
-    "AvgPool3d", "AdaptiveMaxPool1d", "AdaptiveMaxPool2d",
-    "AdaptiveAvgPool1d", "AdaptiveAvgPool2d",
+    "MaxPool1d",
+    "MaxPool2d",
+    "MaxPool3d",
+    "AvgPool1d",
+    "AvgPool2d",
+    "AvgPool3d",
+    "AdaptiveMaxPool1d",
+    "AdaptiveMaxPool2d",
+    "AdaptiveAvgPool1d",
+    "AdaptiveAvgPool2d",
     # Normalization
-    "BatchNorm1d", "BatchNorm2d", "BatchNorm3d", "LayerNorm",
-    "GroupNorm", "InstanceNorm1d", "InstanceNorm2d", "InstanceNorm3d",
+    "BatchNorm1d",
+    "BatchNorm2d",
+    "BatchNorm3d",
+    "LayerNorm",
+    "GroupNorm",
+    "InstanceNorm1d",
+    "InstanceNorm2d",
+    "InstanceNorm3d",
     # Activation (module form)
-    "ReLU", "LeakyReLU", "PReLU", "ELU", "SELU", "GELU", "SiLU",
-    "Mish", "Sigmoid", "Tanh", "Softmax", "LogSoftmax",
+    "ReLU",
+    "LeakyReLU",
+    "PReLU",
+    "ELU",
+    "SELU",
+    "GELU",
+    "SiLU",
+    "Mish",
+    "Sigmoid",
+    "Tanh",
+    "Softmax",
+    "LogSoftmax",
     # Dropout
-    "Dropout", "Dropout2d", "Dropout3d", "AlphaDropout",
+    "Dropout",
+    "Dropout2d",
+    "Dropout3d",
+    "AlphaDropout",
     # Recurrent
-    "RNN", "LSTM", "GRU", "RNNCell", "LSTMCell", "GRUCell",
+    "RNN",
+    "LSTM",
+    "GRU",
+    "RNNCell",
+    "LSTMCell",
+    "GRUCell",
     # Transformer
-    "Transformer", "TransformerEncoder", "TransformerDecoder",
-    "TransformerEncoderLayer", "TransformerDecoderLayer",
+    "Transformer",
+    "TransformerEncoder",
+    "TransformerDecoder",
+    "TransformerEncoderLayer",
+    "TransformerDecoderLayer",
     "MultiheadAttention",
     # Embedding
-    "Embedding", "EmbeddingBag",
+    "Embedding",
+    "EmbeddingBag",
     # Container
-    "Sequential", "ModuleList", "ModuleDict",
+    "Sequential",
+    "ModuleList",
+    "ModuleDict",
 }
 
 _TORCH_LOSS_FUNCTIONS = {
-    "CrossEntropyLoss", "BCELoss", "BCEWithLogitsLoss", "MSELoss",
-    "L1Loss", "SmoothL1Loss", "NLLLoss", "KLDivLoss", "CTCLoss",
-    "TripletMarginLoss", "CosineEmbeddingLoss", "HingeEmbeddingLoss",
-    "MarginRankingLoss", "MultiMarginLoss", "MultiLabelMarginLoss",
-    "PoissonNLLLoss", "GaussianNLLLoss", "HuberLoss",
+    "CrossEntropyLoss",
+    "BCELoss",
+    "BCEWithLogitsLoss",
+    "MSELoss",
+    "L1Loss",
+    "SmoothL1Loss",
+    "NLLLoss",
+    "KLDivLoss",
+    "CTCLoss",
+    "TripletMarginLoss",
+    "CosineEmbeddingLoss",
+    "HingeEmbeddingLoss",
+    "MarginRankingLoss",
+    "MultiMarginLoss",
+    "MultiLabelMarginLoss",
+    "PoissonNLLLoss",
+    "GaussianNLLLoss",
+    "HuberLoss",
 }
 
 _TORCH_OPTIMIZERS = {
-    "SGD", "Adam", "AdamW", "Adagrad", "Adadelta", "Adamax",
-    "RMSprop", "LBFGS", "SparseAdam", "NAdam", "RAdam",
+    "SGD",
+    "Adam",
+    "AdamW",
+    "Adagrad",
+    "Adadelta",
+    "Adamax",
+    "RMSprop",
+    "LBFGS",
+    "SparseAdam",
+    "NAdam",
+    "RAdam",
 }
 
 _TORCH_SCHEDULERS = {
-    "StepLR", "MultiStepLR", "ExponentialLR", "CosineAnnealingLR",
-    "ReduceLROnPlateau", "CyclicLR", "OneCycleLR",
-    "CosineAnnealingWarmRestarts", "LinearLR", "ConstantLR",
-    "SequentialLR", "ChainedScheduler", "PolynomialLR",
+    "StepLR",
+    "MultiStepLR",
+    "ExponentialLR",
+    "CosineAnnealingLR",
+    "ReduceLROnPlateau",
+    "CyclicLR",
+    "OneCycleLR",
+    "CosineAnnealingWarmRestarts",
+    "LinearLR",
+    "ConstantLR",
+    "SequentialLR",
+    "ChainedScheduler",
+    "PolynomialLR",
 }
 
 
@@ -97,10 +174,7 @@ class _ModuleVisitor(ast.NodeVisitor):
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         bases = [_unparse_node(b) for b in node.bases]
-        is_module = any(
-            "Module" in b or "nn.Module" in b
-            for b in bases
-        )
+        is_module = any("Module" in b or "nn.Module" in b for b in bases)
         if not is_module:
             self.generic_visit(node)
             return
@@ -138,21 +212,23 @@ def _extract_init_layers(init_node: ast.FunctionDef) -> list[dict]:
             continue
         # Look for self.<attr> = <call>
         for target in node.targets:
-            if not (isinstance(target, ast.Attribute) and
-                    isinstance(target.value, ast.Name) and
-                    target.value.id == "self"):
+            if not (
+                isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name) and target.value.id == "self"
+            ):
                 continue
             attr_name = target.attr
             call_str = _unparse_node(node.value)
             layer_type = _classify_layer(node.value, call_str)
             args_info = _extract_call_args(node.value) if isinstance(node.value, ast.Call) else {}
-            layers.append({
-                "name": attr_name,
-                "definition": call_str,
-                "layer_type": layer_type,
-                "args": args_info,
-                "lineno": node.lineno,
-            })
+            layers.append(
+                {
+                    "name": attr_name,
+                    "definition": call_str,
+                    "layer_type": layer_type,
+                    "args": args_info,
+                    "lineno": node.lineno,
+                }
+            )
     return layers
 
 
@@ -237,32 +313,40 @@ class _TrainingVisitor(ast.NodeVisitor):
             short = func_name.rsplit(".", 1)[-1]
 
             if short in _TORCH_OPTIMIZERS:
-                self.optimizers.append({
-                    "name": target_str,
-                    "type": short,
-                    "args": _extract_call_args(node.value),
-                    "lineno": node.lineno,
-                })
+                self.optimizers.append(
+                    {
+                        "name": target_str,
+                        "type": short,
+                        "args": _extract_call_args(node.value),
+                        "lineno": node.lineno,
+                    }
+                )
             elif short in _TORCH_SCHEDULERS:
-                self.schedulers.append({
-                    "name": target_str,
-                    "type": short,
-                    "args": _extract_call_args(node.value),
-                    "lineno": node.lineno,
-                })
+                self.schedulers.append(
+                    {
+                        "name": target_str,
+                        "type": short,
+                        "args": _extract_call_args(node.value),
+                        "lineno": node.lineno,
+                    }
+                )
             elif short in _TORCH_LOSS_FUNCTIONS:
-                self.loss_functions.append({
-                    "name": target_str,
-                    "type": short,
-                    "args": _extract_call_args(node.value),
-                    "lineno": node.lineno,
-                })
+                self.loss_functions.append(
+                    {
+                        "name": target_str,
+                        "type": short,
+                        "args": _extract_call_args(node.value),
+                        "lineno": node.lineno,
+                    }
+                )
             elif "DataLoader" in func_name:
-                self.data_loaders.append({
-                    "name": target_str,
-                    "args": _extract_call_args(node.value),
-                    "lineno": node.lineno,
-                })
+                self.data_loaders.append(
+                    {
+                        "name": target_str,
+                        "args": _extract_call_args(node.value),
+                        "lineno": node.lineno,
+                    }
+                )
 
         self.generic_visit(node)
 
@@ -306,6 +390,7 @@ def analyze_code_file(file_path: str, base_dir: Path | None = None) -> dict:
     path = Path(file_path)
     if base_dir is not None:
         from tools.sandbox import safe_resolve
+
         resolved = safe_resolve(file_path, base_dir)
         if resolved is None:
             return {"error": f"Path outside sandbox: {file_path}"}
@@ -363,6 +448,7 @@ def analyze_code_dir(
     dir_path = Path(directory)
     if base_dir is not None:
         from tools.sandbox import safe_resolve
+
         resolved = safe_resolve(directory, base_dir)
         if resolved is None:
             return {"error": f"Path outside sandbox: {directory}"}
@@ -378,8 +464,10 @@ def analyze_code_dir(
     results = []
     all_classes = []
     all_training: dict[str, list] = {
-        "optimizers": [], "schedulers": [],
-        "loss_functions": [], "data_loaders": [],
+        "optimizers": [],
+        "schedulers": [],
+        "loss_functions": [],
+        "data_loaders": [],
     }
 
     for py_file in py_files:
@@ -435,15 +523,16 @@ def _build_summary(
             steps = []
             for i, call in enumerate(cls["forward_calls"]):
                 steps.append(f"{cls['name']}.{call}")
-            data_flow_steps.append({
-                "class": cls["name"],
-                "forward_call_sequence": steps,
-            })
+            data_flow_steps.append(
+                {
+                    "class": cls["name"],
+                    "forward_call_sequence": steps,
+                }
+            )
 
     # Training info
     optimizers = [
-        {"name": o.get("name", ""), "type": o.get("type", "")}
-        for o in getattr(training_visitor, "optimizers", [])
+        {"name": o.get("name", ""), "type": o.get("type", "")} for o in getattr(training_visitor, "optimizers", [])
     ]
     loss_fns = [
         {"name": fn.get("name", ""), "type": fn.get("type", "")}
@@ -507,13 +596,10 @@ def code_to_method_description(
         if layers:
             layer_summary = ", ".join(sorted(set(layers)))
             overview_parts.append(
-                f"{comp['name']} ({comp['type']}) with {comp['layer_count']} layers "
-                f"including {layer_summary}"
+                f"{comp['name']} ({comp['type']}) with {comp['layer_count']} layers including {layer_summary}"
             )
         else:
-            overview_parts.append(
-                f"{comp['name']} ({comp['type']}) with {comp['layer_count']} layers"
-            )
+            overview_parts.append(f"{comp['name']} ({comp['type']}) with {comp['layer_count']} layers")
 
     # Components section
     comp_lines = []
@@ -543,9 +629,7 @@ def code_to_method_description(
     # Visual Layout
     n_components = len(components)
     direction = "top-to-bottom" if n_components <= 3 else "left-to-right"
-    has_parallel = any(
-        len(df.get("forward_call_sequence", [])) > 5 for df in data_flow
-    )
+    has_parallel = any(len(df.get("forward_call_sequence", [])) > 5 for df in data_flow)
 
     # Detect groupings from class hierarchy
     groupings = []
@@ -568,19 +652,19 @@ def code_to_method_description(
 {desc_title}
 
 ## Overview
-{'; '.join(overview_parts)}.{(' Training uses ' + ', '.join(lf['type'] for lf in loss_fns) + ' loss.') if loss_fns else ''}
+{"; ".join(overview_parts)}.{(" Training uses " + ", ".join(lf["type"] for lf in loss_fns) + " loss.") if loss_fns else ""}
 
 ## Components
 {chr(10).join(comp_lines)}
 
 ## Data Flow
-{chr(10).join(flow_lines) if flow_lines else 'Data flow extracted from forward() methods of the model classes above.'}
+{chr(10).join(flow_lines) if flow_lines else "Data flow extracted from forward() methods of the model classes above."}
 
 ## Visual Layout
 - **Direction**: {direction}
-- **Groupings**: {'; '.join(groupings) if groupings else 'Each model class as a separate group'}
-- **Parallel paths**: {'Yes — multiple branches detected' if has_parallel else 'Sequential flow'}
-{chr(10).join(training_lines) if training_lines else ''}
+- **Groupings**: {"; ".join(groupings) if groupings else "Each model class as a separate group"}
+- **Parallel paths**: {"Yes — multiple branches detected" if has_parallel else "Sequential flow"}
+{chr(10).join(training_lines) if training_lines else ""}
 
 ## Drawing Instruction
 Draw a publication-quality architecture diagram for {desc_title}.
@@ -606,7 +690,7 @@ Draw a publication-quality architecture diagram for {desc_title}.
             calls = df["forward_call_sequence"]
             if len(calls) >= 2:
                 for i in range(len(calls) - 1):
-                    md += f"- {calls[i]} -> {calls[i+1]}\n"
+                    md += f"- {calls[i]} -> {calls[i + 1]}\n"
 
     return md.strip()
 

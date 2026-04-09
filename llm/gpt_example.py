@@ -59,10 +59,7 @@ def _resolve_base_url() -> str:
     """Resolve the API base URL for Azure OpenAI."""
     endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT", "").strip() or _DEFAULT_ENDPOINT
     if not endpoint:
-        raise ValueError(
-            "No Azure OpenAI endpoint configured. "
-            "Set AZURE_OPENAI_ENDPOINT environment variable."
-        )
+        raise ValueError("No Azure OpenAI endpoint configured. Set AZURE_OPENAI_ENDPOINT environment variable.")
     return _normalize_openai_base_url(endpoint)
 
 
@@ -146,6 +143,7 @@ def run_image_prompt(
 
     try:
         from graphs.svg_utils import load_pipeline_config
+
         _img_size = load_pipeline_config().get("image_generation", {}).get("size", "1024x1024")
         response = client.images.generate(
             model=model_name,
@@ -166,6 +164,7 @@ def run_image_prompt(
         return base64.b64decode(item.b64_json)
     if getattr(item, "url", None):
         import urllib.request
+
         with urllib.request.urlopen(item.url) as resp:
             return resp.read()
 
@@ -216,9 +215,7 @@ def run_prompt(
 
     user_content: list[dict] = [{"type": "input_text", "text": prompt}]
     if image_base64:
-        user_content.append(
-            {"type": "input_image", "image_url": image_base64}
-        )
+        user_content.append({"type": "input_image", "image_url": image_base64})
     messages.append({"role": "user", "content": user_content})
 
     response = client.responses.create(
@@ -256,12 +253,12 @@ def run_prompt_with_tools(
     if tools:
         try:
             from tools.tool_schemas import to_openai_tools
+
             openai_tools = to_openai_tools(tools)
         except ImportError:
             import logging
-            logging.getLogger(__name__).warning(
-                "tools.tool_schemas not available; passing tools as-is to OpenAI API"
-            )
+
+            logging.getLogger(__name__).warning("tools.tool_schemas not available; passing tools as-is to OpenAI API")
             openai_tools = tools  # assume already in OpenAI format
 
     # Build initial message list (same pattern as run_prompt)
@@ -278,9 +275,7 @@ def run_prompt_with_tools(
 
     user_content: list[dict] = [{"type": "input_text", "text": prompt}]
     if image_base64:
-        user_content.append(
-            {"type": "input_image", "image_url": image_base64}
-        )
+        user_content.append({"type": "input_image", "image_url": image_base64})
     messages.append({"role": "user", "content": user_content})
 
     # Agentic loop
@@ -328,22 +323,26 @@ def run_prompt_with_tools(
                 all_tool_calls.append({"name": fc.name, "arguments": args})
                 all_tool_results.append(result)
                 messages.append(fc)
-                messages.append({
-                    "type": "function_call_output",
-                    "call_id": fc.call_id,
-                    "output": json.dumps(result),
-                })
+                messages.append(
+                    {
+                        "type": "function_call_output",
+                        "call_id": fc.call_id,
+                        "output": json.dumps(result),
+                    }
+                )
                 continue
             result = tool_executor(fc.name, args)
             all_tool_calls.append({"name": fc.name, "arguments": args})
             all_tool_results.append(result)
             # Append the function_call output item and its result
             messages.append(fc)
-            messages.append({
-                "type": "function_call_output",
-                "call_id": fc.call_id,
-                "output": json.dumps(result, default=str),
-            })
+            messages.append(
+                {
+                    "type": "function_call_output",
+                    "call_id": fc.call_id,
+                    "output": json.dumps(result, default=str),
+                }
+            )
 
         # Clear tool_choice after first round
         tool_choice = None
@@ -361,5 +360,3 @@ def run_prompt_with_tools(
         tool_results=all_tool_results,
         raw_response=response,
     )
-
-

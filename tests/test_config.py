@@ -1,4 +1,5 @@
 """Tests for config loading — verifies pipeline.yaml structure and required keys."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -72,8 +73,9 @@ class TestLLMConfig:
         """Every provider referenced by a role should be defined in providers."""
         defined_providers = set(config["llm"]["providers"].keys())
         for name, role_def in config["llm"]["roles"].items():
-            assert role_def["provider"] in defined_providers, \
+            assert role_def["provider"] in defined_providers, (
                 f"Role {name} references undefined provider: {role_def['provider']}"
+            )
 
 
 # ---------------------------------------------------------------------------

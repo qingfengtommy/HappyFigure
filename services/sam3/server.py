@@ -27,9 +27,7 @@ class PredictRequest(BaseModel):
     image_path: str = Field(..., description="Path to the image that the server can read")
     prompts: List[str] = Field(..., min_length=1, description="Text prompts for SAM3")
     return_masks: bool = Field(False, description="Whether to return mask data")
-    mask_format: Literal["rle", "png"] = Field(
-        "rle", description="Mask format: run-length encoding or base64 png"
-    )
+    mask_format: Literal["rle", "png"] = Field("rle", description="Mask format: run-length encoding or base64 png")
     score_threshold: Optional[float] = Field(None, description="Override score threshold")
     epsilon_factor: Optional[float] = Field(None, description="Override polygon epsilon factor")
     min_area: Optional[int] = Field(None, description="Override minimum polygon area")
@@ -145,7 +143,11 @@ class Sam3Runtime:
             capability = torch.cuda.get_device_capability(current)
             logger.info(
                 "device=%s visible=%s current_cuda=%s name=%s capability=%s",
-                device, visible, current, name, capability,
+                device,
+                visible,
+                current,
+                name,
+                capability,
             )
         else:
             logger.info("device=%s visible=%s (CUDA not available)", device, visible)

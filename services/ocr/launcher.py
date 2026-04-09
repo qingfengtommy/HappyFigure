@@ -7,6 +7,7 @@ Usage:
     # ... run pipeline ...
     shutdown_ocr_service(proc)
 """
+
 from __future__ import annotations
 
 import os
@@ -31,18 +32,24 @@ def ensure_ocr_service(
     Returns the Popen handle if we started it, or None if already running.
     """
     cmd = [
-        sys.executable, "-m", "services.ocr.server",
-        "--host", host,
-        "--port", str(port),
-        "--lang", lang,
+        sys.executable,
+        "-m",
+        "services.ocr.server",
+        "--host",
+        host,
+        "--port",
+        str(port),
+        "--lang",
+        lang,
     ]
 
-    env = {"PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK": os.environ.get(
-        "PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True"
-    )}
+    env = {"PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK": os.environ.get("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")}
 
     return ensure_service(
-        "ocr", cmd, host, port,
+        "ocr",
+        cmd,
+        host,
+        port,
         env=env,
         startup_timeout=startup_timeout,
     )

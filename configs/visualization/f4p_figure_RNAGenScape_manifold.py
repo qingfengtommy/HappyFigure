@@ -4,17 +4,18 @@ import matplotlib.pyplot as plt
 
 
 def function(x, y):
-    z = 0.6 * np.exp(-((x - 1)**2 + (y + 1)**2))
-    z += 0.5 * np.exp(-((x - 1)**2 + (y - 4)**2))
-    z += 0.3 * np.exp(-((x - 2)**2 + (y - 2)**2))
-    z += 0.2 * np.exp(-((x + 3)**2 + (y + 1)**2))
-    z += 0.3 * np.exp(-((x + 1)**2 + (y + 1)**2))
-    z -= 0.1 * np.exp(-((x + 1)**2 + (y - 2)**2))
-    z += 0.3 * np.exp(-((x + 2)**2 + (y - 2)**2))
-    z += 0.3 * np.exp(-((x + 2)**2 + (y - 1)**2))
+    z = 0.6 * np.exp(-((x - 1) ** 2 + (y + 1) ** 2))
+    z += 0.5 * np.exp(-((x - 1) ** 2 + (y - 4) ** 2))
+    z += 0.3 * np.exp(-((x - 2) ** 2 + (y - 2) ** 2))
+    z += 0.2 * np.exp(-((x + 3) ** 2 + (y + 1) ** 2))
+    z += 0.3 * np.exp(-((x + 1) ** 2 + (y + 1) ** 2))
+    z -= 0.1 * np.exp(-((x + 1) ** 2 + (y - 2) ** 2))
+    z += 0.3 * np.exp(-((x + 2) ** 2 + (y - 2) ** 2))
+    z += 0.3 * np.exp(-((x + 2) ** 2 + (y - 1) ** 2))
     return z
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Generate coordinates
     x = np.linspace(-3, 3, 200)
     y = np.linspace(-3, 3, 200)
@@ -25,13 +26,15 @@ if __name__ == '__main__':
 
     # Set up plot
     fig = plt.figure(figsize=(10, 7))
-    ax = fig.add_subplot(1, 1, 1, projection='3d')
+    ax = fig.add_subplot(1, 1, 1, projection="3d")
 
     # Plot the surface with smooth shading
     ax.plot_surface(
-        x, y, z,
-        cmap='coolwarm',
-        edgecolor='none',
+        x,
+        y,
+        z,
+        cmap="coolwarm",
+        edgecolor="none",
         linewidth=0,
         antialiased=True,
         alpha=0.95,
@@ -57,5 +60,5 @@ if __name__ == '__main__':
     ax.view_init(elev=20, azim=50)
 
     fig.tight_layout(pad=2)
-    os.makedirs('./figures', exist_ok=True)
-    fig.savefig('./figures/manifold.png')
+    os.makedirs("./figures", exist_ok=True)
+    fig.savefig("./figures/manifold.png")

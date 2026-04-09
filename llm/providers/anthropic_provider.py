@@ -1,4 +1,5 @@
 """Anthropic provider — Claude models via the Anthropic API."""
+
 from __future__ import annotations
 
 import json
@@ -32,10 +33,7 @@ class AnthropicProvider(LLMProvider):
         try:
             import anthropic
         except ImportError:
-            raise ImportError(
-                "anthropic package not installed. Install with: "
-                "pip install 'happyfigure[anthropic]'"
-            )
+            raise ImportError("anthropic package not installed. Install with: pip install 'happyfigure[anthropic]'")
         self._client = anthropic.Anthropic(api_key=api_key)
 
     def check_auth(self) -> dict:
@@ -55,9 +53,7 @@ class AnthropicProvider(LLMProvider):
             if "authentication" in err.lower() or "invalid" in err.lower():
                 return {"ok": False, "provider": name, "message": "Anthropic auth failed", "error": err}
             if "model" in err.lower() and (
-                "not found" in err.lower()
-                or "unknown" in err.lower()
-                or "does not exist" in err.lower()
+                "not found" in err.lower() or "unknown" in err.lower() or "does not exist" in err.lower()
             ):
                 return {"ok": True, "provider": name, "message": "Anthropic auth OK", "error": None}
             return {"ok": False, "provider": name, "message": "Anthropic auth failed", "error": err}
@@ -91,8 +87,7 @@ class AnthropicProvider(LLMProvider):
         reference_images: list[str] | None = None,
     ) -> bytes | None:
         raise NotImplementedError(
-            "Anthropic does not support image generation. "
-            "Use a different provider for the 'drawing' role."
+            "Anthropic does not support image generation. Use a different provider for the 'drawing' role."
         )
 
     def run_prompt_with_tools(
@@ -129,10 +124,7 @@ class AnthropicProvider(LLMProvider):
             response = self._client.messages.create(**kwargs)
 
             # Check for tool_use blocks
-            tool_use_blocks = [
-                block for block in response.content
-                if block.type == "tool_use"
-            ]
+            tool_use_blocks = [block for block in response.content if block.type == "tool_use"]
 
             if not tool_use_blocks:
                 return ToolCallResult(
@@ -159,21 +151,26 @@ class AnthropicProvider(LLMProvider):
                 result = tool_executor(block.name, block.input)
                 all_tool_calls.append({"name": block.name, "arguments": block.input})
                 all_tool_results.append(result)
-                tool_results_content.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": json.dumps(result, default=str),
-                })
+                tool_results_content.append(
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": json.dumps(result, default=str),
+                    }
+                )
             messages.append({"role": "user", "content": tool_results_content})
 
         text = _extract_text(response) if response else ""
         return ToolCallResult(
-            text=text, tool_calls=all_tool_calls,
-            tool_results=all_tool_results, raw_response=response,
+            text=text,
+            tool_calls=all_tool_calls,
+            tool_results=all_tool_results,
+            raw_response=response,
         )
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
+
 
 def _build_messages(
     few_shot_messages: list[dict] | None,
@@ -200,14 +197,16 @@ def _build_messages(
                         if img_url and "," in img_url:
                             header, b64_data = img_url.split(",", 1)
                             media_type = header.split(":")[1].split(";")[0]
-                            parts.append({
-                                "type": "image",
-                                "source": {
-                                    "type": "base64",
-                                    "media_type": media_type,
-                                    "data": b64_data,
-                                },
-                            })
+                            parts.append(
+                                {
+                                    "type": "image",
+                                    "source": {
+                                        "type": "base64",
+                                        "media_type": media_type,
+                                        "data": b64_data,
+                                    },
+                                }
+                            )
                 if parts:
                     messages.append({"role": role, "content": parts})
 
@@ -216,14 +215,16 @@ def _build_messages(
     if image_base64 and "," in image_base64:
         header, b64_data = image_base64.split(",", 1)
         media_type = header.split(":")[1].split(";")[0]
-        user_content.append({
-            "type": "image",
-            "source": {
-                "type": "base64",
-                "media_type": media_type,
-                "data": b64_data,
-            },
-        })
+        user_content.append(
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": media_type,
+                    "data": b64_data,
+                },
+            }
+        )
     messages.append({"role": "user", "content": user_content})
     return messages
 
@@ -242,9 +243,11 @@ def _convert_tools(tools: list[dict] | None) -> list[dict] | None:
         return None
     anthropic_tools = []
     for tool in tools:
-        anthropic_tools.append({
-            "name": tool.get("name", ""),
-            "description": tool.get("description", ""),
-            "input_schema": tool.get("parameters", tool.get("input_schema", {})),
-        })
+        anthropic_tools.append(
+            {
+                "name": tool.get("name", ""),
+                "description": tool.get("description", ""),
+                "input_schema": tool.get("parameters", tool.get("input_schema", {})),
+            }
+        )
     return anthropic_tools

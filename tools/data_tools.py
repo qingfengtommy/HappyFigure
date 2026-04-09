@@ -23,6 +23,7 @@ ALL_DATA_EXTS = TABULAR_EXTS | BINARY_EXTS
 # Individual tool functions
 # ---------------------------------------------------------------------------
 
+
 def list_data_files(
     pattern: str,
     results_dir: Path,
@@ -66,11 +67,13 @@ def list_data_files(
             ftype = "markdown"
         else:
             ftype = "tabular"
-        files.append({
-            "path": str(rel),
-            "size_bytes": p.stat().st_size,
-            "type": ftype,
-        })
+        files.append(
+            {
+                "path": str(rel),
+                "size_bytes": p.stat().st_size,
+                "type": ftype,
+            }
+        )
 
     return {"files": files, "count": len(files)}
 
@@ -102,8 +105,10 @@ def read_data_file(
     if ext in BINARY_EXTS:
         size_mb = resolved.stat().st_size / (1024 * 1024)
         label = {
-            ".npy": "NumPy array", ".npz": "NumPy archive",
-            ".pkl": "Pickle", ".pt": "PyTorch checkpoint",
+            ".npy": "NumPy array",
+            ".npz": "NumPy archive",
+            ".pkl": "Pickle",
+            ".pt": "PyTorch checkpoint",
             ".ckpt": "PyTorch checkpoint",
         }.get(ext, "Binary")
         return {"type": label, "size_mb": round(size_mb, 2)}
@@ -207,23 +212,27 @@ def search_data(
         if search_type == "column":
             matching_cols = [c for c in df.columns if query_lower in c.lower()]
             if matching_cols:
-                results.append({
-                    "file": rel,
-                    "match_type": "column",
-                    "matching_columns": matching_cols,
-                })
+                results.append(
+                    {
+                        "file": rel,
+                        "match_type": "column",
+                        "matching_columns": matching_cols,
+                    }
+                )
         elif search_type == "value":
             for col in df.columns:
                 try:
                     mask = df[col].astype(str).str.contains(query, case=False, na=False, regex=False)
                     if mask.any():
                         count = int(mask.sum())
-                        results.append({
-                            "file": rel,
-                            "match_type": "value",
-                            "column": col,
-                            "match_count": count,
-                        })
+                        results.append(
+                            {
+                                "file": rel,
+                                "match_type": "value",
+                                "column": col,
+                                "match_count": count,
+                            }
+                        )
                 except (ValueError, TypeError):
                     continue
 
@@ -336,6 +345,7 @@ def execute_data_tool(tool_name: str, args: dict, results_dir: Path) -> dict:
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _df_preview(df, head: int, columns: list[str] | None) -> dict:
     """Build a preview dict from a DataFrame."""
     if columns:
@@ -349,10 +359,7 @@ def _df_preview(df, head: int, columns: list[str] | None) -> dict:
 
     return {
         "row_count": len(df),
-        "columns": [
-            {"name": c, "dtype": str(df[c].dtype)}
-            for c in df.columns
-        ],
+        "columns": [{"name": c, "dtype": str(df[c].dtype)} for c in df.columns],
         "preview": preview_text,
     }
 

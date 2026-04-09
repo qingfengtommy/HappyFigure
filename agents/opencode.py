@@ -8,6 +8,7 @@ inject the real Azure OpenAI endpoint resolved from environment variables
 (``AZURE_OPENAI_ENDPOINT``).  The placeholder URL checked into the repo
 is restored on ``cleanup()``.
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,7 +26,11 @@ logger = logging.getLogger(__name__)
 
 # Default YAML frontmatter for each agent
 _AGENT_META = {
-    "happyfigure-orchestrator": {"description": "Main HappyFigure orchestrator session.", "mode": "primary", "color": "#9B59B6"},
+    "happyfigure-orchestrator": {
+        "description": "Main HappyFigure orchestrator session.",
+        "mode": "primary",
+        "color": "#9B59B6",
+    },
     "data-explore": {"description": "Data and experiment exploration agent.", "mode": "primary", "color": "#2ECC71"},
     "code-explore": {"description": "Code and config exploration agent.", "mode": "primary", "color": "#1ABC9C"},
     "exp-explore": {"description": "Experiment exploration agent.", "mode": "primary", "color": "#2ECC71"},
@@ -73,14 +78,16 @@ class OpenCodeOrchestrator(OrchestratorBase):
                     import azure.identity  # noqa: F401
                 except ImportError:
                     return {
-                        "ok": False, "platform": name,
+                        "ok": False,
+                        "platform": name,
                         "message": "OpenCode: no Azure credentials",
                         "error": "Set AZURE_OPENAI_API_KEY, or install azure-identity",
                     }
             endpoint = self._resolve_endpoint()
             if not endpoint:
                 return {
-                    "ok": False, "platform": name,
+                    "ok": False,
+                    "platform": name,
                     "message": "OpenCode: no Azure endpoint",
                     "error": "Set AZURE_OPENAI_ENDPOINT",
                 }
@@ -107,11 +114,14 @@ class OpenCodeOrchestrator(OrchestratorBase):
 
         for agent_name in self.list_agents():
             prompt_body = self.get_agent_prompt(agent_name, mode=mode, execution=execution)
-            meta = _AGENT_META.get(agent_name, {
-                "description": f"{agent_name} agent.",
-                "mode": "primary",
-                "color": "#95A5A6",
-            })
+            meta = _AGENT_META.get(
+                agent_name,
+                {
+                    "description": f"{agent_name} agent.",
+                    "mode": "primary",
+                    "color": "#95A5A6",
+                },
+            )
 
             # Build YAML frontmatter
             frontmatter_lines = [
@@ -119,7 +129,7 @@ class OpenCodeOrchestrator(OrchestratorBase):
                 f"description: {meta['description']}",
                 f"mode: {meta['mode']}",
                 f"model: {model_str}",
-                f"color: \"{meta['color']}\"",
+                f'color: "{meta["color"]}"',
                 "permission:",
             ]
             perms = _DEFAULT_PERMISSIONS
@@ -131,7 +141,7 @@ class OpenCodeOrchestrator(OrchestratorBase):
                 else:
                     frontmatter_lines.append(f"  {tool}:")
                     for pattern, action in rules.items():
-                        frontmatter_lines.append(f"    \"{pattern}\": {action}")
+                        frontmatter_lines.append(f'    "{pattern}": {action}')
             frontmatter_lines.append("---")
 
             agent_file = agent_dir / f"{agent_name}.md"
@@ -182,9 +192,7 @@ class OpenCodeOrchestrator(OrchestratorBase):
             )
 
         if proc.returncode != 0:
-            logger.warning(
-                "Agent %s exited with code %d", agent_name, proc.returncode
-            )
+            logger.warning("Agent %s exited with code %d", agent_name, proc.returncode)
 
         return proc.returncode
 
@@ -217,6 +225,7 @@ class OpenCodeOrchestrator(OrchestratorBase):
         # Fall back to gpt_example's resolved default
         try:
             from llm.gpt_example import _resolve_base_url
+
             base_url = _resolve_base_url()
             cleaned = re.sub(r"/openai(/v\d+)?$", "", base_url.rstrip("/"))
             if cleaned and "your-endpoint" not in cleaned and "example.com" not in cleaned:

@@ -1,4 +1,5 @@
 """Tests for utility functions in graphs/figure_pipeline.py."""
+
 from __future__ import annotations
 
 import sys
@@ -66,10 +67,19 @@ class TestFigurePipelineState:
 
         annotations = FigurePipelineState.__annotations__
         expected_keys = [
-            "proposal", "results_dir", "code", "figure_path",
-            "critic_score", "iteration", "run_dir", "experiment_groups",
-            "current_experiment_name", "figure_paths", "verbose",
-            "beam_width", "run_mode",
+            "proposal",
+            "results_dir",
+            "code",
+            "figure_path",
+            "critic_score",
+            "iteration",
+            "run_dir",
+            "experiment_groups",
+            "current_experiment_name",
+            "figure_paths",
+            "verbose",
+            "beam_width",
+            "run_mode",
         ]
         for key in expected_keys:
             assert key in annotations, f"Missing key: {key}"
@@ -189,16 +199,14 @@ class TestCompactExperimentGroup:
     def test_preserves_other_keys(self):
         from graphs.figure_pipeline import _compact_experiment_group
 
-        group = {"name": "exp1", "tree": "", "schemas": "", "statistics": "",
-                 "semantics": "", "extra_key": "value"}
+        group = {"name": "exp1", "tree": "", "schemas": "", "statistics": "", "semantics": "", "extra_key": "value"}
         result = _compact_experiment_group(group)
         assert result["extra_key"] == "value"
 
     def test_default_name_fallback(self):
         from graphs.figure_pipeline import _compact_experiment_group, _TREE_CHARS_MAX
 
-        group = {"tree": "x" * (_TREE_CHARS_MAX + 100), "schemas": "",
-                 "statistics": "", "semantics": ""}
+        group = {"tree": "x" * (_TREE_CHARS_MAX + 100), "schemas": "", "statistics": "", "semantics": ""}
         result = _compact_experiment_group(group)
         # Should not raise even without name
         assert "truncated" in result["tree"]
@@ -251,6 +259,7 @@ class TestSafeImageDataUrl:
 
         def encoder(p):
             return "data:image/png;base64,abc123"
+
         result = _safe_image_data_url(Path("test.png"), encoder)
         assert result == "data:image/png;base64,abc123"
 
@@ -259,6 +268,7 @@ class TestSafeImageDataUrl:
 
         def encoder(p):
             return "data:text/html;base64,abc123"
+
         result = _safe_image_data_url(Path("test.html"), encoder)
         assert result is None
 
@@ -306,8 +316,7 @@ class TestRetryLlmCall:
 
         with patch("time.sleep"):
             with pytest.raises(RuntimeError, match="always fails"):
-                _retry_llm_call(lambda: (_ for _ in ()).throw(RuntimeError("always fails")),
-                                max_attempts=2)
+                _retry_llm_call(lambda: (_ for _ in ()).throw(RuntimeError("always fails")), max_attempts=2)
 
 
 # ---------------------------------------------------------------------------

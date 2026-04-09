@@ -13,6 +13,7 @@ Usage::
         --code <figure_code.py> \\
         --output <critic_result.json>
 """
+
 from __future__ import annotations
 
 import argparse
@@ -44,10 +45,7 @@ def _build_user_prompt(
     ]
     if exec_output:
         parts.append(f"## Execution Output\n\n```\n{exec_output}\n```\n")
-    parts.append(
-        f"## Figure Image\n\nThe figure is at: {image_path}\n"
-        "Please view it and evaluate."
-    )
+    parts.append(f"## Figure Image\n\nThe figure is at: {image_path}\nPlease view it and evaluate.")
     return "\n".join(parts)
 
 
@@ -115,6 +113,7 @@ def main() -> None:
 
     # Initialize LLM
     import llm
+
     llm.init_from_config()
 
     # Build prompts

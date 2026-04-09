@@ -4,6 +4,7 @@ Generates ``.codex/agents/<name>.toml`` files from shared prompts and launches
 agents via ``codex exec``.  Codex has built-in shell, file-patching tools,
 and native subagent support (agents can spawn other project-scoped agents).
 """
+
 from __future__ import annotations
 
 import logging
@@ -24,7 +25,10 @@ _BWRAP_STARTUP_ERRORS = (
 
 # Per-agent metadata for TOML generation.
 _AGENT_META = {
-    "happyfigure-orchestrator": {"description": "Main HappyFigure orchestrator session.", "sandbox_mode": "workspace-write"},
+    "happyfigure-orchestrator": {
+        "description": "Main HappyFigure orchestrator session.",
+        "sandbox_mode": "workspace-write",
+    },
     "data-explore": {"description": "Data and experiment exploration agent.", "sandbox_mode": "workspace-write"},
     "code-explore": {"description": "Code and config exploration agent.", "sandbox_mode": "workspace-write"},
     "exp-explore": {"description": "Experiment exploration agent.", "sandbox_mode": "workspace-write"},
@@ -62,7 +66,12 @@ class CodexOrchestrator(OrchestratorBase):
     def check_auth(self) -> dict:
         name = "codex"
         if not which("codex"):
-            return {"ok": False, "platform": name, "message": "Codex CLI not found", "error": "Install from https://github.com/openai/codex"}
+            return {
+                "ok": False,
+                "platform": name,
+                "message": "Codex CLI not found",
+                "error": "Install from https://github.com/openai/codex",
+            }
         if os.environ.get("OPENAI_API_KEY") or os.environ.get("CODEX_API_KEY"):
             return {"ok": True, "platform": name, "message": "Codex CLI ready (API key detected)", "error": None}
         return {
@@ -77,17 +86,12 @@ class CodexOrchestrator(OrchestratorBase):
         self._store_mode(mode, execution)
 
         if not which("codex"):
-            raise RuntimeError(
-                "Codex CLI not found. Install from: "
-                "https://github.com/openai/codex"
-            )
+            raise RuntimeError("Codex CLI not found. Install from: https://github.com/openai/codex")
 
         codex_cfg = self.config.get("agent", {}).get("codex", {})
         self._model = codex_cfg.get("model", "gpt-5.4")
         self._sandbox_mode = codex_cfg.get("sandbox_mode", "workspace-write")
-        self._retry_dangerous_on_sandbox_failure = codex_cfg.get(
-            "retry_dangerous_on_sandbox_failure", True
-        )
+        self._retry_dangerous_on_sandbox_failure = codex_cfg.get("retry_dangerous_on_sandbox_failure", True)
         self._reasoning_effort = codex_cfg.get("reasoning_effort", None)
         self._reasoning_summary = codex_cfg.get("reasoning_summary", None)
 
@@ -97,17 +101,20 @@ class CodexOrchestrator(OrchestratorBase):
 
         for agent_name in self.list_agents():
             prompt_body = self.get_agent_prompt(agent_name, mode=mode, execution=execution)
-            meta = _AGENT_META.get(agent_name, {
-                "description": f"{agent_name} agent.",
-                "sandbox_mode": "workspace-write",
-            })
+            meta = _AGENT_META.get(
+                agent_name,
+                {
+                    "description": f"{agent_name} agent.",
+                    "sandbox_mode": "workspace-write",
+                },
+            )
 
             lines = [
                 f'name = "{agent_name}"',
-                f'description = {_to_toml_string(meta["description"])}',
+                f"description = {_to_toml_string(meta['description'])}",
                 f'model = "{self._model}"',
                 f'sandbox_mode = "{meta["sandbox_mode"]}"',
-                f'developer_instructions = {_to_toml_string(prompt_body)}',
+                f"developer_instructions = {_to_toml_string(prompt_body)}",
             ]
 
             agent_file = agents_dir / f"{agent_name}.toml"
@@ -115,19 +122,23 @@ class CodexOrchestrator(OrchestratorBase):
 
         logger.info(
             "Generated %d Codex agent files in %s",
-            len(self.list_agents()), agents_dir,
+            len(self.list_agents()),
+            agents_dir,
         )
 
     def _build_exec_command(self, prompt: str, sandbox_mode: str) -> AgentCommand:
         model = self._model
         cmd = [
             "codex",
-            "-a", "never",                 # truly non-interactive (top-level flag)
+            "-a",
+            "never",  # truly non-interactive (top-level flag)
             "exec",
             "--json",
             "--skip-git-repo-check",
-            "-m", model,
-            "-s", sandbox_mode,
+            "-m",
+            model,
+            "-s",
+            sandbox_mode,
         ]
         if self._reasoning_effort:
             cmd.extend(["-c", f'model_reasoning_effort="{self._reasoning_effort}"'])

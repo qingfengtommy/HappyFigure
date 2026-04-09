@@ -5,6 +5,7 @@ hybrid, placeholder) and figure assembly for the ``paper`` CLI command.
 Used by the python-stages orchestrator; agent-first mode handles dispatch
 within the main orchestrator session.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -61,7 +62,10 @@ def partition_panels(
 
 
 def _copy_to_panel_dir(
-    src: str, run_dir: str, fig_id: str, panel_id: str,
+    src: str,
+    run_dir: str,
+    fig_id: str,
+    panel_id: str,
 ) -> None:
     """Copy a generated output to the canonical panel directory."""
     dst = art.panel_output_path(run_dir, fig_id, panel_id)
@@ -140,23 +144,22 @@ def generate_diagram_panels(
         step_svg_refine(panel_work_dir, args)
 
         # Copy final output to canonical panel location
-        for src_name in ("method_architecture.png", "method_architecture.svg",
-                         "final.svg", "figure.png"):
+        for src_name in ("method_architecture.png", "method_architecture.svg", "final.svg", "figure.png"):
             src = os.path.join(panel_work_dir, src_name)
             if os.path.exists(src):
                 _copy_to_panel_dir(src, run_dir, fig_id, panel_id)
                 if src_name.endswith(".svg"):
                     # Also copy SVG for vector output
-                    svg_dst = art.panel_output_path(run_dir, fig_id, panel_id).replace(
-                        "panel.png", "panel.svg"
-                    )
+                    svg_dst = art.panel_output_path(run_dir, fig_id, panel_id).replace("panel.png", "panel.svg")
                     shutil.copy2(src, svg_dst)
                 if src_name.endswith(".png"):
                     break  # found the primary PNG
 
 
 def _setup_diagram_work_dir(
-    run_dir: str, slug: str, panel: PanelEntry,
+    run_dir: str,
+    slug: str,
+    panel: PanelEntry,
 ) -> str:
     """Create an isolated working directory for one diagram panel.
 
@@ -218,7 +221,9 @@ def create_placeholder_panels(
         else:
             desc = panel.description or panel_id
             render_placeholder_png(
-                dst, panel_id, panel.panel_type.value,
+                dst,
+                panel_id,
+                panel.panel_type.value,
                 text=f"Panel ({panel_id})\n{desc}\n[to be provided]",
             )
 
@@ -245,9 +250,9 @@ def assemble_all_figures(
             continue
 
         spec = load_assembly_spec(spec_path)
-        result = _assemble_one_figure(run_dir, fig_id, spec,
-                                       max_iterations=max_iterations,
-                                       classification=classification)
+        result = _assemble_one_figure(
+            run_dir, fig_id, spec, max_iterations=max_iterations, classification=classification
+        )
         results.append(result)
 
     return results
@@ -303,11 +308,13 @@ def _assemble_one_figure(
     # Try PIL-based assembly first (pixel-perfect, no re-rasterization blur).
     # Falls back to matplotlib script if PIL assembly fails.
     from graphs.svg_utils import load_pipeline_config
+
     assembly_cfg = load_pipeline_config().get("assembly", {})
     use_pil = assembly_cfg.get("method", "pil") == "pil"
 
     if use_pil:
         from pipeline.assembly import assemble_pil
+
         ui.dim(f"Assembling {fig_id} via PIL (pixel-perfect)")
         pil_ok = assemble_pil(spec, panel_paths, output_path)
         if pil_ok:
@@ -427,9 +434,7 @@ def run_composite_pipeline(
     for fig_id, fig in classification.figures.items():
         for panel_id, panel in fig.panels.items():
             if panel.panel_type == PanelType.STATISTICAL:
-                code_path = os.path.join(
-                    run_dir, "experiments", panel.slug, "figure_code.py"
-                )
+                code_path = os.path.join(run_dir, "experiments", panel.slug, "figure_code.py")
                 if os.path.exists(code_path):
                     panel_code_paths[panel.slug] = code_path
     if len(panel_code_paths) >= 2:
@@ -448,21 +453,19 @@ def run_composite_pipeline(
 
     ui.section("Assembling paper figures")
     from graphs.svg_utils import load_pipeline_config
+
     config = load_pipeline_config().get("assembly", {})
     max_iters = config.get("max_iterations", 3)
-    results = assemble_all_figures(run_dir, classification, args,
-                                   max_iterations=max_iters)
+    results = assemble_all_figures(run_dir, classification, args, max_iterations=max_iters)
 
     for r in results:
         status = "OK" if r.deterministic_checks_passed else "ISSUES"
-        ui.info(
-            f"  {r.figure_id}: {r.generated_panels}/{r.total_panels} panels, "
-            f"{r.iterations_used} iters, {status}"
-        )
+        ui.info(f"  {r.figure_id}: {r.generated_panels}/{r.total_panels} panels, {r.iterations_used} iters, {status}")
 
     # Cross-figure consistency check
     if len(results) >= 2 and config.get("cross_figure_check", True):
         from pipeline.assembly import cross_figure_consistency_check
+
         figure_ids = [r.figure_id for r in results]
         checks = cross_figure_consistency_check(run_dir, figure_ids)
         if checks.get("passed"):

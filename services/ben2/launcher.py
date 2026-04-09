@@ -7,6 +7,7 @@ Usage:
     # ... run pipeline ...
     shutdown_ben2_service(proc)
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -36,16 +37,24 @@ def ensure_ben2_service(
     Returns the Popen handle if we started it, or None if already running.
     """
     cmd = [
-        sys.executable, "-m", "services.ben2.server",
-        "--host", host,
-        "--port", str(port),
-        "--device", device or resolve_device(),
+        sys.executable,
+        "-m",
+        "services.ben2.server",
+        "--host",
+        host,
+        "--port",
+        str(port),
+        "--device",
+        device or resolve_device(),
     ]
     if model_path:
         cmd.extend(["--model-path", model_path])
 
     return ensure_service(
-        "ben2", cmd, host, port,
+        "ben2",
+        cmd,
+        host,
+        port,
         env=resolve_hf_env(),
         startup_timeout=startup_timeout,
     )

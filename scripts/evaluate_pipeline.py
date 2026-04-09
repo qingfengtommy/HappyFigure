@@ -21,6 +21,7 @@ Usage:
         --results-dir path/to/results \
         --commands plot sketch --agents claude --llm-preset gemini
 """
+
 from __future__ import annotations
 
 import argparse
@@ -107,6 +108,7 @@ def _load_env() -> None:
         if str(PROJECT_ROOT) not in sys.path:
             sys.path.insert(0, str(PROJECT_ROOT))
         from dotenv import load_dotenv
+
         load_dotenv(PROJECT_ROOT / ".env")
     except ImportError:
         pass
@@ -118,6 +120,7 @@ def _check_auth(agents: list[str], config: dict | None = None) -> dict[str, dict
 
     if config is None:
         from graphs.svg_utils import load_pipeline_config
+
         config = load_pipeline_config()
 
     from agents import create_orchestrator
@@ -277,9 +280,7 @@ def _services_cmd(action: str, timeout: int = 360) -> dict:
         action,
     ]
     try:
-        proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout, cwd=str(PROJECT_ROOT)
-        )
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, cwd=str(PROJECT_ROOT))
         return json.loads(proc.stdout) if proc.stdout.strip() else {}
     except (subprocess.TimeoutExpired, json.JSONDecodeError, Exception) as exc:
         return {"all_healthy": False, "error": str(exc)}
@@ -300,7 +301,9 @@ def _start_services() -> bool:
     try:
         subprocess.Popen(
             [sys.executable, str(PROJECT_ROOT / "scripts" / "pipeline_cli.py"), "services", "start"],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(PROJECT_ROOT),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            cwd=str(PROJECT_ROOT),
         )
     except Exception as exc:
         print(f"  WARNING: Failed to launch services: {exc}")
@@ -348,15 +351,20 @@ def _run_single(
     cmd = [
         sys.executable,
         str(PROJECT_ROOT / "cli.py"),
-        "--agent", agent,
+        "--agent",
+        agent,
     ]
     if llm_preset:
         cmd.extend(["--llm-preset", llm_preset])
-    cmd.extend([
-        command,
-        "--proposal", proposal,
-        "--results-dir", results_dir,
-    ])
+    cmd.extend(
+        [
+            command,
+            "--proposal",
+            proposal,
+            "--results-dir",
+            results_dir,
+        ]
+    )
     if execution_mode != "sequential" and command == "plot":
         cmd.extend(["--execution", execution_mode])
 
@@ -430,9 +438,7 @@ def _run_matrix(
     """
     results: list[RunResult] = []
     for command, agent in run_pairs:
-        results.append(
-            _run_single(command, agent, proposal, results_dir, llm_preset, execution_mode)
-        )
+        results.append(_run_single(command, agent, proposal, results_dir, llm_preset, execution_mode))
     return results
 
 
@@ -542,7 +548,7 @@ def _generate_html_report(
   <tr><td><strong>Exit code</strong></td><td>{r.exit_code}</td></tr>
   <tr><td><strong>Duration</strong></td><td>{_fmt_duration(r.duration)}</td></tr>
   <tr><td><strong>Execution</strong></td><td>{r.execution_mode}</td></tr>
-  <tr><td><strong>Run dir</strong></td><td>{r.run_dir or 'N/A'}</td></tr>
+  <tr><td><strong>Run dir</strong></td><td>{r.run_dir or "N/A"}</td></tr>
 </table>
 """)
         if r.figure_scores:
@@ -561,10 +567,7 @@ def _generate_html_report(
                     data_uri = _image_to_base64(fig_path)
                     if data_uri:
                         fname = Path(fig_path).name
-                        html_parts.append(
-                            f'<div><img src="{data_uri}" alt="{fname}"><br>'
-                            f"<small>{fname}</small></div>"
-                        )
+                        html_parts.append(f'<div><img src="{data_uri}" alt="{fname}"><br><small>{fname}</small></div>')
                 else:
                     html_parts.append(f"<div><small>SVG: {Path(fig_path).name}</small></div>")
             html_parts.append("</div>")
@@ -572,13 +575,11 @@ def _generate_html_report(
         # stdout / stderr
         if r.stdout_tail.strip():
             html_parts.append(
-                "<details><summary>stdout (last 50 lines)</summary>"
-                f"<pre>{_escape_html(r.stdout_tail)}</pre></details>"
+                f"<details><summary>stdout (last 50 lines)</summary><pre>{_escape_html(r.stdout_tail)}</pre></details>"
             )
         if r.stderr_tail.strip():
             html_parts.append(
-                "<details><summary>stderr (last 50 lines)</summary>"
-                f"<pre>{_escape_html(r.stderr_tail)}</pre></details>"
+                f"<details><summary>stderr (last 50 lines)</summary><pre>{_escape_html(r.stderr_tail)}</pre></details>"
             )
         html_parts.append("</details>")
 
@@ -645,10 +646,7 @@ def _print_terminal_summary(
 
     total = passed + failed + skipped
     print("=" * (16 + col_w * len(agents)))
-    print(
-        f"Total: {passed}/{total} passed, {failed} failed, {skipped} skipped "
-        f"({_fmt_duration(total_duration)})"
-    )
+    print(f"Total: {passed}/{total} passed, {failed} failed, {skipped} skipped ({_fmt_duration(total_duration)})")
     print(f"Report: {report_path}")
     print()
 
@@ -659,9 +657,7 @@ def _print_terminal_summary(
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Evaluate HappyFigure pipeline across commands and agent platforms."
-    )
+    parser = argparse.ArgumentParser(description="Evaluate HappyFigure pipeline across commands and agent platforms.")
     parser.add_argument("--proposal", required=True, help="Path to the proposal file")
     parser.add_argument("--results-dir", required=True, help="Path to the results directory")
     parser.add_argument(
@@ -775,8 +771,7 @@ def main() -> None:
         for agent in args.agents:
             if agent not in available_agents:
                 detail = auth_results.get(agent, {}).get("detail", "Agent unavailable")
-                r = RunResult(command=command, agent=agent, status="skip",
-                              error_msg=detail)
+                r = RunResult(command=command, agent=agent, status="skip", error_msg=detail)
                 skip_results.append(r)
                 print(f"  [{command}/{agent}] SKIP ({detail})")
             else:
@@ -785,9 +780,7 @@ def main() -> None:
     all_results.extend(skip_results)
 
     print(f"--- Running {len(run_pairs)} evaluations sequentially ---")
-    all_results.extend(
-        _run_matrix(run_pairs, proposal, results_dir, args.llm_preset, execution_mode)
-    )
+    all_results.extend(_run_matrix(run_pairs, proposal, results_dir, args.llm_preset, execution_mode))
 
     # Stop services if we started them
     if needs_any_svc:

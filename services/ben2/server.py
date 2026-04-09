@@ -7,6 +7,7 @@ base64-encoded PNG.
 Usage:
     python -m services.ben2.server --port 8003
 """
+
 import argparse
 import base64
 import io

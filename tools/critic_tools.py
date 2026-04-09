@@ -9,12 +9,12 @@ from __future__ import annotations
 
 # Dimension keys and their allowed (min, max) ranges
 _DIMENSION_RANGES = {
-    "data_accuracy":          (0, 2),
-    "clarity":                (0, 2),
-    "accessibility":          (0, 2),
-    "layout":                 (0, 2),
-    "publication_readiness":  (0, 2),
-    "confusion_penalty":      (-2, 0),
+    "data_accuracy": (0, 2),
+    "clarity": (0, 2),
+    "accessibility": (0, 2),
+    "layout": (0, 2),
+    "publication_readiness": (0, 2),
+    "confusion_penalty": (-2, 0),
 }
 
 

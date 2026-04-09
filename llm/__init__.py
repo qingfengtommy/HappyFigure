@@ -13,6 +13,7 @@ Usage::
     llm.init_from_config()                    # reads configs/pipeline.yaml
     result = llm.run_prompt("chat", "Hello")  # routes to configured provider
 """
+
 from __future__ import annotations
 
 __all__ = [
@@ -43,7 +44,7 @@ from llm.providers import ToolCallResult  # noqa: E402  — single definition
 
 _config_mode: bool = False
 _role_providers: dict[str, tuple[Any, str]] = {}  # role -> (provider_instance, model_name)
-_provider_instances: dict[str, Any] = {}           # provider_name -> instance
+_provider_instances: dict[str, Any] = {}  # provider_name -> instance
 
 
 def init_from_config(config_path: str | None = None) -> None:
@@ -61,6 +62,7 @@ def init_from_config(config_path: str | None = None) -> None:
     _provider_instances = {}
 
     from graphs.svg_utils import load_pipeline_config
+
     cfg = load_pipeline_config()
     llm_cfg = cfg.get("llm")
     if not llm_cfg:
@@ -87,13 +89,13 @@ def init_from_config(config_path: str | None = None) -> None:
         if provider_name not in _provider_instances:
             provider_cfg = providers_cfg.get(provider_name, {})
             try:
-                _provider_instances[provider_name] = create_provider(
-                    provider_name, provider_cfg
-                )
+                _provider_instances[provider_name] = create_provider(provider_name, provider_cfg)
             except Exception as e:
                 logger.warning(
                     "Failed to create provider %r for role %r: %s",
-                    provider_name, role_name, e,
+                    provider_name,
+                    role_name,
+                    e,
                 )
                 continue
 
@@ -124,8 +126,7 @@ def apply_preset(preset_name: str) -> None:
     presets = llm_cfg.get("presets", {})
     preset = presets.get(preset_name)
     if not preset:
-        logger.warning("Unknown LLM preset: %r (available: %s)",
-                        preset_name, ", ".join(presets.keys()))
+        logger.warning("Unknown LLM preset: %r (available: %s)", preset_name, ", ".join(presets.keys()))
         return
 
     providers_cfg = llm_cfg.get("providers", {})
@@ -139,9 +140,7 @@ def apply_preset(preset_name: str) -> None:
         if provider_name not in _provider_instances:
             provider_cfg = providers_cfg.get(provider_name, {})
             try:
-                _provider_instances[provider_name] = create_provider(
-                    provider_name, provider_cfg
-                )
+                _provider_instances[provider_name] = create_provider(provider_name, provider_cfg)
             except Exception as e:
                 logger.warning("Failed to create provider %r: %s", provider_name, e)
                 continue
@@ -170,9 +169,7 @@ def set_backend(name: str) -> None:
     """
     global _backend
     if name not in _VALID_BACKENDS:
-        raise ValueError(
-            f"Unknown backend: {name!r}. Choose from {_VALID_BACKENDS}."
-        )
+        raise ValueError(f"Unknown backend: {name!r}. Choose from {_VALID_BACKENDS}.")
     _backend = name
 
 
@@ -194,6 +191,7 @@ def _image_gen_backend() -> str:
 
 # ── Public API ────────────────────────────────────────────────────────
 
+
 def run_prompt(
     model_mode: str,
     prompt: str,
@@ -207,7 +205,8 @@ def run_prompt(
     if _config_mode and model_mode in _role_providers:
         provider, model = _role_providers[model_mode]
         return provider.run_prompt(
-            model, prompt,
+            model,
+            prompt,
             system_prompt=system_prompt,
             image_base64=image_base64,
             few_shot_messages=few_shot_messages,
@@ -219,7 +218,8 @@ def run_prompt(
     else:
         from llm.gpt_example import run_prompt as _run
     return _run(
-        model_mode, prompt,
+        model_mode,
+        prompt,
         system_prompt=system_prompt,
         image_base64=image_base64,
         few_shot_messages=few_shot_messages,
@@ -264,7 +264,9 @@ def run_image_prompt(
                 f"Configure a different provider for the 'drawing' role."
             )
         return provider.run_image_prompt(
-            model, prompt, reference_images=reference_images,
+            model,
+            prompt,
+            reference_images=reference_images,
         )
 
     # Legacy mode
@@ -292,11 +294,10 @@ def run_prompt_with_tools(
     if _config_mode and model_mode in _role_providers:
         provider, model = _role_providers[model_mode]
         if not provider.capabilities.get("tools"):
-            raise RuntimeError(
-                f"Provider {provider.__class__.__name__} does not support tool calling."
-            )
+            raise RuntimeError(f"Provider {provider.__class__.__name__} does not support tool calling.")
         result = provider.run_prompt_with_tools(
-            model, prompt,
+            model,
+            prompt,
             system_prompt=system_prompt,
             image_base64=image_base64,
             few_shot_messages=few_shot_messages,
@@ -319,7 +320,8 @@ def run_prompt_with_tools(
     else:
         from llm.gpt_example import run_prompt_with_tools as _run
     return _run(
-        model_mode, prompt,
+        model_mode,
+        prompt,
         system_prompt=system_prompt,
         image_base64=image_base64,
         few_shot_messages=few_shot_messages,
@@ -362,4 +364,5 @@ def check_connections() -> list[dict]:
 def encode_image_to_data_url(file_path) -> str:
     """Encode an image file to a data URL. Backend-independent (same logic)."""
     from llm.gpt_example import encode_image_to_data_url as _enc
+
     return _enc(file_path)

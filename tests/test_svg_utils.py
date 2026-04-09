@@ -1,11 +1,11 @@
 """Tests for utility functions in graphs/svg_utils.py."""
+
 from __future__ import annotations
 
 import os
 import threading
 from pathlib import Path
 from unittest.mock import patch
-
 
 
 # ---------------------------------------------------------------------------
@@ -334,8 +334,10 @@ class TestSvgToPng:
         """Without cairosvg or svglib, should return None."""
         from graphs.svg_utils import svg_to_png
 
-        with patch.dict("sys.modules", {"cairosvg": None}), \
-             patch("builtins.__import__", side_effect=ImportError("no cairosvg")):
+        with (
+            patch.dict("sys.modules", {"cairosvg": None}),
+            patch("builtins.__import__", side_effect=ImportError("no cairosvg")),
+        ):
             # This may still succeed if cairosvg is actually installed;
             # we just verify it doesn't crash
             result = svg_to_png("/nonexistent/file.svg", "/tmp/out.png", scale=1.0)
