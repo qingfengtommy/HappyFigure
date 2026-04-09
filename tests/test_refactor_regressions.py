@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import contextlib
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -192,8 +191,8 @@ def test_codex_build_agent_command_embeds_requested_agent_prompt():
 def test_gemini_build_agent_command_embeds_requested_agent_prompt():
     from agents.gemini import GeminiOrchestrator
 
-    orch = GeminiOrchestrator({"agent": {"gemini": {"model": "gemini-2.5-pro"}}})
-    orch._model = "gemini-2.5-pro"
+    orch = GeminiOrchestrator({"agent": {"gemini": {"model": "gemini-3.1-pro-preview"}}})
+    orch._model = "gemini-3.1-pro-preview"
 
     cmd = orch.build_agent_command("happyfigure-orchestrator", "Run directory: /tmp/run.")
 
@@ -322,8 +321,14 @@ def test_run_agent_pipeline_skips_completed_generate_on_resume(monkeypatch, tmp_
         lambda _run_dir, stage: StageRecord(status=StageStatus.COMPLETED) if stage == "generate" else None,
     )
     monkeypatch.setattr(main_mod.orch_steps, "try_resume", lambda _run_dir, _mode: (exploration, design))
-    monkeypatch.setattr(main_mod.orch_steps, "stage_explore", lambda *a, **k: (_ for _ in ()).throw(AssertionError("unexpected explore")))
-    monkeypatch.setattr(main_mod.orch_steps, "stage_design", lambda *a, **k: (_ for _ in ()).throw(AssertionError("unexpected design")))
+    monkeypatch.setattr(
+        main_mod.orch_steps,
+        "stage_explore",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("unexpected explore")),
+    )
+    monkeypatch.setattr(
+        main_mod.orch_steps, "stage_design", lambda *a, **k: (_ for _ in ()).throw(AssertionError("unexpected design"))
+    )
     monkeypatch.setattr(main_mod.orch_steps, "stage_generate", lambda *a, **k: generate_calls.append("called"))
     monkeypatch.setattr(main_mod.ui, "info", lambda *a, **k: None)
     monkeypatch.setattr(main_mod.ui, "dim", lambda *a, **k: None)
@@ -371,12 +376,15 @@ def test_run_agent_pipeline_agent_first_plot_launches_main_session(monkeypatch, 
     monkeypatch.setattr(main_mod, "get_ctx", lambda: dummy_ctx)
 
     monkeypatch.setattr(main_mod.orch_steps, "prepare_agent_session_run", lambda args, mode: str(run_dir))
-    monkeypatch.setattr(main_mod.orch_steps, "build_orchestrator_session_prompt", lambda run_dir, args, mode: "session-prompt")
+    monkeypatch.setattr(
+        main_mod.orch_steps, "build_orchestrator_session_prompt", lambda run_dir, args, mode: "session-prompt"
+    )
     monkeypatch.setattr(
         main_mod.orch_steps,
         "sync_agent_session_manifest",
         lambda run_dir, args, mode: DesignResult(mode=mode, artifacts={}, experiments=["exp_a"]),
     )
+
     def _fake_launch(agent_name, prompt, **kwargs):
         launches.append((agent_name, prompt, kwargs["log_name"]))
         # Create marker file so the "no outputs" guard passes
@@ -428,13 +436,19 @@ def test_run_agent_pipeline_agent_first_resume_skips_relaunch(monkeypatch, tmp_p
     monkeypatch.setattr(main_mod, "get_ctx", lambda: dummy_ctx)
 
     monkeypatch.setattr(main_mod.orch_steps, "prepare_agent_session_run", lambda args, mode: str(run_dir))
-    monkeypatch.setattr(main_mod.orch_steps, "build_orchestrator_session_prompt", lambda run_dir, args, mode: "session-prompt")
+    monkeypatch.setattr(
+        main_mod.orch_steps, "build_orchestrator_session_prompt", lambda run_dir, args, mode: "session-prompt"
+    )
     monkeypatch.setattr(
         main_mod.orch_steps,
         "sync_agent_session_manifest",
         lambda run_dir, args, mode: DesignResult(mode=mode, artifacts={}, experiments=["exp_a"]),
     )
-    monkeypatch.setattr(main_mod, "read_manifest_stage", lambda run_dir, stage: StageRecord(status=StageStatus.COMPLETED) if stage == "generate" else None)
+    monkeypatch.setattr(
+        main_mod,
+        "read_manifest_stage",
+        lambda run_dir, stage: StageRecord(status=StageStatus.COMPLETED) if stage == "generate" else None,
+    )
     monkeypatch.setattr(main_mod, "launch_orchestrator_session", lambda *a, **k: launches.append("launched") or 0)
     monkeypatch.setattr(main_mod, "require_agent_success", lambda *a, **k: None)
     monkeypatch.setattr(main_mod.ui, "info", lambda *a, **k: None)
@@ -479,12 +493,15 @@ def test_run_agent_pipeline_agent_first_diagram_wraps_services(monkeypatch, tmp_
     monkeypatch.setattr(main_mod, "get_ctx", lambda: dummy_ctx)
 
     monkeypatch.setattr(main_mod.orch_steps, "prepare_agent_session_run", lambda args, mode: str(run_dir))
-    monkeypatch.setattr(main_mod.orch_steps, "build_orchestrator_session_prompt", lambda run_dir, args, mode: "diagram-prompt")
+    monkeypatch.setattr(
+        main_mod.orch_steps, "build_orchestrator_session_prompt", lambda run_dir, args, mode: "diagram-prompt"
+    )
     monkeypatch.setattr(
         main_mod.orch_steps,
         "sync_agent_session_manifest",
         lambda run_dir, args, mode: DesignResult(mode=mode, artifacts={}, experiments=[]),
     )
+
     def _fake_launch_diagram(*a, **k):
         # Create marker file so the "no outputs" guard passes
         (run_dir / "method_description.md").write_text("# Method\n")
@@ -577,7 +594,11 @@ def test_run_agent_pipeline_records_design_stage_metadata(monkeypatch, tmp_path)
     monkeypatch.setattr(main_mod.orch_steps, "stage_explore", lambda *a, **k: exploration)
     monkeypatch.setattr(main_mod.orch_steps, "stage_design", lambda *a, **k: design)
     monkeypatch.setattr(main_mod.orch_steps, "stage_generate", lambda *a, **k: None)
-    monkeypatch.setattr(main_mod, "write_manifest_stage", lambda run_dir, stage, record, mode=None: stage_writes.append((stage, record, mode)))
+    monkeypatch.setattr(
+        main_mod,
+        "write_manifest_stage",
+        lambda run_dir, stage, record, mode=None: stage_writes.append((stage, record, mode)),
+    )
     monkeypatch.setattr(main_mod.ui, "info", lambda *a, **k: None)
     monkeypatch.setattr(main_mod.ui, "dim", lambda *a, **k: None)
     monkeypatch.setattr(main_mod.ui, "warn", lambda *a, **k: None)
@@ -764,15 +785,27 @@ def test_codex_stream_parser_handles_collab_tool_call():
     from ui.stream_parsers import stream_codex_json
 
     events = [
-        json.dumps({"type": "item.started", "item": {
-            "type": "collab_tool_call", "tool": "spawn_agent",
-            "prompt": "Act as @data-explore for a bounded exploration slice.",
-        }}),
-        json.dumps({"type": "item.completed", "item": {
-            "type": "collab_tool_call", "tool": "spawn_agent",
-            "prompt": "Act as @data-explore",
-            "agents_states": {"abc": {"status": "pending_init", "message": None}},
-        }}),
+        json.dumps(
+            {
+                "type": "item.started",
+                "item": {
+                    "type": "collab_tool_call",
+                    "tool": "spawn_agent",
+                    "prompt": "Act as @data-explore for a bounded exploration slice.",
+                },
+            }
+        ),
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {
+                    "type": "collab_tool_call",
+                    "tool": "spawn_agent",
+                    "prompt": "Act as @data-explore",
+                    "agents_states": {"abc": {"status": "pending_init", "message": None}},
+                },
+            }
+        ),
     ]
     stdout = io.StringIO("\n".join(events) + "\n")
     output_tail = []
@@ -790,10 +823,15 @@ def test_codex_stream_parser_agent_message_styled():
     from ui.stream_parsers import stream_codex_json
 
     events = [
-        json.dumps({"type": "item.completed", "item": {
-            "type": "agent_message",
-            "text": "I'm scanning the results directory now.",
-        }}),
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {
+                    "type": "agent_message",
+                    "text": "I'm scanning the results directory now.",
+                },
+            }
+        ),
     ]
     stdout = io.StringIO("\n".join(events) + "\n")
     output_tail = []
@@ -810,14 +848,24 @@ def test_codex_stream_parser_command_execution():
     from ui.stream_parsers import stream_codex_json
 
     events = [
-        json.dumps({"type": "item.started", "item": {
-            "type": "command_execution",
-            "command": "/bin/bash -lc ls -la",
-        }}),
-        json.dumps({"type": "item.completed", "item": {
-            "type": "command_execution",
-            "exit_code": 0,
-        }}),
+        json.dumps(
+            {
+                "type": "item.started",
+                "item": {
+                    "type": "command_execution",
+                    "command": "/bin/bash -lc ls -la",
+                },
+            }
+        ),
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {
+                    "type": "command_execution",
+                    "exit_code": 0,
+                },
+            }
+        ),
     ]
     stdout = io.StringIO("\n".join(events) + "\n")
     output_tail = []
@@ -834,10 +882,15 @@ def test_codex_stream_parser_error_exit_code():
     from ui.stream_parsers import stream_codex_json
 
     events = [
-        json.dumps({"type": "item.completed", "item": {
-            "type": "command_execution",
-            "exit_code": 1,
-        }}),
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {
+                    "type": "command_execution",
+                    "exit_code": 1,
+                },
+            }
+        ),
     ]
     stdout = io.StringIO("\n".join(events) + "\n")
     output_tail = []
@@ -931,7 +984,7 @@ def test_idle_spinner_becomes_visible_after_delay():
         # Wait for delay + a few spinner intervals
         time.sleep(0.8)
         with spinner._lock:
-            was_visible = spinner._visible
+            _ = spinner._visible
         # Should have become visible (in color mode) or at least not crashed
         # In non-TTY test env _USE_COLOR is False, so _visible stays False
         # — that's correct behavior. Just verify no crash.
@@ -975,12 +1028,27 @@ def test_claude_stream_parser_spinner_lifecycle():
     from ui.stream_parsers import stream_claude_json
 
     events = [
-        json.dumps({"type": "assistant", "message": {"content": [
-            {"type": "text", "text": "hello"},
-        ]}}),
-        json.dumps({"type": "result", "result": "done", "total_cost_usd": 0.01,
-                     "num_turns": 1, "duration_ms": 100,
-                     "total_input_tokens": 10, "total_output_tokens": 5}),
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "text", "text": "hello"},
+                    ]
+                },
+            }
+        ),
+        json.dumps(
+            {
+                "type": "result",
+                "result": "done",
+                "total_cost_usd": 0.01,
+                "num_turns": 1,
+                "duration_ms": 100,
+                "total_input_tokens": 10,
+                "total_output_tokens": 5,
+            }
+        ),
     ]
     stdout = io.StringIO("\n".join(events) + "\n")
 

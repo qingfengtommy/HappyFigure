@@ -18,8 +18,7 @@ try:
     from google.genai import types
 except ImportError:
     raise ImportError(
-        "google-genai is required for the Gemini backend. "
-        "Install it with: pip install happyfigure[google]"
+        "google-genai is required for the Gemini backend. Install it with: pip install happyfigure[google]"
     )
 from dotenv import load_dotenv
 
@@ -117,9 +116,12 @@ def _build_contents(
                         img_url = item.get("image_url", "")
                         if img_url and "," in img_url:
                             mime, raw = _parse_data_url(img_url)
-                            parts.append(types.Part.from_bytes(
-                                data=raw, mime_type=mime,
-                            ))
+                            parts.append(
+                                types.Part.from_bytes(
+                                    data=raw,
+                                    mime_type=mime,
+                                )
+                            )
 
             if parts:
                 contents.append(types.Content(role=gemini_role, parts=parts))
@@ -161,16 +163,20 @@ def run_image_prompt(
 
     # Include reference images if provided
     if reference_images:
-        parts.append(types.Part.from_text(
-            text="Use these images as style references for the diagram you will generate:",
-        ))
+        parts.append(
+            types.Part.from_text(
+                text="Use these images as style references for the diagram you will generate:",
+            )
+        )
         for ref_url in reference_images:
             if ref_url and "," in ref_url:
                 mime, raw = _parse_data_url(ref_url)
                 parts.append(types.Part.from_bytes(data=raw, mime_type=mime))
-        parts.append(types.Part.from_text(
-            text=f"\nNow generate the following diagram:\n\n{prompt}",
-        ))
+        parts.append(
+            types.Part.from_text(
+                text=f"\nNow generate the following diagram:\n\n{prompt}",
+            )
+        )
     else:
         parts.append(types.Part.from_text(text=prompt))
 
@@ -256,12 +262,12 @@ def run_prompt_with_tools(
     if tools:
         try:
             from tools.tool_schemas import to_gemini_tools
+
             gemini_tools = to_gemini_tools(tools)
         except ImportError:
             import logging
-            logging.getLogger(__name__).warning(
-                "tools.tool_schemas not available; passing tools as-is to Gemini API"
-            )
+
+            logging.getLogger(__name__).warning("tools.tool_schemas not available; passing tools as-is to Gemini API")
             gemini_tools = tools  # assume already in Gemini format
 
     # Build initial contents
@@ -300,10 +306,7 @@ def run_prompt_with_tools(
                 tool_results=all_tool_results,
                 raw_response=response,
             )
-        function_calls = [
-            p for p in candidates[0].content.parts
-            if p.function_call is not None
-        ]
+        function_calls = [p for p in candidates[0].content.parts if p.function_call is not None]
 
         if not function_calls:
             return ToolCallResult(
@@ -316,7 +319,9 @@ def run_prompt_with_tools(
         if tool_executor is None:
             return ToolCallResult(
                 text="",
-                tool_calls=[{"name": p.function_call.name, "arguments": dict(p.function_call.args)} for p in function_calls],
+                tool_calls=[
+                    {"name": p.function_call.name, "arguments": dict(p.function_call.args)} for p in function_calls
+                ],
                 tool_results=[{"error": "no tool_executor provided"}] * len(function_calls),
                 raw_response=response,
             )
@@ -329,9 +334,7 @@ def run_prompt_with_tools(
             result = tool_executor(fc.name, args)
             all_tool_calls.append({"name": fc.name, "arguments": args})
             all_tool_results.append(result)
-            function_responses.append(
-                types.Part.from_function_response(name=fc.name, response=result)
-            )
+            function_responses.append(types.Part.from_function_response(name=fc.name, response=result))
 
         # Append model response and function results to conversation
         contents.append(response.candidates[0].content)

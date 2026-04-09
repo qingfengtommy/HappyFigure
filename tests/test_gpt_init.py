@@ -1,4 +1,5 @@
 """Tests for the LLM router in llm/__init__.py."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -18,8 +19,10 @@ class TestInitFromConfig:
         """init_from_config should set _config_mode=True when roles are configured."""
         import llm
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
 
         assert llm._config_mode is True
@@ -60,8 +63,10 @@ class TestInitFromConfig:
                 },
             }
         }
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=cfg), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=cfg),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
 
         assert "chat" in llm._role_providers
@@ -72,8 +77,10 @@ class TestInitFromConfig:
         import llm
 
         create_mock = MagicMock(return_value=fake_provider)
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", create_mock):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", create_mock),
+        ):
             llm.init_from_config()
 
         # azure is used by chat+code, google by drawing -> 2 create calls
@@ -94,21 +101,25 @@ class TestApplyPreset:
         """Applying the 'gemini' preset should override all three roles."""
         import llm
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
             llm.apply_preset("gemini")
 
-        # After gemini preset, chat model should be gemini-2.5-flash
+        # After gemini preset, chat model should be gemini-3.1-pro-preview
         _, model = llm._role_providers["chat"]
-        assert model == "gemini-2.5-flash"
+        assert model == "gemini-3.1-pro-preview"
 
     def test_unknown_preset_warns(self, sample_pipeline_config, fake_provider):
         """Unknown preset name should log a warning and not crash."""
         import llm
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
             # Should not raise
             llm.apply_preset("nonexistent_preset")
@@ -120,8 +131,10 @@ class TestApplyPreset:
         """The 'mixed' preset should only change the drawing role."""
         import llm
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
             # Record chat model before preset
             _, chat_model_before = llm._role_providers["chat"]
@@ -143,8 +156,10 @@ class TestRunPrompt:
         """In config mode, run_prompt should call the provider's run_prompt."""
         import llm
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
 
         result = llm.run_prompt("chat", "Hello world")
@@ -221,8 +236,10 @@ class TestGetModelDisplay:
     def test_config_mode_display(self, sample_pipeline_config, fake_provider):
         import llm
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
 
         display = llm.get_model_display("chat")
@@ -239,8 +256,10 @@ class TestRunPromptWithTools:
         import llm
         from llm.providers import ToolCallResult
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=fake_provider):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=fake_provider),
+        ):
             llm.init_from_config()
 
         result = llm.run_prompt_with_tools("chat", "use tool")
@@ -255,8 +274,10 @@ class TestRunPromptWithTools:
         no_tools = FakeProvider()
         no_tools.capabilities = {"text": True, "tools": False}
 
-        with patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config), \
-             patch("llm.providers.create_provider", return_value=no_tools):
+        with (
+            patch("graphs.svg_utils.load_pipeline_config", return_value=sample_pipeline_config),
+            patch("llm.providers.create_provider", return_value=no_tools),
+        ):
             llm.init_from_config()
 
         with pytest.raises(RuntimeError, match="does not support tool calling"):

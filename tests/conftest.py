@@ -1,4 +1,5 @@
 """Shared fixtures for HappyFigure test suite."""
+
 from __future__ import annotations
 
 import sys
@@ -43,8 +44,8 @@ def sample_pipeline_config() -> dict:
             },
             "presets": {
                 "gemini": {
-                    "chat": {"provider": "google", "model": "gemini-2.5-flash"},
-                    "code": {"provider": "google", "model": "gemini-2.5-pro"},
+                    "chat": {"provider": "google", "model": "gemini-3.1-pro-preview"},
+                    "code": {"provider": "google", "model": "gemini-3.1-pro-preview"},
                     "drawing": {"provider": "google", "model": "gemini-img"},
                 },
                 "mixed": {

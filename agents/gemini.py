@@ -5,6 +5,7 @@ agents via ``gemini -p``.  Gemini CLI has built-in shell, file, and web tools,
 plus native subagent support (agents in ``.gemini/agents/`` are exposed as
 tools to the main agent and can be invoked via ``@agent-name``).
 """
+
 from __future__ import annotations
 
 import logging
@@ -46,12 +47,17 @@ class GeminiOrchestrator(OrchestratorBase):
     @property
     def model_display(self) -> str:
         gemini_cfg = self.config.get("agent", {}).get("gemini", {})
-        return gemini_cfg.get("model", "gemini-2.5-pro")
+        return gemini_cfg.get("model", "gemini-3.1-pro-preview")
 
     def check_auth(self) -> dict:
         name = "gemini"
         if not which("gemini"):
-            return {"ok": False, "platform": name, "message": "Gemini CLI not found", "error": "Install from https://github.com/google-gemini/gemini-cli"}
+            return {
+                "ok": False,
+                "platform": name,
+                "message": "Gemini CLI not found",
+                "error": "Install from https://github.com/google-gemini/gemini-cli",
+            }
         if os.environ.get("GEMINI_API_KEY"):
             return {"ok": True, "platform": name, "message": "Gemini CLI ready (API key detected)", "error": None}
         if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or os.environ.get("GOOGLE_CLOUD_PROJECT"):
@@ -68,13 +74,10 @@ class GeminiOrchestrator(OrchestratorBase):
         self._store_mode(mode, execution)
 
         if not which("gemini"):
-            raise RuntimeError(
-                "Gemini CLI not found. Install from: "
-                "https://github.com/google-gemini/gemini-cli"
-            )
+            raise RuntimeError("Gemini CLI not found. Install from: https://github.com/google-gemini/gemini-cli")
 
         gemini_cfg = self.config.get("agent", {}).get("gemini", {})
-        self._model = gemini_cfg.get("model", "gemini-2.5-pro")
+        self._model = gemini_cfg.get("model", "gemini-3.1-pro-preview")
 
         # Generate .gemini/agents/<name>.md per agent.
         # Gemini CLI reads these as project-scoped subagents, exposed as
@@ -84,9 +87,12 @@ class GeminiOrchestrator(OrchestratorBase):
 
         for agent_name in self.list_agents():
             prompt_body = self.get_agent_prompt(agent_name, mode=mode, execution=execution)
-            meta = _AGENT_META.get(agent_name, {
-                "description": f"{agent_name} agent.",
-            })
+            meta = _AGENT_META.get(
+                agent_name,
+                {
+                    "description": f"{agent_name} agent.",
+                },
+            )
             tools = _AGENT_TOOLS.get(agent_name, ["*"])
             tools_yaml = "\n".join(f"  - {t}" for t in tools)
 
@@ -106,7 +112,8 @@ class GeminiOrchestrator(OrchestratorBase):
 
         logger.info(
             "Generated %d Gemini agent files in %s",
-            len(self.list_agents()), agents_dir,
+            len(self.list_agents()),
+            agents_dir,
         )
 
     def build_agent_command(self, agent_name: str, prompt: str) -> AgentCommand:
@@ -114,9 +121,12 @@ class GeminiOrchestrator(OrchestratorBase):
         composed_prompt = self.compose_agent_prompt(agent_name, prompt)
         cmd = [
             "gemini",
-            "-m", model,
-            "-o", "stream-json",
-            "-p", composed_prompt,
+            "-m",
+            model,
+            "-o",
+            "stream-json",
+            "-p",
+            composed_prompt,
         ]
         return AgentCommand(cmd=cmd, stream_format="gemini-stream-json")
 

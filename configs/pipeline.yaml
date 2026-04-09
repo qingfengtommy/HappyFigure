@@ -36,12 +36,12 @@ llm:
       drawing: {provider: azure, model: gpt-image-1}
     gemini:
       # All roles use Google
-      chat:     {provider: google, model: gemini-2.5-flash}
-      code:     {provider: google, model: gemini-2.5-pro}
-      drawing:  {provider: google, model: gemini-2.0-flash-preview-image-generation}
+      chat:     {provider: google, model: gemini-3.1-pro-preview}
+      code:     {provider: google, model: gemini-3.1-pro-preview}
+      drawing:  {provider: google, model: gemini-3.1-flash-image-preview}
     mixed:
       # Azure for text, Google for drawing (was "azure+gemini" / "svg")
-      drawing: {provider: google, model: gemini-2.0-flash-preview-image-generation}
+      drawing: {provider: google, model: gemini-3.1-flash-image-preview}
 
 # ── Agent Platform Configuration ─────────────────────────────────────
 # Which CLI tool orchestrates agents. Override via: --agent {opencode|claude|codex|gemini|copilot}
@@ -242,7 +242,7 @@ feedback:
   max_style_preferences: 30      # cap on project-level style rules (oldest evicted)
 
 # ── Paper composite (unified figure generation) ──────────────────
-# Used by `python run_once.py paper` command.
+# Used by `python cli.py paper` command.
 assembly:
   method: pil                      # "pil" (pixel-perfect, no blur) or "matplotlib" (script-based)
   max_iterations: 3               # assembly script retry limit per figure

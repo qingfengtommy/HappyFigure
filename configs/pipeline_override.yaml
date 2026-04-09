@@ -9,7 +9,7 @@
 #                         --agent codex      (uses Codex CLI + gpt-5.4)
 # Or set permanently:    agent.platform: codex
 #
-# Current: opencode by default. Add --agent codex to any run_once command
+# Current: opencode by default. Add --agent codex to any cli.py command
 # to switch without editing this file.
 
 agent:

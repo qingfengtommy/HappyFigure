@@ -55,7 +55,6 @@ These are **independent**: you can use OpenCode as agent platform + Gemini as LL
 | `python cli.py composite` or `python cli.py hybrid` | Full method diagram plus visualization compositing | Yes (SAM3, OCR, BEN2 on ports 8001-8003 for the diagram stage) |
 
 Start with `plot` or `sketch` — no microservices needed.
-`plot` is stats-only; `--scope full` is deprecated and now behaves the same as `--scope statistical`.
 
 ## 3. Vertex AI Auth (Already Built-in)
 
@@ -79,16 +78,16 @@ GOOGLE_CLOUD_LOCATION=global
 GOOGLE_APPLICATION_CREDENTIALS=$HOME/.gemini/<your-service-account>.json
 
 # Optional Gemini backend defaults — align these with the shipped gemini preset if desired
-GEMINI_MODEL_CHAT=gemini-2.5-flash
-GEMINI_MODEL_CODE=gemini-2.5-pro
-GEMINI_MODEL_DRAWING=gemini-2.0-flash-preview-image-generation
+GEMINI_MODEL_CHAT=gemini-3.1-pro-preview
+GEMINI_MODEL_CODE=gemini-3.1-pro-preview
+GEMINI_MODEL_DRAWING=gemini-3.1-flash-image-preview
 
 # Uncomment if you get an API key instead:
 # GEMINI_API_KEY=AIzaSy...
 EOF
 ```
 
-> **Important**: The low-level Gemini backend in `llm/gemini_example.py` still defaults to `gemini-3.1-pro-preview` / `gemini-3.1-flash-image-preview`, but the shipped `--llm-preset gemini` in `configs/pipeline.yaml` currently uses `gemini-2.5-flash`, `gemini-2.5-pro`, and `gemini-2.0-flash-preview-image-generation`. Setting `GEMINI_MODEL_*` makes the backend defaults match the preset.
+> **Note**: Both the low-level Gemini backend in `llm/gemini_example.py` and the `--llm-preset gemini` in `configs/pipeline.yaml` use the same defaults: `gemini-3.1-pro-preview` (chat/code) and `gemini-3.1-flash-image-preview` (drawing). Override with `GEMINI_MODEL_*` env vars if needed.
 
 ### Step 2: Install HappyFigure (editable)
 
@@ -106,7 +105,7 @@ OpenCode is the default and most stable platform. The `.opencode/` directory is 
 The checked-in `opencode.jsonc` is configured for Azure OpenAI. To use Gemini instead, edit `.opencode/opencode.jsonc`:
 ```jsonc
 {
-  "model": "google/gemini-2.5-pro",
+  "model": "google/gemini-3.1-pro-preview",
   // ... keep existing permission config
 }
 ```
@@ -147,7 +146,7 @@ Method runs (`sketch`, `diagram`, `composite`) go to `notes/diagram_runs/run_YYY
 |---|---|---|---|
 | **Stability** | ✅ Stable (default) | ✅ Stable | ⚠️ Experimental |
 | **Installed** | ✅ v1.3.2 | ✅ v0.117.0 | ✅ Available |
-| **Model** | `gpt-5.4` (default) | `gpt-5.4` | `gemini-2.5-pro` |
+| **Model** | `gpt-5.4` (default) | `gpt-5.4` | `gemini-3.1-pro-preview` |
 | **Agent files** | `.opencode/agent/*.md` | `AGENTS.md` (project root) | `GEMINI.md` per-agent |
 | **Auth** | Azure OpenAI / built-in provider auth | `CODEX_API_KEY` / Azure OpenAI | Vertex AI / API key |
 | **How it works** | `opencode run --agent <name> <prompt>` | `codex exec -m <model> <prompt>` | `gemini -m <model> -p <prompt>` |
@@ -170,9 +169,9 @@ Current defaults target Azure. For Gemini, use `--llm-preset gemini` which overr
 
 ```yaml
 # What --llm-preset gemini sets:
-chat:     {provider: google, model: gemini-2.5-flash}
-code:     {provider: google, model: gemini-2.5-pro}
-drawing:  {provider: google, model: gemini-2.0-flash-preview-image-generation}
+chat:     {provider: google, model: gemini-3.1-pro-preview}
+code:     {provider: google, model: gemini-3.1-pro-preview}
+drawing:  {provider: google, model: gemini-3.1-flash-image-preview}
 ```
 
 You can also edit `pipeline.yaml` to make Gemini the default.
@@ -223,9 +222,9 @@ cat > .env << 'EOF'
 GOOGLE_CLOUD_PROJECT=<your-gcp-project-id>
 GOOGLE_CLOUD_LOCATION=global
 GOOGLE_APPLICATION_CREDENTIALS=$HOME/.gemini/<your-service-account>.json
-GEMINI_MODEL_CHAT=gemini-2.5-flash
-GEMINI_MODEL_CODE=gemini-2.5-pro
-GEMINI_MODEL_DRAWING=gemini-2.0-flash-preview-image-generation
+GEMINI_MODEL_CHAT=gemini-3.1-pro-preview
+GEMINI_MODEL_CODE=gemini-3.1-pro-preview
+GEMINI_MODEL_DRAWING=gemini-3.1-flash-image-preview
 EOF
 
 # 2. Install
