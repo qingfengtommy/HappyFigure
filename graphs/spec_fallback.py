@@ -4,8 +4,9 @@ Discovers JSON result files, detects comparison structure (methods,
 classifiers, categories, flat metrics), and generates styled figure
 specifications deterministically in Python.
 
-Used by run_once._step_plan_and_style as a safety net.
+Used by cli._step_plan_and_style as a safety net.
 """
+
 from __future__ import annotations
 
 import json
@@ -23,26 +24,41 @@ logger = logging.getLogger(__name__)
 _PALETTE_A = ["#E64B35", "#4DBBD5", "#00A087", "#3C5488", "#F39B7F", "#8491B4"]
 
 _STYLE_REFS = [
-    ("configs/statistical_examples/bar_group_plots/"
-     "f4p_figure_CellSpliceNet_comparison.py",
-     "multi-panel bar chart with shared legend"),
-    ("configs/statistical_examples/bar_group_plots/"
-     "f4p_figure_Cflows_fig2_comparison_GeneRegulatory.py",
-     "grouped bar comparison across categories"),
-    ("configs/statistical_examples/bar_group_plots/"
-     "f4p_figure_ImmunoStruct_bars_comparison_Cancer.py",
-     "grouped bar with category axis"),
+    (
+        "configs/statistical_examples/bar_group_plots/f4p_figure_CellSpliceNet_comparison.py",
+        "multi-panel bar chart with shared legend",
+    ),
+    (
+        "configs/statistical_examples/bar_group_plots/f4p_figure_Cflows_fig2_comparison_GeneRegulatory.py",
+        "grouped bar comparison across categories",
+    ),
+    (
+        "configs/statistical_examples/bar_group_plots/f4p_figure_ImmunoStruct_bars_comparison_Cancer.py",
+        "grouped bar with category axis",
+    ),
 ]
 
-_CLASSIFIER_HINTS = {"logistic_regression", "knn", "svm", "random_forest",
-                     "linear", "mlp", "xgboost", "lightgbm"}
-_METRIC_HINTS = {"accuracy", "f1", "macro_f1", "weighted_f1", "precision",
-                 "recall", "auroc", "auc", "mse", "rmse", "mae", "r2"}
+_CLASSIFIER_HINTS = {"logistic_regression", "knn", "svm", "random_forest", "linear", "mlp", "xgboost", "lightgbm"}
+_METRIC_HINTS = {
+    "accuracy",
+    "f1",
+    "macro_f1",
+    "weighted_f1",
+    "precision",
+    "recall",
+    "auroc",
+    "auc",
+    "mse",
+    "rmse",
+    "mae",
+    "r2",
+}
 
 
 # ---------------------------------------------------------------------------
 # Discovery
 # ---------------------------------------------------------------------------
+
 
 def discover_json_results(results_dir: str) -> list[dict]:
     """Discover plottable JSON result files and extract their structure."""
@@ -60,7 +76,7 @@ def discover_json_results(results_dir: str) -> list[dict]:
                     continue
                 fpath = os.path.join(root, fname)
                 try:
-                    with open(fpath) as f:
+                    with open(fpath, encoding="utf-8") as f:
                         data = json.load(f)
                 except (json.JSONDecodeError, OSError):
                     continue
@@ -108,10 +124,11 @@ def _detect_comparison_structure(exp: dict) -> None:
                 if isinstance(v, (int, float)):
                     exp["metrics"][k] = v
 
-    non_meta_keys = [k for k, v in data.items()
-                     if isinstance(v, dict) and k not in ("categories",)
-                     and k not in _CLASSIFIER_HINTS
-                     and not k.startswith("_")]
+    non_meta_keys = [
+        k
+        for k, v in data.items()
+        if isinstance(v, dict) and k not in ("categories",) and k not in _CLASSIFIER_HINTS and not k.startswith("_")
+    ]
     if len(non_meta_keys) >= 2:
         subkey_sets = []
         for k in non_meta_keys:
@@ -128,6 +145,7 @@ def _detect_comparison_structure(exp: dict) -> None:
 # ---------------------------------------------------------------------------
 # Layout helpers
 # ---------------------------------------------------------------------------
+
 
 def _grid_for_n(n: int) -> tuple[int, int]:
     if n <= 3:
@@ -157,8 +175,9 @@ def _size_tier(n_panels: int) -> tuple[str, str]:
 # Spec generators
 # ---------------------------------------------------------------------------
 
+
 def _ref_lines() -> str:
-    return "\n".join(f"{i+1}. {r[0]} — {r[1]}" for i, r in enumerate(_STYLE_REFS))
+    return "\n".join(f"{i + 1}. {r[0]} — {r[1]}" for i, r in enumerate(_STYLE_REFS))
 
 
 def generate_spec(exp: dict) -> tuple[str, str]:
@@ -198,14 +217,14 @@ def _color_map_flat(names: list[str], colors: dict) -> str:
     return ", ".join(f"{n}={colors[n]}" for n in names)
 
 
-def _style_enforcement(palette_colors: str, size: str, grid: str,
-                        color_map_flat_str: str, color_map_python_str: str,
-                        tier: str = "") -> str:
+def _style_enforcement(
+    palette_colors: str, size: str, grid: str, color_map_flat_str: str, color_map_python_str: str, tier: str = ""
+) -> str:
     return f"""\
 ## === STYLE ENFORCEMENT ===
 PALETTE: A
 PALETTE_COLORS: {palette_colors}
-{f'FIGURE_SIZE_TIER: {tier}' + chr(10) if tier else ''}FIGURE_SIZE_INCHES: {size}
+{f"FIGURE_SIZE_TIER: {tier}" + chr(10) if tier else ""}FIGURE_SIZE_INCHES: {size}
 LAYOUT_GRID: {grid}
 COLOR_MAP: {color_map_flat_str}
 COLOR_MAP_PYTHON:
@@ -248,12 +267,14 @@ def _spec_method_comparison(exp: dict, methods: list, title: str, ref_lines: str
 
     first_method_data = data[methods[0]]
     all_metrics = {}
+
     def _collect(d, prefix=""):
         for k, v in d.items():
             if isinstance(v, (int, float)):
                 all_metrics[f"{prefix}{k}" if prefix else k] = None
             elif isinstance(v, dict):
                 _collect(v, f"{prefix}{k}.")
+
     _collect(first_method_data)
     metric_names = list(all_metrics.keys())
 
@@ -265,10 +286,10 @@ def _spec_method_comparison(exp: dict, methods: list, title: str, ref_lines: str
     panels = [f"({labels_abc[i]}) {m}" for i, m in enumerate(metric_names)]
     panel_rows_str = []
     for r in range(rows):
-        items = panels[r * cols:(r + 1) * cols]
+        items = panels[r * cols : (r + 1) * cols]
         while len(items) < cols:
             items.append("[empty]")
-        panel_rows_str.append(f"Row {r+1}: {' | '.join(items)}")
+        panel_rows_str.append(f"Row {r + 1}: {' | '.join(items)}")
 
     spec = f"""\
 # FIGURE SPECIFICATION
@@ -277,7 +298,7 @@ def _spec_method_comparison(exp: dict, methods: list, title: str, ref_lines: str
 ---
 
 ## Figure purpose
-Compare {len(methods)} methods ({', '.join(methods)}) across {n_metrics}
+Compare {len(methods)} methods ({", ".join(methods)}) across {n_metrics}
 evaluation metrics.
 
 ---
@@ -301,10 +322,10 @@ results = {{m: data[m] for m in methods}}
 ```
 
 **Methods (bars, fixed order)**
-{chr(10).join(f"{i+1}. `{m}` ({colors[m]})" for i, m in enumerate(methods))}
+{chr(10).join(f"{i + 1}. `{m}` ({colors[m]})" for i, m in enumerate(methods))}
 
 **Metrics (panels)**
-{chr(10).join(f"{i+1}. {m}" for i, m in enumerate(metric_names))}
+{chr(10).join(f"{i + 1}. {m}" for i, m in enumerate(metric_names))}
 
 ---
 
@@ -319,7 +340,7 @@ results = {{m: data[m] for m in methods}}
 ## Axes & scales
 
 ### Y-axis — Range: [0, 1.0], Label: "Score"
-### X-axis — Categories: {', '.join(methods)}, Label: "Method"
+### X-axis — Categories: {", ".join(methods)}, Label: "Method"
 
 {_COMMON_AXES}
 
@@ -345,7 +366,7 @@ results = {{m: data[m] for m in methods}}
 ---
 
 ## Panel labels
-- (a) through ({labels_abc[n_metrics-1]}), position (-0.15, 1.05), bold
+- (a) through ({labels_abc[n_metrics - 1]}), position (-0.15, 1.05), bold
 
 ---
 
@@ -359,15 +380,23 @@ results = {{m: data[m] for m in methods}}
 
 ---
 
-{_style_enforcement(", ".join(_PALETTE_A), size, f"{rows}x{cols}",
-                     _color_map_flat(methods, colors),
-                     _color_map_python(methods, colors), tier)}
+{
+        _style_enforcement(
+            ", ".join(_PALETTE_A),
+            size,
+            f"{rows}x{cols}",
+            _color_map_flat(methods, colors),
+            _color_map_python(methods, colors),
+            tier,
+        )
+    }
 """
     return section, spec
 
 
-def _spec_classifier_category(exp: dict, classifiers: list, categories: list,
-                                title: str, ref_lines: str) -> tuple[str, str]:
+def _spec_classifier_category(
+    exp: dict, classifiers: list, categories: list, title: str, ref_lines: str
+) -> tuple[str, str]:
     data = exp["data"]
     fpath = exp["path"]
     section = exp["section"]
@@ -415,9 +444,9 @@ for cat_name, cat_data in data["categories"].items():
 df = pd.DataFrame(rows)
 ```
 
-**Classifiers (hue):** {chr(10).join(f"{i+1}. `{c}` ({colors[c]})" for i, c in enumerate(classifiers))}
-**Categories (x-axis):** {', '.join(cat_labels.values())}
-**Metrics (panels):** {', '.join(metric_keys)}
+**Classifiers (hue):** {chr(10).join(f"{i + 1}. `{c}` ({colors[c]})" for i, c in enumerate(classifiers))}
+**Categories (x-axis):** {", ".join(cat_labels.values())}
+**Metrics (panels):** {", ".join(metric_keys)}
 
 ---
 
@@ -464,15 +493,21 @@ df = pd.DataFrame(rows)
 
 ---
 
-{_style_enforcement(", ".join(_PALETTE_A), size, f"{rows}x{cols}",
-                     _color_map_flat(classifiers, colors),
-                     _color_map_python(classifiers, colors), tier)}
+{
+        _style_enforcement(
+            ", ".join(_PALETTE_A),
+            size,
+            f"{rows}x{cols}",
+            _color_map_flat(classifiers, colors),
+            _color_map_python(classifiers, colors),
+            tier,
+        )
+    }
 """
     return section, spec
 
 
-def _spec_classifier_metrics(exp: dict, classifiers: list,
-                               title: str, ref_lines: str) -> tuple[str, str]:
+def _spec_classifier_metrics(exp: dict, classifiers: list, title: str, ref_lines: str) -> tuple[str, str]:
     data = exp["data"]
     fpath = exp["path"]
     section = exp["section"]
@@ -513,8 +548,8 @@ data = json.load(open("{fpath}"))
 rows = [(clf, metric, data[clf][metric]) for clf in {json.dumps(classifiers)} for metric in {json.dumps(metric_keys)}]
 ```
 
-**Classifiers (hue):** {', '.join(f"`{c}` ({colors[c]})" for c in classifiers)}
-**Metrics (x-axis):** {', '.join(metric_keys)}
+**Classifiers (hue):** {", ".join(f"`{c}` ({colors[c]})" for c in classifiers)}
+**Metrics (x-axis):** {", ".join(metric_keys)}
 
 ---
 
@@ -561,15 +596,21 @@ rows = [(clf, metric, data[clf][metric]) for clf in {json.dumps(classifiers)} fo
 
 ---
 
-{_style_enforcement(", ".join(_PALETTE_A), "(5.0, 3.5)", "1x1",
-                     _color_map_flat(classifiers, colors),
-                     _color_map_python(classifiers, colors), "medium")}
+{
+        _style_enforcement(
+            ", ".join(_PALETTE_A),
+            "(5.0, 3.5)",
+            "1x1",
+            _color_map_flat(classifiers, colors),
+            _color_map_python(classifiers, colors),
+            "medium",
+        )
+    }
 """
     return section, spec
 
 
-def _spec_flat_metrics(exp: dict, flat_metrics: dict,
-                        title: str, ref_lines: str) -> tuple[str, str]:
+def _spec_flat_metrics(exp: dict, flat_metrics: dict, title: str, ref_lines: str) -> tuple[str, str]:
     fpath = exp["path"]
     section = exp["section"]
     data = exp["data"]
@@ -617,7 +658,7 @@ Evaluate performance across {n_metrics} metrics.
 ```
 
 **Metrics (panels)**
-{chr(10).join(f"{i+1}. {m} = {flat_metrics[m]:.4f}" for i, m in enumerate(metric_names))}
+{chr(10).join(f"{i + 1}. {m} = {flat_metrics[m]:.4f}" for i, m in enumerate(metric_names))}
 
 ---
 
@@ -656,7 +697,7 @@ Evaluate performance across {n_metrics} metrics.
 ---
 
 ## Panel labels
-- (a) through ({labels_abc[n_metrics-1]}), position (-0.15, 1.05), bold
+- (a) through ({labels_abc[n_metrics - 1]}), position (-0.15, 1.05), bold
 
 ---
 
@@ -670,9 +711,16 @@ Evaluate performance across {n_metrics} metrics.
 
 ---
 
-{_style_enforcement(", ".join(_PALETTE_A), size, f"{rows}x{cols}",
-                     _color_map_flat(metric_names, colors),
-                     _color_map_python(metric_names, colors), tier)}
+{
+        _style_enforcement(
+            ", ".join(_PALETTE_A),
+            size,
+            f"{rows}x{cols}",
+            _color_map_flat(metric_names, colors),
+            _color_map_python(metric_names, colors),
+            tier,
+        )
+    }
 """
     return section, spec
 
@@ -680,6 +728,7 @@ Evaluate performance across {n_metrics} metrics.
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def generate_specs_python(run_dir: str, experiments_dir: str) -> list[str]:
     """Generate styled specs deterministically. Returns experiment names."""
@@ -702,7 +751,7 @@ def generate_specs_python(run_dir: str, experiments_dir: str) -> list[str]:
             structure.append(f"categories={len(exp['categories'])}")
         if exp["metrics"]:
             structure.append(f"flat_metrics={len(exp['metrics'])}")
-        logger.info("%s: %s", exp['section'], ', '.join(structure) or 'unknown')
+        logger.info("%s: %s", exp["section"], ", ".join(structure) or "unknown")
 
     experiments = []
     for exp in discovered:
@@ -715,7 +764,7 @@ def generate_specs_python(run_dir: str, experiments_dir: str) -> list[str]:
         os.makedirs(exp_dir, exist_ok=True)
 
         spec_path = os.path.join(exp_dir, "styled_spec.md")
-        with open(spec_path, "w") as f:
+        with open(spec_path, "w", encoding="utf-8") as f:
             f.write(spec_content)
 
         line_count = spec_content.count("\n")
@@ -725,7 +774,7 @@ def generate_specs_python(run_dir: str, experiments_dir: str) -> list[str]:
     # Write multi-figure plan
     plan = generate_multi_figure_plan(discovered, experiments)
     plan_path = os.path.join(run_dir, "multi_figure_plan.md")
-    with open(plan_path, "w") as f:
+    with open(plan_path, "w", encoding="utf-8") as f:
         f.write(plan)
     logger.info("Wrote multi_figure_plan.md")
 
@@ -745,7 +794,7 @@ def generate_multi_figure_plan(discovered: list[dict], experiments: list[str]) -
         "## Style References",
     ]
     for i, (ref, note) in enumerate(_STYLE_REFS):
-        lines.append(f"{i+1}. `{ref}` — {note}")
+        lines.append(f"{i + 1}. `{ref}` — {note}")
     lines.append("")
     lines.append("## Figures")
     lines.append("")
@@ -758,7 +807,9 @@ def generate_multi_figure_plan(discovered: list[dict], experiments: list[str]) -
         if exp_info["methods"]:
             lines.append(f"- **Type:** Multi-method bar ({len(exp_info['methods'])} methods)")
         elif exp_info["classifiers"] and exp_info["categories"]:
-            lines.append(f"- **Type:** Grouped bar ({len(exp_info['classifiers'])} classifiers x {len(exp_info['categories'])} categories)")
+            lines.append(
+                f"- **Type:** Grouped bar ({len(exp_info['classifiers'])} classifiers x {len(exp_info['categories'])} categories)"
+            )
         elif exp_info["classifiers"]:
             lines.append(f"- **Type:** Grouped bar ({len(exp_info['classifiers'])} classifiers)")
         elif exp_info["metrics"]:
@@ -770,23 +821,20 @@ def generate_multi_figure_plan(discovered: list[dict], experiments: list[str]) -
 def update_state_json(run_dir: str, experiments: list[str]) -> None:
     state_path = os.path.join(run_dir, "state.json")
     if os.path.exists(state_path):
-        with open(state_path) as f:
+        with open(state_path, encoding="utf-8") as f:
             state = json.load(f)
     else:
         state = {}
 
-    state["per_experiment_specs"] = {
-        exp: os.path.join("experiments", exp, "styled_spec.md") for exp in experiments
-    }
+    state["per_experiment_specs"] = {exp: os.path.join("experiments", exp, "styled_spec.md") for exp in experiments}
     state["per_experiment_routes"] = {
-        exp: {"figure_category": "statistical", "statistical_subcategory": "bar_group_plots"}
-        for exp in experiments
+        exp: {"figure_category": "statistical", "statistical_subcategory": "bar_group_plots"} for exp in experiments
     }
     state["style_references"] = [os.path.basename(r[0]) for r in _STYLE_REFS]
     state.setdefault("completed_steps", [])
     if "figure_plan" not in state["completed_steps"]:
         state["completed_steps"].append("figure_plan")
 
-    with open(state_path, "w") as f:
+    with open(state_path, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2, default=str)
     logger.info("Updated state.json with experiment specs")

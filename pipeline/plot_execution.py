@@ -1,4 +1,5 @@
 """Sequential and parallel code-agent execution for plot pipeline."""
+
 from __future__ import annotations
 
 import argparse
@@ -65,12 +66,12 @@ def run_code_agent(
     global_style_path = os.path.join(run_dir, "global_style.md")
     global_style_content = ""
     if os.path.exists(global_style_path):
-        with open(global_style_path) as f:
+        with open(global_style_path, encoding="utf-8") as f:
             global_style_content = f.read()
 
     spec_content = ""
     if os.path.exists(spec_path):
-        with open(spec_path) as f:
+        with open(spec_path, encoding="utf-8") as f:
             spec_content = f.read()
 
     prompt = build_code_agent_prompt(
@@ -104,7 +105,7 @@ def run_code_agent(
     # Read critic result from work_dir
     critic_path = os.path.join(work_dir, "critic_result.json")
     if os.path.exists(critic_path):
-        with open(critic_path) as f:
+        with open(critic_path, encoding="utf-8") as f:
             return json.load(f)
     # Fallback: try old location
     return read_critic_result(run_dir, experiment)
@@ -150,9 +151,7 @@ def _run_lint_gate(run_dir: str, work_dir: str, experiment: str) -> LintReport |
     if os.path.exists(figure_path):
         min_bytes = checks.get("min_file_size_kb", 10) * 1000
         min_dpi = float(checks.get("min_dpi", 300)) - 0.5  # float tolerance
-        output_report = lint_figure_output(
-            figure_path, min_file_bytes=min_bytes, min_dpi=min_dpi
-        )
+        output_report = lint_figure_output(figure_path, min_file_bytes=min_bytes, min_dpi=min_dpi)
         report = report.merge(output_report)
 
     # Persist for traceability and downstream critic consumption
@@ -164,7 +163,7 @@ def _run_lint_gate(run_dir: str, work_dir: str, experiment: str) -> LintReport |
     }
     lint_path = os.path.join(work_dir, "lint_report.json")
     try:
-        with open(lint_path, "w") as f:
+        with open(lint_path, "w", encoding="utf-8") as f:
             json.dump(lint_result, f, indent=2)
     except OSError:
         pass
@@ -183,11 +182,11 @@ def _run_lint_gate(run_dir: str, work_dir: str, experiment: str) -> LintReport |
         critic_path = os.path.join(work_dir, "critic_result.json")
         if os.path.exists(critic_path):
             try:
-                with open(critic_path) as f:
+                with open(critic_path, encoding="utf-8") as f:
                     critic = json.load(f)
                 critic["lint_issues"] = critic.get("lint_issues", []) + report.issues
                 tmp_path = critic_path + ".tmp"
-                with open(tmp_path, "w") as f:
+                with open(tmp_path, "w", encoding="utf-8") as f:
                     json.dump(critic, f, indent=2)
                 os.replace(tmp_path, critic_path)
             except (OSError, json.JSONDecodeError):
@@ -206,8 +205,7 @@ def step_execute_sequential(run_dir: str, experiments: list[str], args: argparse
     for exp in experiments:
         ui.section(f"Generating figure: {exp}")
         fb_paths = collect_feedback_paths(run_dir, "generate", exp)
-        result = run_code_agent(run_dir, exp, experiments_dir, verbose=args.verbose,
-                                feedback_paths=fb_paths)
+        result = run_code_agent(run_dir, exp, experiments_dir, verbose=args.verbose, feedback_paths=fb_paths)
         summary = finalize_plot_experiment(
             run_dir,
             exp,
@@ -237,8 +235,15 @@ def step_execute_parallel(run_dir: str, experiments: list[str], args: argparse.N
     try:
         with ThreadPoolExecutor(max_workers=min(len(experiments), 4)) as pool:
             futures = {
-                pool.submit(run_code_agent, run_dir, exp, experiments_dir, None, args.verbose,
-                            feedback_paths=collect_feedback_paths(run_dir, "generate", exp)): exp
+                pool.submit(
+                    run_code_agent,
+                    run_dir,
+                    exp,
+                    experiments_dir,
+                    None,
+                    args.verbose,
+                    feedback_paths=collect_feedback_paths(run_dir, "generate", exp),
+                ): exp
                 for exp in experiments
             }
             # Mark submitted experiments as running

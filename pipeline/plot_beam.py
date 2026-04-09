@@ -1,4 +1,5 @@
 """Beam search: style variants, ranking, refinement, and beam execution."""
+
 from __future__ import annotations
 
 import argparse
@@ -89,8 +90,7 @@ BEAM_PALETTES = {
 }
 
 
-def validate_variant_specs(run_dir: str, experiments: list[str],
-                           variant_idx: int) -> bool:
+def validate_variant_specs(run_dir: str, experiments: list[str], variant_idx: int) -> bool:
     """Check that a beam variant produced valid specs for all experiments."""
     return validate_plot_specs(run_dir, experiments, variant_idx=variant_idx)
 
@@ -101,7 +101,7 @@ def parse_style_enforcement_block(content: str) -> tuple[str, dict | None, str]:
     Returns the block fields as a dict if found, else None.
     The before/after strings allow clean reconstruction.
     """
-    pattern = r'(.*?)(=== STYLE ENFORCEMENT ===\s*\n)(.*?)(=== END STYLE ENFORCEMENT ===)(.*)'
+    pattern = r"(.*?)(=== STYLE ENFORCEMENT ===\s*\n)(.*?)(=== END STYLE ENFORCEMENT ===)(.*)"
     m = re.search(pattern, content, re.DOTALL)
     if not m:
         return content, None, ""
@@ -113,23 +113,32 @@ def parse_style_enforcement_block(content: str) -> tuple[str, dict | None, str]:
     # Parse fields from the block body
     fields = {}
     # Extract simple key: value fields
-    for key in ("PALETTE", "PALETTE_COLORS", "FIGURE_SIZE_TIER", "FIGURE_SIZE_INCHES",
-                "LAYOUT_GRID", "COLOR_MAP", "FONT_BASE_SIZE", "DPI",
-                "PANEL_ASPECT", "TIGHT_LAYOUT_PAD"):
-        pat = rf'^{key}:\s*(.+)$'
+    for key in (
+        "PALETTE",
+        "PALETTE_COLORS",
+        "FIGURE_SIZE_TIER",
+        "FIGURE_SIZE_INCHES",
+        "LAYOUT_GRID",
+        "COLOR_MAP",
+        "FONT_BASE_SIZE",
+        "DPI",
+        "PANEL_ASPECT",
+        "TIGHT_LAYOUT_PAD",
+    ):
+        pat = rf"^{key}:\s*(.+)$"
         km = re.search(pat, block_body, re.MULTILINE)
         if km:
             fields[key] = km.group(1).strip()
 
     # Extract COLOR_MAP_PYTHON block (python code block after COLOR_MAP_PYTHON:)
-    cmp_pat = r'COLOR_MAP_PYTHON:\s*\n```python\s*\n(.*?)```'
+    cmp_pat = r"COLOR_MAP_PYTHON:\s*\n```python\s*\n(.*?)```"
     cmp_m = re.search(cmp_pat, block_body, re.DOTALL)
     if cmp_m:
         fields["COLOR_MAP_PYTHON_CODE"] = cmp_m.group(1).strip()
 
     # Extract layout spacing if present anywhere in the block body
     for sp_key in ("wspace", "hspace"):
-        sp_pat = rf'{sp_key}\s*=\s*([\d.]+)'
+        sp_pat = rf"{sp_key}\s*=\s*([\d.]+)"
         sp_m = re.search(sp_pat, block_body)
         if sp_m:
             fields[sp_key] = sp_m.group(1)
@@ -138,10 +147,9 @@ def parse_style_enforcement_block(content: str) -> tuple[str, dict | None, str]:
     return before, fields, after
 
 
-def rebuild_style_enforcement_block(fields: dict, palette: dict,
-                                    categories: list[str],
-                                    wspace: str | None = None,
-                                    hspace: str | None = None) -> str:
+def rebuild_style_enforcement_block(
+    fields: dict, palette: dict, categories: list[str], wspace: str | None = None, hspace: str | None = None
+) -> str:
     """Rebuild the style enforcement block body with updated palette fields.
 
     Updates PALETTE, PALETTE_COLORS, COLOR_MAP, COLOR_MAP_PYTHON consistently.
@@ -151,13 +159,13 @@ def rebuild_style_enforcement_block(fields: dict, palette: dict,
     # 1. Update PALETTE label
     old_pal = fields.get("PALETTE", "")
     if old_pal:
-        body = re.sub(r'^(PALETTE:)\s*.+$', rf'\1 {palette["label"]}', body, count=1, flags=re.MULTILINE)
+        body = re.sub(r"^(PALETTE:)\s*.+$", rf"\1 {palette['label']}", body, count=1, flags=re.MULTILINE)
 
     # 2. Update PALETTE_COLORS
     new_colors_str = ", ".join(palette["colors"])
     old_colors = fields.get("PALETTE_COLORS", "")
     if old_colors:
-        body = re.sub(r'^(PALETTE_COLORS:)\s*.+$', rf'\1 {new_colors_str}', body, count=1, flags=re.MULTILINE)
+        body = re.sub(r"^(PALETTE_COLORS:)\s*.+$", rf"\1 {new_colors_str}", body, count=1, flags=re.MULTILINE)
 
     # 3. Update COLOR_MAP — assign palette colors to categories round-robin
     color_map_entries = []
@@ -170,19 +178,19 @@ def rebuild_style_enforcement_block(fields: dict, palette: dict,
     old_cm = fields.get("COLOR_MAP", "")
     if old_cm:
         new_cm = ", ".join(color_map_entries)
-        body = re.sub(r'^(COLOR_MAP:)\s*.+$', rf'\1 {new_cm}', body, count=1, flags=re.MULTILINE)
+        body = re.sub(r"^(COLOR_MAP:)\s*.+$", rf"\1 {new_cm}", body, count=1, flags=re.MULTILINE)
 
     # 4. Update COLOR_MAP_PYTHON code block
     if fields.get("COLOR_MAP_PYTHON_CODE"):
         new_py_code = "color_map = {\n" + ",\n".join(py_map_entries) + ",\n}"
-        old_py_block_pat = r'(COLOR_MAP_PYTHON:\s*\n```python\s*\n).*?(```)'
-        body = re.sub(old_py_block_pat, rf'\1{new_py_code}\n\2', body, count=1, flags=re.DOTALL)
+        old_py_block_pat = r"(COLOR_MAP_PYTHON:\s*\n```python\s*\n).*?(```)"
+        body = re.sub(old_py_block_pat, rf"\1{new_py_code}\n\2", body, count=1, flags=re.DOTALL)
 
     # 5. Update layout spacing if requested
     if wspace is not None:
-        body = re.sub(r'wspace\s*=\s*[\d.]+', f'wspace = {wspace}', body)
+        body = re.sub(r"wspace\s*=\s*[\d.]+", f"wspace = {wspace}", body)
     if hspace is not None:
-        body = re.sub(r'hspace\s*=\s*[\d.]+', f'hspace = {hspace}', body)
+        body = re.sub(r"hspace\s*=\s*[\d.]+", f"hspace = {hspace}", body)
 
     return body
 
@@ -199,15 +207,14 @@ def extract_categories_from_color_map(fields: dict) -> list[str]:
     # Fallback: parse COLOR_MAP (format: cat1=#hex, cat2=#hex, ...)
     cm = fields.get("COLOR_MAP", "")
     if cm:
-        cats = re.findall(r'(\S+?)=#', cm)
+        cats = re.findall(r"(\S+?)=#", cm)
         if cats:
             return cats
 
     return []
 
 
-def create_style_variant(base_spec_path: str, variant_idx: int,
-                         run_dir: str, experiment: str) -> str:
+def create_style_variant(base_spec_path: str, variant_idx: int, run_dir: str, experiment: str) -> str:
     """Create a style variant by structurally rewriting the Style Enforcement Block.
 
     Updates PALETTE, PALETTE_COLORS, COLOR_MAP, and COLOR_MAP_PYTHON together
@@ -216,7 +223,7 @@ def create_style_variant(base_spec_path: str, variant_idx: int,
 
     Returns path to the variant spec file.
     """
-    with open(base_spec_path) as f:
+    with open(base_spec_path, encoding="utf-8") as f:
         content = f.read()
 
     before, fields, after = parse_style_enforcement_block(content)
@@ -227,7 +234,7 @@ def create_style_variant(base_spec_path: str, variant_idx: int,
         exp_dir = orch_art.experiment_dir(run_dir, experiment)
         os.makedirs(exp_dir, exist_ok=True)
         variant_path = orch_art.beam_styled_spec_path(run_dir, experiment, variant_idx)
-        with open(variant_path, "w") as f:
+        with open(variant_path, "w", encoding="utf-8") as f:
             f.write(content)
         return variant_path
 
@@ -235,9 +242,9 @@ def create_style_variant(base_spec_path: str, variant_idx: int,
 
     # Define variant mutations
     variant_configs = {
-        1: {"palette": "B", "wspace": None, "hspace": None},           # colorblind-safe
-        2: {"palette": "C", "wspace": "0.25", "hspace": "0.30"},       # muted compact
-        3: {"palette": "D", "wspace": "0.45", "hspace": "0.50"},       # earth-safe spacious
+        1: {"palette": "B", "wspace": None, "hspace": None},  # colorblind-safe
+        2: {"palette": "C", "wspace": "0.25", "hspace": "0.30"},  # muted compact
+        3: {"palette": "D", "wspace": "0.45", "hspace": "0.50"},  # earth-safe spacious
     }
 
     config = variant_configs.get(variant_idx)
@@ -246,28 +253,31 @@ def create_style_variant(base_spec_path: str, variant_idx: int,
         exp_dir = orch_art.experiment_dir(run_dir, experiment)
         os.makedirs(exp_dir, exist_ok=True)
         variant_path = orch_art.beam_styled_spec_path(run_dir, experiment, variant_idx)
-        with open(variant_path, "w") as f:
+        with open(variant_path, "w", encoding="utf-8") as f:
             f.write(content)
         return variant_path
 
     palette = BEAM_PALETTES[config["palette"]]
     new_body = rebuild_style_enforcement_block(
-        fields, palette, categories,
-        wspace=config["wspace"], hspace=config["hspace"],
+        fields,
+        palette,
+        categories,
+        wspace=config["wspace"],
+        hspace=config["hspace"],
     )
     content = before + new_body + after
 
     exp_dir = orch_art.experiment_dir(run_dir, experiment)
     os.makedirs(exp_dir, exist_ok=True)
     variant_path = orch_art.beam_styled_spec_path(run_dir, experiment, variant_idx)
-    with open(variant_path, "w") as f:
+    with open(variant_path, "w", encoding="utf-8") as f:
         f.write(content)
 
     # Optional debug mirror under debug/<exp>/beam/sN/ (same basename as v2 experiment spec)
     variant_dir = os.path.join(plot_debug_dir(run_dir, experiment), "beam", f"s{variant_idx}")
     os.makedirs(variant_dir, exist_ok=True)
     debug_copy = os.path.join(variant_dir, orch_art.STYLED_SPEC)
-    with open(debug_copy, "w") as f:
+    with open(debug_copy, "w", encoding="utf-8") as f:
         f.write(content)
 
     return variant_path
@@ -305,6 +315,7 @@ def build_feedback_history(candidate: dict, max_chars: int | None = None) -> str
     """
     if max_chars is None:
         from graphs.svg_utils import load_pipeline_config
+
         cfg = load_pipeline_config()
         max_chars = cfg.get("context", {}).get("max_feedback_chars", 3000)
 
@@ -329,9 +340,7 @@ def build_feedback_history(candidate: dict, max_chars: int | None = None) -> str
     if summary_rounds:
         parts.append("Prior rounds (summarised): " + "; ".join(summary_rounds))
     parts.extend(full_rounds)
-    parts.append(
-        f"--- Round {len(history) + 1} ({candidate['tag']}) [current] ---\n{current}"
-    )
+    parts.append(f"--- Round {len(history) + 1} ({candidate['tag']}) [current] ---\n{current}")
     result = "\n\n".join(parts)
 
     # Hard cap — truncate from the front (oldest summaries) if still over budget.
@@ -340,7 +349,7 @@ def build_feedback_history(candidate: dict, max_chars: int | None = None) -> str
         # Re-align to a line boundary
         nl = result.find("\n")
         if nl != -1 and nl < 200:
-            result = "[...truncated]\n" + result[nl + 1:]
+            result = "[...truncated]\n" + result[nl + 1 :]
     return result
 
 
@@ -375,9 +384,14 @@ def beam_run_initial_candidates(
         with ThreadPoolExecutor(max_workers=min(len(candidate_args), 4)) as pool:
             futures = {
                 pool.submit(
-                    run_code_agent, run_dir, exp, experiments_dir,
-                    spec_path=ca[1], verbose=args.verbose,
-                    work_dir=ca[4], label=ca[0],
+                    run_code_agent,
+                    run_dir,
+                    exp,
+                    experiments_dir,
+                    spec_path=ca[1],
+                    verbose=args.verbose,
+                    work_dir=ca[4],
+                    label=ca[0],
                 ): ca
                 for ca in candidate_args
             }
@@ -392,14 +406,16 @@ def beam_run_initial_candidates(
                     result = {"score": 0, "verdict": "FAILED", "error": str(exc)}
                     dashboard.update(tag, "failed")
                 score = result.get("score", 0.0)
-                candidates.append({
-                    "score": score,
-                    "result": result,
-                    "spec": spec,
-                    "tag": tag,
-                    "work_dir": work_dir,
-                    "feedback_history": [],
-                })
+                candidates.append(
+                    {
+                        "score": score,
+                        "result": result,
+                        "spec": spec,
+                        "tag": tag,
+                        "work_dir": work_dir,
+                        "feedback_history": [],
+                    }
+                )
                 dashboard.update(tag, f"done ({score:.1f})")
                 ui.result(tag, score, result.get("verdict", "?"))
     finally:
@@ -425,6 +441,7 @@ def beam_run_refinement(
     # Check for cross-session doom loops — inject corrective guidance if detected.
     # Scoped to "code-agent" so failures from other agents don't leak in.
     from pipeline.agent_runtime import get_doom_loop_guidance
+
     doom_guidance = get_doom_loop_guidance("code-agent")
 
     refine_args = []
@@ -435,19 +452,26 @@ def beam_run_refinement(
             full_feedback = doom_guidance + "\n\n" + full_feedback
         # Carry forward history for the next round
         prev_history = list(survivor.get("feedback_history", []))
-        prev_history.append((
-            survivor["tag"],
-            format_prior_feedback(survivor["result"]),
-        ))
+        prev_history.append(
+            (
+                survivor["tag"],
+                format_prior_feedback(survivor["result"]),
+            )
+        )
         for cv in range(code_variants):
             # Nested under beam/: {parent_tag}_r{iteration}_c{cv}
             refine_tag = f"{survivor['tag']}_r{iteration}_c{cv}"
             refine_work_dir = os.path.join(beam_dir, refine_tag)
             os.makedirs(refine_work_dir, exist_ok=True)
-            refine_args.append((
-                refine_tag, survivor["spec"], full_feedback,
-                refine_work_dir, prev_history,
-            ))
+            refine_args.append(
+                (
+                    refine_tag,
+                    survivor["spec"],
+                    full_feedback,
+                    refine_work_dir,
+                    prev_history,
+                )
+            )
 
     total_cands = len(refine_args)
     ui.info(f"Refining {total_cands} candidates in parallel...")
@@ -461,10 +485,15 @@ def beam_run_refinement(
         with ThreadPoolExecutor(max_workers=min(total_cands, 4)) as pool:
             futures = {
                 pool.submit(
-                    run_code_agent, run_dir, exp, experiments_dir,
-                    spec_path=ra[1], verbose=args.verbose,
+                    run_code_agent,
+                    run_dir,
+                    exp,
+                    experiments_dir,
+                    spec_path=ra[1],
+                    verbose=args.verbose,
                     prior_feedback=ra[2],
-                    work_dir=ra[3], label=ra[0],
+                    work_dir=ra[3],
+                    label=ra[0],
                 ): ra
                 for ra in refine_args
             }
@@ -480,14 +509,16 @@ def beam_run_refinement(
                     result = {"score": 0, "verdict": "FAILED", "error": str(exc)}
                     dashboard.update(refine_tag, "failed")
                 score = result.get("score", 0.0)
-                new_candidates.append({
-                    "score": score,
-                    "result": result,
-                    "spec": spec,
-                    "tag": refine_tag,
-                    "work_dir": refine_work_dir,
-                    "feedback_history": prev_history,
-                })
+                new_candidates.append(
+                    {
+                        "score": score,
+                        "result": result,
+                        "spec": spec,
+                        "tag": refine_tag,
+                        "work_dir": refine_work_dir,
+                        "feedback_history": prev_history,
+                    }
+                )
                 dashboard.update(refine_tag, f"done ({score:.1f})")
                 ui.result(refine_tag, score, result.get("verdict", "?"))
     finally:
@@ -507,9 +538,7 @@ def beam_log_iteration(
     beam_log_lines.append("")
     for i, c in enumerate(candidates):
         verdict = c.get("result", {}).get("verdict", "?")
-        beam_log_lines.append(
-            f"  {i+1}. score={c['score']:.1f}  verdict={verdict}  tag={c['tag']}"
-        )
+        beam_log_lines.append(f"  {i + 1}. score={c['score']:.1f}  verdict={verdict}  tag={c['tag']}")
 
     survivor_summary = ", ".join(f"{s['tag']}({s['score']:.1f})" for s in survivors)
     beam_log_lines.append("")
@@ -517,8 +546,7 @@ def beam_log_iteration(
     beam_log_lines.append("")
 
 
-def step_plan_and_style_beam(run_dir: str, args: argparse.Namespace
-                             ) -> tuple[list[str], dict[str, list[str]]]:
+def step_plan_and_style_beam(run_dir: str, args: argparse.Namespace) -> tuple[list[str], dict[str, list[str]]]:
     """Step 2 (beam mode): Run planner-stylist S times with variation hints.
 
     Each run produces a complete, internally consistent set of specs where
@@ -539,6 +567,7 @@ def step_plan_and_style_beam(run_dir: str, args: argparse.Namespace
 
     # ── Variant 0 (base) — writes to standard locations ──────────────
     from pipeline.feedback import collect_feedback_paths
+
     fb_paths = collect_feedback_paths(run_dir, "design")
 
     base_prompt = build_planner_stylist_prompt(
@@ -576,8 +605,7 @@ def step_plan_and_style_beam(run_dir: str, args: argparse.Namespace
         shutil.copy2(base, s0)
 
     variant_specs: dict[str, list[str]] = {
-        exp: [orch_art.beam_styled_spec_path(run_dir, exp, 0)]
-        for exp in experiments
+        exp: [orch_art.beam_styled_spec_path(run_dir, exp, 0)] for exp in experiments
     }
 
     # ── Variants 1+ — styled_spec_sN.md per experiment ───────────────
@@ -618,7 +646,7 @@ def step_plan_and_style_beam(run_dir: str, args: argparse.Namespace
     for exp in experiments:
         ui.info(f"{exp}: {len(variant_specs[exp])} variants")
         for i, sp in enumerate(variant_specs[exp]):
-            with open(sp) as f:
+            with open(sp, encoding="utf-8") as f:
                 lines = len(f.readlines())
             ui.dim(f"    s{i}: {lines} lines")
 
@@ -665,9 +693,9 @@ def _select_winning_style(
     return winning
 
 
-def step_execute_beam(run_dir: str, experiments: list[str],
-                      args: argparse.Namespace,
-                      variant_specs: dict[str, list[str]] | None = None) -> None:
+def step_execute_beam(
+    run_dir: str, experiments: list[str], args: argparse.Namespace, variant_specs: dict[str, list[str]] | None = None
+) -> None:
     """Step 3: Beam search with cross-experiment style consistency.
 
     Iteration 1 runs ALL experiments × ALL style variants to select a winning
@@ -685,8 +713,10 @@ def step_execute_beam(run_dir: str, experiments: list[str],
     code_variants = getattr(args, "code_variants", 2) or 2
     beam_iterations = getattr(args, "beam_iterations", 2) or 2
 
-    ui.info(f"Beam search: width={beam_width}, style_variants={n_style_variants}, "
-           f"code_variants={code_variants}, iterations={beam_iterations}")
+    ui.info(
+        f"Beam search: width={beam_width}, style_variants={n_style_variants}, "
+        f"code_variants={code_variants}, iterations={beam_iterations}"
+    )
 
     # Print candidate tag legend.
     style_names = _STYLE_VARIANT_NAMES[:n_style_variants]
@@ -727,15 +757,13 @@ def step_execute_beam(run_dir: str, experiments: list[str],
         # Dedup check
         seen_color_hashes: dict[str, int] = {}
         for sv, spec_path in enumerate(exp_variant_specs):
-            with open(spec_path) as f:
+            with open(spec_path, encoding="utf-8") as f:
                 spec_content = f.read()
             _, fields, _ = parse_style_enforcement_block(spec_content)
             cm_key = (fields or {}).get("COLOR_MAP_PYTHON_CODE", "")
             if cm_key in seen_color_hashes and cm_key:
                 ui.warn(f"{exp}: variant s{sv} has identical palette as s{seen_color_hashes[cm_key]}")
-                beam_logs[exp].append(
-                    f"**WARNING**: s{sv} identical palette to s{seen_color_hashes[cm_key]}"
-                )
+                beam_logs[exp].append(f"**WARNING**: s{sv} identical palette to s{seen_color_hashes[cm_key]}")
             if cm_key:
                 seen_color_hashes[cm_key] = sv
 
@@ -746,8 +774,13 @@ def step_execute_beam(run_dir: str, experiments: list[str],
         total = len(all_variant_specs[exp]) * code_variants
         ui.info(f"{exp}: {total} candidates")
         candidates = beam_run_initial_candidates(
-            beam_dirs[exp], all_variant_specs[exp], code_variants,
-            run_dir, exp, experiments_dir, args,
+            beam_dirs[exp],
+            all_variant_specs[exp],
+            code_variants,
+            run_dir,
+            exp,
+            experiments_dir,
+            args,
         )
         candidates.sort(key=beam_rank_key, reverse=True)
         all_candidates[exp] = candidates
@@ -755,8 +788,10 @@ def step_execute_beam(run_dir: str, experiments: list[str],
 
     # ── Style selection: pick winning style across experiments ────────────
     winning_style = _select_winning_style(all_candidates, n_style_variants)
-    ui.success(f"Locked winning style: s{winning_style} "
-              f"({_STYLE_VARIANT_NAMES[winning_style] if winning_style < len(_STYLE_VARIANT_NAMES) else '?'})")
+    ui.success(
+        f"Locked winning style: s{winning_style} "
+        f"({_STYLE_VARIANT_NAMES[winning_style] if winning_style < len(_STYLE_VARIANT_NAMES) else '?'})"
+    )
 
     # Filter to winning-style candidates only, then keep top beam_width per experiment.
     # Also identify experiments that are already ACCEPTED.
@@ -765,10 +800,7 @@ def step_execute_beam(run_dir: str, experiments: list[str],
     summaries: list[dict] = []
 
     for exp in experiments:
-        style_candidates = [
-            c for c in all_candidates[exp]
-            if c["tag"].startswith(f"s{winning_style}_")
-        ]
+        style_candidates = [c for c in all_candidates[exp] if c["tag"].startswith(f"s{winning_style}_")]
         style_candidates.sort(key=beam_rank_key, reverse=True)
         survivors = style_candidates[:beam_width]
 
@@ -787,9 +819,7 @@ def step_execute_beam(run_dir: str, experiments: list[str],
             # Early stop: this experiment is done
             best = survivors[0]
             ui.success(f"{exp}: ACCEPTED (score {best['score']:.1f}) — early stop")
-            beam_logs[exp].append(
-                f"**Early stop** — ACCEPTED with score {best['score']:.1f} (style s{winning_style})"
-            )
+            beam_logs[exp].append(f"**Early stop** — ACCEPTED with score {best['score']:.1f} (style s{winning_style})")
             summary = finalize_plot_experiment(run_dir, exp, best["result"], work_dir=best["work_dir"])
             results.append((exp, summary))
             summaries.append(summary)
@@ -808,8 +838,14 @@ def step_execute_beam(run_dir: str, experiments: list[str],
         for exp, survivors in list(pending.items()):
             ui.info(f"Refining {exp}...")
             new_candidates = beam_run_refinement(
-                survivors, code_variants, beam_dirs[exp],
-                run_dir, exp, experiments_dir, args, iteration,
+                survivors,
+                code_variants,
+                beam_dirs[exp],
+                run_dir,
+                exp,
+                experiments_dir,
+                args,
+                iteration,
             )
             new_candidates.sort(key=beam_rank_key, reverse=True)
             new_survivors = new_candidates[:beam_width]
@@ -860,7 +896,7 @@ def step_execute_beam(run_dir: str, experiments: list[str],
             beam_logs[exp].append("")
 
         beam_summary_path = os.path.join(plot_debug_dir(run_dir, exp), "beam_summary.md")
-        with open(beam_summary_path, "w") as f:
+        with open(beam_summary_path, "w", encoding="utf-8") as f:
             f.write("\n".join(beam_logs[exp]))
 
     persist_plot_execution_state(run_dir, "beam", summaries)
