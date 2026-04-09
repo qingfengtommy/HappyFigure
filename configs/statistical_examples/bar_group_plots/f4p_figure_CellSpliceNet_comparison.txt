@@ -1,0 +1,13 @@
+1. Overall aesthetic: High-impact journal publication style; clean, minimal, and comparison-focused with large typography and uncluttered panels.
+
+2. Color palette: #0F4D92 = primary method (CellSpliceNet, deep navy blue); #F1ACA4 = ViT (muted salmon); #F1C3BE = SpliceFinder (light pink); #F3D6D2 = Pangolin (very pale pink); #F5E3E2 = SpliceTransformer (near-off-white blush); #FCEEED = SpliceAI (almost white peach).
+
+3. Typography: Helvetica throughout; global base font size ≈24 pt; y-axis labels ≈54 pt; numeric value annotations above bars ≈36 pt; legend text ≈24 pt; tick labels ≈24 pt.
+
+4. Layout: Single-row, three-panel grid (1×3) using GridSpec; very wide figure with aspect ratio ~3.75:1 (45×12 inches); generous horizontal spacing between panels; minimal internal padding to emphasize bar height.
+
+5. Data encoding: Vertical bar charts; 6 bars per panel with uniform width and no edge outlines; solid fills only; no error bars; numeric value labels placed slightly above each bar.
+
+6. Axis styling: Left and bottom spines only (top/right removed); spine linewidth ≈3 pt; no x-axis ticks or labels; y-axis ticks at regular ~0.1 intervals; no gridlines; tick direction outward by default.
+
+7. Legend: Top-centered within each panel; no frame; horizontal layout with 2 columns; legend font size ≈24 pt; color swatches aligned with method names.

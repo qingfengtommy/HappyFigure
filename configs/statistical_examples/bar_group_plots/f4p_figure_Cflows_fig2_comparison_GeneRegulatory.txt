@@ -1,0 +1,13 @@
+1. Overall aesthetic: Clean, publication-style multi-panel comparison figure; minimal decoration with thick axes and large typography, typical of ML/graph learning conference papers.
+
+2. Color palette: Pastel categorical palette with one saturated highlight — #D0A3A3 (OCE), #EFE7B1 (PC), #F4C2C2 (mTE), #D7C4E2 (mMI), #E5C09F (NRI), #A8C6C2 (DCRNN), #B7D3B0 (GTS), #F5B5A0 (NIR), #3775BA (GC/ours, primary emphasis).
+
+3. Typography: Helvetica throughout; global base font size ≈24 pt; y-axis label ≈28–30 pt; x-axis tick labels ≈24 pt; legend text ≈24 pt; no title shown on panels.
+
+4. Layout: Single-row grid of 3 bar-chart subplots within a wide figure (figure size ≈36×6 inches); horizontal arrangement with generous spacing between panels; rightmost space reserved for legend.
+
+5. Data encoding: Grouped bar charts (one bar per method per dataset); uniform bar width ≈0.7–0.8 of unit spacing; solid fills with no outlines; vertical error bars showing ±1 std, black lines with short caps.
+
+6. Axis styling: Left and bottom spines visible only; spine linewidth ≈3 pt; no gridlines; y-axis uses scientific notation scaling (×10² shown); ticks outward, moderately long and thick to match axes.
+
+7. Legend: Placed outside to the right of the subplots, vertically centered; no frame; two columns; color swatches with method names; legend font size ≈24 pt.

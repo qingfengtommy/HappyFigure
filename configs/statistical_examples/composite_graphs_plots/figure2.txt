@@ -1,0 +1,37 @@
+
+Overall Aesthetic
+The style is clean, high-contrast, and publication-ready (reminiscent of Nature Medicine or Nature Biomedical Engineering). It relies on a "flat" design with no background fills, no gridlines, and a strict focus on the data bars overlaid with individual data points. The layout is dense but organized into logical subgroups.
+Color Palette
+Use a specific 4-class categorical palette.
+Class 1 (Deep Indigo/Navy): #2A3356
+Class 2 (Muted Slate/Periwinkle): #8C96B3
+Class 3 (Dusty Mauve/Rose): #C39DA7
+Class 4 (Pale Wheat/Sand): #EADCC1
+Jitter Points: Dark grey outlines (#555555) with transparent or white centers (hollow circles).
+Text & Spines: Solid Black (#000000).
+Font Choices and Sizes
+Typeface: Standard Sans-Serif (Arial or Helvetica).
+Panel Labels (a-f): Bold, heavy weight, approx 14pt, positioned to the top-left of the y-axis.
+Axis Labels (AUROC/BACC): Regular weight, approx 11-12pt.
+Category Labels (OVT, CNS, etc.): Regular weight, centered under the plot.
+P-values: Regular weight, slightly smaller (10pt), located above significance brackets.
+Legend: Horizontal layout, placed at the very top of the figure.
+Line Weights and Marker Styles
+Bar Charts:
+Bars have no outline (linewidth = 0).
+Error bars: Thin black lines (approx 1.0 pt) with standard caps.
+Jitter: Small hollow circles overlaid on the bars to show distribution.
+Significance Brackets: Thin black lines. The bracket consists of a horizontal line spanning the comparison columns with no vertical drop-lines (flat floating line) or very minimal ticks.
+Axis Lines: Thin black lines (approx 0.8 to 1.0 pt).
+Grid and Axis Styling
+Spines: Classic "L-frame" style. Only draw the Left (Y) and Bottom (X) spines.
+Hide: Top and Right spines must be invisible.
+Grid: Absolutely no grid lines. The background must be pure white.
+Ticks: Outward facing ticks on the Y-axis. No ticks on the X-axis (labels centered under bars).
+Layout Proportions & Design
+Grouping: The figure is a grid of "groups." Each panel (e.g., 'a') contains multiple discrete sub-plots (e.g., OVT, CNS, EGC) arranged side-by-side.
+Spacing: There is significant whitespace between the columns of bars to separate the categories (e.g., separation between OVT and CNS).
+Aspect Ratio: Each individual sub-chart (e.g., just the OVT section) is tall and narrow (approx 1:2 width-to-height).
+Y-Axis Limits: All plots appear to share similar limits (0.4 to 1.0) to allow for easy visual comparison.
+Specific Annotations
+P-values: Are explicit strings (e.g., "P<0.001") placed above a horizontal line that spans the width of the bars being compared (usually spanning the first bar to the last bar in the group).

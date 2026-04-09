@@ -1,0 +1,42 @@
+Overall Aesthetic
+The design is high-end academic/scientific publication style (similar to Nature or Science). It features a clean, minimalist "flat" design with a white background, high contrast between data and negative space, and a complete absence of "chart junk" (no background fills, no gridlines).
+Color Palette
+Use a muted, sophisticated 4-class categorical palette.
+Class 1 (Deep Navy/Indigo): #2F3C5F
+Class 2 (Muted Lavender/Grey-Blue): #9CA4B8
+Class 3 (Dusty Mauve/Rose): #C098A2
+Class 4 (Pale Wheat/Beige): #E6D6B9
+Data Points (Overlay Jitter): Hollow dark grey circles (#666666) with white interiors or very high transparency.
+Text & Axes: Nearly black (#1A1A1A).
+Font Choices and Sizes
+Typeface: Standard Sans-Serif (Helvetica or Arial).
+Panel Labels (a, b, c...): Bold, roughly 14pt, positioned to the top-left of the y-axis.
+Axis Labels & Titles: Regular weight, roughly 10-12pt.
+P-values: Regular weight, slightly smaller (9-10pt), located above significance brackets.
+Legend Text: Regular weight, aligned horizontally at the top.
+Line Weights and Marker Styles
+Bar Charts (Panels a-k):
+Bars have no outline (linewidth=0).
+Error bars: Thin black lines (approx 1.0 pt), standard cap width.
+Jitter Points: Overlay individual data points on bars as small, hollow circles.
+Significance Brackets: Thin black lines connecting columns with a horizontal bridge and small vertical ticks pointing down.
+Scatter Plot (Panel l):
+Uses distinct shapes for each series rather than just color.
+Class 1: Solid Circle.
+Class 2: 'X' marker.
+Class 3: Solid Square.
+Class 4: Star.
+Markers are medium-sized (approx size 60-80 in Matplotlib).
+Grid and Axis Styling
+Spines: "L-shaped" frame only. Hide the Top and Right spines completely.
+Grid: None. Do not use horizontal or vertical grid lines.
+Ticks: Outward facing, black, short length.
+Axis Lines: Thin black lines (approx 0.8 to 1.0 pt).
+Layout Proportions
+Multi-panel Grid: Tightly packed grid layout (e.g., 3 rows).
+Subgraphs (a-k): Aspect ratio is roughly 1:1 or slightly taller 4:5 vertical rectangles.
+Bottom Panel (l): A wide, footer-style plot spanning the full width of the figure (aspect ratio approx 4:1).
+Whitespace: Generous padding between the title/p-value bracket and the top of the bars to prevent crowding.
+Design Specifics
+Legend: Place a single, shared legend at the very top of the figure (outside the subplot grid), horizontally centered.
+Significance Annotation: P-values are written explicitly (e.g., "P<0.001") floating above a bracket line.

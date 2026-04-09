@@ -1,0 +1,13 @@
+1. Overall aesthetic: Clean, publication-style scientific figure; minimalistic and technical, typical of ML/biomedical benchmark comparisons.
+
+2. Color palette: Monochromatic blue gradient for bars (light to dark indicating different ablation variants), approximately ranging from #DCE8F4 (lightest) through #9BBBDD, #5A8CC6 to #3B73B9 (darkest); black (#000000) for axes and error bars; white (#FFFFFF) background.
+
+3. Typography: Helvetica throughout; global base font size ≈24 pt; y-axis labels enlarged to ≈32 pt; x-axis tick labels ≈24 pt; no bolding or italics.
+
+4. Layout: Single-row multi-panel layout (1 × 4 subplots, though three are visible here); figure size ≈28 × 6 inches; wide landscape aspect ratio; tight horizontal spacing between panels; generous left margin to accommodate long categorical labels.
+
+5. Data encoding: Horizontal bar charts; one bar per method/ablation; uniform bar thickness; mean values encoded by bar length; black error bars with symmetric whiskers and capsize ≈5 points; no hatching or markers.
+
+6. Axis styling: Only left and bottom spines visible; top and right spines removed; spine linewidth ≈3 pt; no gridlines; ticks pointing outward; categorical y-axis labels on the left panel only; numeric x-axes with fixed limits per panel.
+
+7. Legend: No visible legend in the rendered figure; legend entries are programmatically collected but not placed; color-to-method mapping implied by ordering rather than an explicit legend.

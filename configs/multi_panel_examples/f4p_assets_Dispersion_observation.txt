@@ -1,0 +1,40 @@
+1. Overall aesthetic: Publication-quality academic figure; clean, technical, multi-panel layout with minimal decoration and clear quantitative emphasis.
+
+2. Color palette:  
+   - #B2182B to #FEE5D9 (sequential red heatmap for probability density, dark = high density)  
+   - #08519C (blue dashed trend line / Spearman correlation line)  
+   - #CB181D (red solid line for Kendall’s tau)  
+   - #000000 (axes, titles, annotations)  
+   - #E6F2FA to #9ECAE1 (light blue gradient arrow banner background)
+
+3. Typography:  
+   - Font family: sans-serif, consistent with Arial / Helvetica (or Matplotlib default DejaVu Sans)  
+   - Panel titles: ~12–14 pt  
+   - Axis labels: ~11–12 pt  
+   - Tick labels: ~9–10 pt  
+   - Panel letters (“a”, “b”): bold, ~18 pt  
+   - Annotations (“susceptible to condensation”, “resistant to condensation”): italic, ~11–12 pt
+
+4. Layout:  
+   - Multi-panel grid: left block is 2 rows × 4 columns of heatmaps; right block is 2 rows × 2 columns of line charts  
+   - Overall wide landscape aspect ratio (~3:1)  
+   - Tight subplot spacing with shared visual alignment; small internal padding  
+   - Bottom full-width annotation banner with arrow spanning entire figure width
+
+5. Data encoding:  
+   - Heatmaps (2D binned density) encoding cosine similarity vs. layer fraction  
+   - Overlaid dashed linear trend lines on selected heatmaps  
+   - Line charts with circular markers for correlations across model sizes  
+   - No error bars; smooth connected lines  
+   - Colorbars for each heatmap with numeric scale (0–10)
+
+6. Axis styling:  
+   - Left and bottom spines visible; top/right spines mostly hidden  
+   - No gridlines  
+   - Outward ticks, short length (~3–4 px)  
+   - Dual y-axes in line charts (left blue for Spearman, right red for Kendall)
+
+7. Legend:  
+   - No boxed legend; line meaning conveyed via axis color-coding and labels  
+   - Axis labels colored to match lines (blue/red)  
+   - Effective legend-free design with implicit mapping through typography and color

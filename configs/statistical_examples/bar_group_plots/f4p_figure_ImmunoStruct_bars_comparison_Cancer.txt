@@ -1,0 +1,13 @@
+1. Overall aesthetic: Clean, publication-grade scientific style; minimal decoration with emphasis on quantitative comparison; typical ML/biomedical conference figure.
+
+2. Color palette: Pastel categorical palette with one saturated highlight — approx. #CFCFCF (Prime‑2.1, light gray), #F6F1B5 (NetMHCpan, pale yellow), #F9D6D9 (MHCnuggets, light pink), #D7B5D8 (MHCflurry, lavender), #D9A679 (DeepNeo, tan), #E1F2E1 (BigMHC‑EL, very light green), #A9DDA5 (BigMHC‑IM, soft green), #8CCF8A (BigMHC retrained, medium green), #9DE3F9 (NeoPred, light cyan), #3775BA (ImmunoStruct, saturated blue, primary emphasis).
+
+3. Typography: Helvetica throughout; global base font size ~24 pt; y‑axis labels enlarged to ~32 pt; tick labels ~22–24 pt; legend text ~22–24 pt; no title text shown.
+
+4. Layout: Single-row multi-panel layout (1×4 grid; three visible metric panels plus one additional panel implied); wide aspect ratio (~28×6 inches); generous horizontal spacing between subplots; legend placed outside the plotting area on the right; no x‑tick labels.
+
+5. Data encoding: Vertical bar charts; uniform bar width (~0.8 of categorical spacing); categorical comparison across methods; black error bars showing mean ± std with capsize ≈5 points; no hatching or markers.
+
+6. Axis styling: Left and bottom spines only (top/right disabled); spine linewidth ~3 pt; no gridlines; y‑axis limits tightly set per panel; ticks directed outward with default Matplotlib length.
+
+7. Legend: Positioned to the right of the panels, vertically centered; no frame; single column; color swatches with method names; font size ~22–24 pt.

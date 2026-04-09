@@ -1,0 +1,13 @@
+1. Overall aesthetic: High-impact biomedical journal figure (Nature/Cell-style), clean but information-dense, multi-panel composite combining quantitative benchmarking, schematic diagrams, and structural biology visualizations.
+
+2. Color palette: Muted categorical palette for methods — approx. #D9D9D9 (Prime-2.1), #F2E394 (NetMHCpan), #BDBDBD (MHCnuggets), #E1C6DD (MHCflurry), #E6B88A (DeepNeo), #CDEBD6 (BigMHC-EL), #9ED39E (BigMHC-IM), #6BAED6 (BigMHC retrained), #3775BA (ImmunoStruct, primary highlight); binary labels use #2ECC71 (non-immunogenic) and #2E2EFF (immunogenic); heatmaps use sequential yellow–green–blue (≈ #FFFFD9 → #41B6C4 → #253494); attention highlights in red (#E41A1C); structural cartoons in light gray (#BFBFBF), peptide cyan (#4DD0E1), TCR salmon (#F28E7F).
+
+3. Typography: Sans-serif font consistent with Arial/Helvetica; panel labels (a–i) ~14–16 pt bold; subplot titles ~11–12 pt; axis labels ~10 pt; tick labels ~8–9 pt; legend text ~9 pt.
+
+4. Layout: Multi-row, multi-column grid spanning full page width; approximately 4 columns on top row, then staggered panels below; aspect ratios vary by plot type (bar charts ~1.3:1, heatmaps ~1:1); tight inter-panel spacing (~5–10 mm) with minimal padding; panels labeled with lowercase letters at top-left.
+
+5. Data encoding: Grouped bar charts with narrow bars (~0.15–0.2 relative width) and vertical error bars; schematic block diagram with rounded rectangles and arrows; scatter/embedding plots with small circular markers (~2–3 pt); violin plot with overlaid median/quantile bars; attention heatmap rendered as thin vertical stripes; dot scatter with categorical color encoding; amino-acid frequency heatmaps with square cells and colorbars.
+
+6. Axis styling: Left and bottom spines visible, top/right spines removed; no background gridlines in most plots; short outward ticks (~3 pt); heatmaps suppress spines and use labeled colorbars; categorical x-axes rotated or tightly packed where necessary.
+
+7. Legend: Legends placed below bar charts or within panel margins; no legend frame; single-column for most categorical legends; font size ~9 pt; colorbar legends for heatmaps positioned to the right with vertical orientation.

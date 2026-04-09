@@ -1,0 +1,38 @@
+# Service configuration for SAM3 and OCR microservices.
+
+sam3:
+  model_type: vit_h
+  checkpoint: sam3_vit_h.pth
+  # checkpoint_path: leave unset to auto-download from HuggingFace
+  bpe_path: assets/bpe_simple_vocab_16e6.txt.gz
+  points_per_side: 32
+  pred_iou_thresh: 0.90
+  stability_score_thresh: 0.96
+  min_mask_region_area: 150
+  service_endpoints:
+    - "http://127.0.0.1:8001"
+  service_timeout: 120
+  service_prompts:
+    - "rectangle"
+    - "rounded rectangle"
+    - "arrow"
+    - "circle"
+    - "diamond"
+    - "icon"
+    - "text block"
+    - "dashed rectangle"
+    - "dotted rectangle"
+    - "dash-dot rectangle"
+    - "dashed rounded rectangle"
+    - "dotted rounded rectangle"
+    - "dash-dot rounded rectangle"
+    - "bracket"
+
+ocr:
+  provider: paddleocr
+  min_confidence: 0.6
+  max_text_height: 80
+  paddleocr_model: "PaddlePaddle/PaddleOCR-VL-1.5"
+  service_endpoints:
+    - "http://127.0.0.1:8002"
+  service_timeout: 120

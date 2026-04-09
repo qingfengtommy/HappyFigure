@@ -1,0 +1,13 @@
+1. Overall aesthetic: Clean, publication-style scientific figure; minimal decoration with emphasis on quantitative comparison, typical of machine learning / bioinformatics conference papers.
+
+2. Color palette: Three-tone monochromatic blue scheme — approx. #3B73B9 (dark blue, primary/full model “ImmunoStruct”), #7AA5D2 (medium blue, ablation without contrastive learning), #BFD3EA (light blue, ablation without contrastive + transfer learning); black (#000000) for axes, ticks, and error bars; white (#FFFFFF) background.
+
+3. Typography: Helvetica throughout; global base font size ~24 pt; y-axis labels enlarged to ~32 pt; tick labels ~22–24 pt; legend text ~24 pt; no title text shown within panels.
+
+4. Layout: Wide horizontal layout with a 1×4 grid of subplots (three metric panels plus legend space); figure size ~28 × 6 inches; generous horizontal spacing between panels; minimal padding inside axes; x-tick labels removed to reduce clutter.
+
+5. Data encoding: Vertical bar charts; three bars per panel; uniform bar width (~0.7–0.8 of category spacing); mean values encoded by bar height; black vertical error bars showing ±1 std with capsize ~5 pt; no hatching or markers.
+
+6. Axis styling: Left and bottom spines visible only; top and right spines removed; spine linewidth ~3 pt; no gridlines; y-axis limits tightly set per metric; ticks oriented outward with moderate length; x-axis ticks hidden.
+
+7. Legend: Single legend positioned to the right of the plotting area (outside axes); rectangular frame with thin border; three entries; single column; font size ~24 pt; color swatches matching bar fills.

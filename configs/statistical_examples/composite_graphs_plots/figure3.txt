@@ -1,0 +1,53 @@
+Overall Aesthetic
+The style is "High-Impact Academic" (Nature/Science style). It is characterized by a mixed-media layout (schematic diagrams combined with statistical plots), a clean white background, high-contrast text, and a complete absence of chartjunk (no grids, no background fills). The look is flat, precise, and minimalist.
+Color Palette
+Primary Categorical Palette (for Bar/Scatter Plots):
+Class 1 (Deep Navy/Indigo): #25345B (Used for "Prov-GigaPath")
+Class 2 (Muted Slate Blue): #919BB6 (Used for "MI-Zero")
+Class 3 (Dusty Mauve/Pink): #CDA0AA (Used for "BiomedCLIP")
+Class 4 (Pale Sand/Beige): #F0E1C6 (Used for "PLIP")
+Diagram Palette (Panels a & b):
+Background Boxes: Pale Lavender (#E6E6FA) and Pale Red (#E0B0B0)
+Matrix Highlights: Deep Navy (#25345B)
+Text/Arrows: Solid Black (#000000)
+Font Choices and Sizes
+Typeface: Standard Sans-Serif (Helvetica or Arial).
+Panel Tags (a, b, c...): Bold, approx 14pt, aligned to the top-left of the sub-panel.
+Axis Titles & Labels: Regular weight, approx 10-11pt.
+P-values: Italicized "P
+P
+", regular weight numbers, placed above brackets.
+Diagram Text: Regular weight, sizes vary by box importance, clear and legible.
+Line Weights and Marker Styles
+Bar Charts (c, d):
+Bars have no outline (linewidth = 0).
+Error Bars: Thin black lines (approx 0.8pt), standard cap width.
+Significance Brackets: Thin black horizontal lines floating above groups.
+Scatter Plots (e):
+Markers: Solid circles in Deep Navy (#25345B).
+Outliers/Comparison: Small 'x' markers in light grey (#AAAAAA).
+Identity Line: A thin, diagonal grey line (
+y
+=
+x
+y=x
+) running from bottom-left to top-right.
+Diagrams (a, b):
+Box outlines: Thin black lines (0.5 - 0.8pt).
+Arrows: Thin stems with simple, small arrowheads.
+Grid and Axis Styling
+Spines: strict "L-frame" style. Only Left and Bottom spines are visible. Top and Right spines are removed.
+Gridlines: None. The background is pure white.
+Ticks: Outward facing, black, short length.
+Axis Lines: Thin black lines (approx 0.8pt).
+Layout Proportions
+Top Half (Schematic): Irregular layout. Flowcharts and diagrams are arranged to guide the eye left-to-right.
+Bottom Half (Data): Grid-based layout.
+Row C: 3-column layout (Grouped Bar, Grouped Bar, Grouped Bar).
+Row D: 5-column layout (Small Multiples of Bar Charts).
+Row E: 4-column layout (Square Scatter Plots).
+Whitespace: Generous spacing between panels; tight spacing within bar groups.
+Design Between Subgraphs
+Legend: A single shared legend for the quantitative plots (c, d) is placed horizontally between the diagram section and the data section.
+Consistency: All bar charts share identical y-axis scaling where appropriate to allow comparison.
+Alignment: The left edges of panels a, c, d, and e are vertically aligned.

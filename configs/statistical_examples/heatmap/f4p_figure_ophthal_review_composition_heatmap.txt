@@ -1,0 +1,13 @@
+1. Overall aesthetic: Journal-style scientific heatmap; clean, minimal, technical review figure with emphasis on readability and quantitative comparison.
+
+2. Color palette: Sequential red colormap (likely Matplotlib/Seaborn “Reds”); approx. #fff5f0 (zero/low values), #fcbba1 (low–mid), #fb6a4a (mid), #de2d26 (high), #7f0000 (maximum); white (#ffffff) background; black (#000000) text.
+
+3. Typography: Helvetica sans-serif; global base font size ≈16 pt; axis tick labels ≈14–16 pt; cell annotations ≈14–16 pt; no bold titles visible; LaTeX rendering enabled for italics and parentheses.
+
+4. Layout: Single-panel heatmap; figure size ~14 × 10 inches (landscape); rectangular grid with ~10 rows × 5 columns; moderate cell padding with thin white cell borders; colorbar placed vertically on the right with narrow width.
+
+5. Data encoding: Annotated heatmap; each cell encoded by fill color intensity proportional to count; numeric value printed centered in each cell; no markers, no error bars, no hatching; row labels include category name plus “(n = …)” totals.
+
+6. Axis styling: Left and bottom spines visible with thicker linewidth (~2 pt); top and right spines removed; no gridlines beyond cell boundaries; ticks outward by default; x-axis labels rotated ~0–20° with line breaks; y-axis labels left-aligned, multi-line.
+
+7. Legend: Continuous colorbar acts as legend; positioned on the right side; no frame; tick labels ~14 pt; single column vertical scale from 0 to ~20.

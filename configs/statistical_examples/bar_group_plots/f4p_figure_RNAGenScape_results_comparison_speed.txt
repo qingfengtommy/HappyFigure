@@ -1,0 +1,13 @@
+1. Overall aesthetic: Clean, publication-style bar chart with a minimal, modern ML/biology conference look; emphasis on clarity and quantitative comparison, no decorative elements.
+
+2. Color palette: Muted pastel scheme for baselines and a strong highlight for the proposed method — #c4ece7 (DiffAb), #ecc4c4 (IgLM), #ecc4e7 (NOS-C), #ea84dd (NOS-D), #0f4d92 (RNAGenScape, primary emphasis); white background (#ffffff), black axes/text (#000000).
+
+3. Typography: Sans-serif default Matplotlib font (DejaVu Sans); y-axis label ~26–28 pt, tick labels ~18–20 pt, legend text ~22–24 pt; numeric annotations above bars ~20–22 pt; boldface used only for “(ours)” in legend.
+
+4. Layout: Single-panel figure, wide aspect ratio (~1.6–1.8:1); bars evenly spaced with generous horizontal padding; large left margin to accommodate rotated y-axis label; no subplot grid.
+
+5. Data encoding: Vertical bar chart; single bar per method; solid fills with no outlines; bar width approximately 0.8 of category spacing; values annotated above each bar; logarithmic y-scale to span multiple orders of magnitude.
+
+6. Axis styling: Left and bottom spines visible and thickened (~2.5–3 px), top and right spines removed; y-axis on log scale with major ticks at powers of 10; no gridlines; ticks point outward with moderate length.
+
+7. Legend: Upper-left position inside the axes; no frame; color patch + text entries; font size ~22–24 pt; single column; ordering matches bar order, with RNAGenScape visually emphasized.

@@ -1,0 +1,39 @@
+# User overrides — merged on top of configs/pipeline.yaml
+# Activate with: export HAPPYFIGURE_CONFIG=configs/pipeline_override.yaml
+#
+# Only include keys you want to override; everything else keeps the
+# original pipeline.yaml values.
+
+# ── Agent Platform ───────────────────────────────────────────────────
+# Switch platforms with:  --agent opencode   (default)
+#                         --agent codex      (uses Codex CLI + gpt-5.4)
+# Or set permanently:    agent.platform: codex
+#
+# Current: opencode by default. Add --agent codex to any run_once command
+# to switch without editing this file.
+
+agent:
+  # platform: opencode          # ← uncomment & change to "codex" for permanent switch
+  opencode:
+    # model: gpt-5.4
+    # model: claude-opus-4.6
+    # model: gemini-3.1-pro-preview
+    # provider: github-copilot
+    # model: gpt-5.4
+    model: gpt-5.4
+    # model: gpt-5.2-chat
+    provider: azure
+  codex:
+    model: gpt-5.4
+    sandbox_mode: danger-full-access        # bwrap fails in this container
+    retry_dangerous_on_sandbox_failure: true
+    reasoning_effort: high                   # low | medium | high
+    reasoning_summary: concise               # none | concise | detailed
+
+# Use Vertex AI (Google) for image generation only
+llm:
+  presets:
+    gemini:
+      chat:     {provider: google, model: gemini-3.1-pro-preview}
+      code:     {provider: google, model: gemini-3.1-pro-preview}
+      drawing:  {provider: google, model: gemini-3.1-flash-image-preview}

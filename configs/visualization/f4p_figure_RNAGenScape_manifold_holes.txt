@@ -1,0 +1,13 @@
+1. Overall aesthetic: Clean, technical scientific visualization; minimal decoration; 3D manifold surface rendering suitable for methods or theory figures.
+
+2. Color palette: Sequential soft green colormap — #e9f5ec (lowest values), #d9f0e1, #c9e5d3, #a9cbb8, #7f9e8a, #4f5c4f (highest values); overlay patches in semi-transparent gray #b3b3b3 at ~50% alpha (RGBA ≈ 0.7,0.7,0.7,0.5).
+
+3. Typography: Matplotlib default DejaVu Sans; subplot titles ~16 pt (“Smooth Manifold”, “Manifold with Gray Patches”); no axis labels or tick labels visible.
+
+4. Layout: Two-panel horizontal layout (1×2 grid); overall figure size 14 × 6 inches (aspect ratio ≈ 2.33:1); generous white margins with wide spacing between panels; each panel contains a single 3D axes.
+
+5. Data encoding: 3D surface plot (plot_surface) over a regular 200×200 grid; smooth shaded surface with implicit surface mesh; no markers or error bars; masked circular regions rendered via color replacement (gray patches).
+
+6. Axis styling: 3D axes with panes and spines visually minimized; ticks and tick labels effectively hidden; no gridlines on axes (only surface mesh shading visible); default Matplotlib 3D viewing angle.
+
+7. Legend: No legend present; no colorbar; titles serve as the only panel annotations.

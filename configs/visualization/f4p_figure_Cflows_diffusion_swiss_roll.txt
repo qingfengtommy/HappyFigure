@@ -1,0 +1,36 @@
+1. Overall aesthetic: Clean, modern scientific visualization; minimal decoration; technical/algorithmic figure suitable for ML or applied math publication.
+
+2. Color palette: 
+   - #FEECE6 to #D7301F (Reds colormap) = diffusion/transition matrix intensity (low to high)
+   - #440154 (dark purple) through #3B528B, #21918C, #5EC962 to #FDE725 (viridis-like gradient) = manifold parameter coloring of points
+   - #BFBFBF = semi-transparent graph edges
+   - #FFFFFF = background
+
+3. Typography: 
+   - Matplotlib default sans-serif (DejaVu Sans)
+   - No visible title text
+   - Axis labels and tick labels absent (axes turned off)
+   - Default font size would be ~10–12 pt, but not rendered
+
+4. Layout: 
+   - Two-panel horizontal layout (1×2 grid)
+   - Figure size ~16×8 inches (2:1 aspect ratio)
+   - Left panel square (equal aspect heatmap), right panel free-form scatter
+   - Generous whitespace; minimal padding between subplots
+
+5. Data encoding: 
+   - Left: heatmap (imshow) of diffusion/transition matrix with square pixels
+   - Right: 2D scatter plot of Swiss roll manifold
+   - Scatter markers: circular, ~30–40 pt size, filled with alpha ~0.7
+   - Thin straight line segments connecting nearby points to show graph structure
+   - No error bars or hatching
+
+6. Axis styling: 
+   - Axes fully hidden on both subplots (no spines, ticks, or labels)
+   - No gridlines
+   - Image origin set to upper-left for matrix visualization
+
+7. Legend: 
+   - No legend present
+   - No colorbar shown
+   - Implicit encoding via color gradients without annotation

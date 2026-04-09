@@ -1,0 +1,49 @@
+Overall Aesthetic
+The style is "High-Density Genomics Publication" (similar to Nature Genetics or Cell). It features a rigorous "Small Multiples" (or Trellis) layout, maximizing data density per square inch. The design is strictly 2D, minimalist, and uses a white background with no grid lines to maintain clarity across many subplots.
+Color Palette
+Use a muted, categorical palette specific to each column's function:
+Column A (Grey/Blue):
+Points/Lines: Dark Grey (#707070)
+Shading (Confidence Interval): Muted Slate Blue (#A6Bad8 with 0.3 alpha)
+Column B (Green/Purple/Blue):
+Series 1 (Triangle): Muted Grass Green (#76C065)
+Series 2 (Plus): Soft Lavender/Purple (#C79ECF)
+Series 3 (Circle): Muted Blue (#7FB5D6)
+Column C (Red/Blue):
+Series 1 (Plus): Salmon/Coral (#EB8076) with light coral shading.
+Series 2 (Circle): Muted Blue (#7FB5D6) with light blue shading.
+Column D (Categorical):
+Category 1: Bright Green (#90D77F)
+Category 2: Light Sky Blue (#9ACEEB)
+Baseline Line: Dashed Black.
+Font Choices and Sizes
+Typeface: Standard Sans-Serif (Helvetica or Arial).
+Panel Tags (a, b, c, d): Bold, approx 12-14pt, aligned to top-left of the column.
+Row Labels (Y-axis): Regular weight, approx 9pt. Note: Row labels are grouped on the far left with bracket lines indicating clusters (e.g., "Track prediction").
+Axis Ticks: Small, approx 8pt.
+Legend: Regular weight, small (8pt), placed at the very top of each column.
+Line Weights and Marker Styles
+Lines:
+Primary Data Lines: Thin, often dashed (linestyle='--'), linewidth approx 1.0pt.
+Fit Lines (Col A): Solid thin grey line.
+Markers:
+Size: Small (approx size 15-20 in Matplotlib).
+Shapes: Distinct use of Circles (o), Triangles (^), and Plus signs (+) to distinguish series.
+Intervals: Shaded regions (fill_between) are used for standard deviation/confidence, with high transparency and no outline.
+Grid and Axis Styling
+Spines: "L-frame" style. Only Left and Bottom spines are visible. Top and Right spines are removed (despine).
+Grid: None. No horizontal or vertical grid lines inside the plots.
+Ticks: Outward facing, black, short length.
+X-Axis Labels:
+Cols A-C: Log-scale or categorical spacing with labels only at the bottom row.
+Col D: Categorical text labels rotated 45 degrees.
+Layout Proportions
+Grid Structure: A dense 12-row by 4-column grid.
+Aspect Ratio: Individual subplots are wide and short rectangles (approx 3:1 aspect ratio).
+Spacing:
+Vertical spacing between rows is minimal to facilitate scanning down a column.
+Horizontal spacing between columns is wider to separate the distinct experiments.
+Grouping: The rows are visually grouped on the far left using thin bracket lines with vertical text labels (e.g., "Track prediction", "Variant effect prediction").
+Design Specifics
+Consistency: Y-axis limits vary per row but are consistent across columns where applicable.
+Baselines: Dashed horizontal black lines indicate baselines (e.g., in Col D) or performance thresholds.figure5.png

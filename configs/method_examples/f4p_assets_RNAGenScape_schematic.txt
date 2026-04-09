@@ -1,0 +1,20 @@
+1. Overall aesthetic: High-impact journal schematic; clean, technical, illustrative workflow diagrams with light 3D surfaces and explanatory annotations.
+
+2. Color palette: 
+   - #6BAF45 (olive green) = encoder/decoder blocks and labels  
+   - #9ED18B (light green) = embeddings, projection cones, latent regions  
+   - #5B8FD9 (blue) = latent manifold surface  
+   - #F28E2B (orange) = trainable components / projector / emphasis  
+   - #000000 (black) = text, arrows, axes, outlines  
+   - #D62728 (red) = off-/on-manifold emphasis, dashed trajectories  
+   - #E6F2FF (very light blue) = property/predictor background panels  
+
+3. Typography: Sans-serif font consistent with Helvetica / Arial; panel labels (“a–e”) ~18–20 pt bold; block labels and headings ~12–14 pt; annotations and equations ~10–11 pt.
+
+4. Layout: Multi-panel figure (a–e) arranged in a loose 2×3 grid; wide landscape aspect (~2.2:1); generous white space between panels; consistent left-to-right flow with aligned baselines.
+
+5. Data encoding: Conceptual schematics and flow diagrams; trapezoidal network blocks, rounded rectangles for sequences, arrows for data flow; 3D shaded surfaces for manifolds; dotted/dashed paths for transitions; node-link molecular cartoons with circular nodes and thin edges.
+
+6. Axis styling: No explicit axes or ticks; manifolds rendered without frames; depth suggested via shading and perspective rather than axis lines; arrows are solid black with triangular heads.
+
+7. Legend: Small inset legend with dashed rounded border; lower-left of panel a; icon-based (snowflake/flame) with short text labels; single column, ~10–11 pt font, no background fill.

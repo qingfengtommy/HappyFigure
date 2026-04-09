@@ -1,0 +1,36 @@
+1. Overall aesthetic: Conceptual, publication-style technical schematic; clean and explanatory with soft gradients and callout annotations rather than quantitative plots.
+
+2. Color palette: 
+   - #5B9BD5 / #9DCBF0 = token and embedding rectangles (primary blue)
+   - #E9E9EE = transformer layer blocks (neutral background)
+   - #000000 = outlines and main text
+   - #B0B0B0 to #F2F2F2 radial gradient = embedding space spheres
+   - #8B1E14 / #A6281A = emphasis red for “Embedding Condensation Phenomenon” arrow and highlight box
+   - #FADAD3 = light red/pink callout background
+   - #D6E6F5 = translucent blue connector wedges
+
+3. Typography:
+   - Font family: sans-serif (Arial/Helvetica-like); math text in italic serif for symbols (e.g., Z^(L))
+   - Section titles (“Larger models”, “Smaller models”): ~28–32 pt, bold
+   - Block labels (“Transformer Layer L/1”): ~18–20 pt, regular
+   - Token labels and annotations: ~14–16 pt
+   - Emphasis text in callout: ~18 pt, bold for key phrases
+
+4. Layout:
+   - Horizontal, wide aspect ratio (~3:1)
+   - Left-to-right narrative flow: tokens → layers → embedding geometry → motivation
+   - Stacked vertical layers on the left; 2×2 grid of spherical embedding illustrations on the right
+   - Generous white margins and consistent padding (~20–30 px between elements)
+
+5. Data encoding:
+   - Non-quantitative schematic encoding
+   - Rectangular bars represent tokens/embeddings
+   - Rounded rectangles for transformer layers
+   - Circular/spherical projections with small blue nodes connected by dashed radial lines to a center point
+   - Red rounded rectangle highlight around one sphere to indicate condensation
+
+6. Axis styling:
+   - No axes, ticks, or gridlines; axes spines not present (pure diagrammatic illustration)
+
+7. Legend:
+   - No formal legend; explanations provided via direct labels and a right-side callout box instead.

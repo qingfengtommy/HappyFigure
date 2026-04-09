@@ -1,0 +1,42 @@
+1. Overall aesthetic: Technical, publication-style multi-panel figure with a clean, minimal look; emphasis on comparative line plots without decorative elements.
+
+2. Color palette:  
+   - #2A9D8F = primary solid line (Random subset 1 / Polyp / dataset curves)  
+   - #E76F51 = secondary dashed line (Random subset 2 / Background)  
+   - Additional panels use muted blues and purples (e.g., approx. #3A66C7, #7E3F98, #8C564B) for multi-dataset comparisons  
+   - #000000 = axes, labels  
+   - #9E9E9E dashed = reference line (Radius = 2)
+
+3. Typography:  
+   - Font family: Helvetica globally; subplot titles explicitly set to monospace  
+   - Base font size: 16 pt  
+   - Subplot titles: ~18 pt  
+   - Axis labels: ~16 pt  
+   - Tick labels: ~14–15 pt  
+   - Legend text: 14 pt
+
+4. Layout:  
+   - Multi-panel layout using a 2 × 5 GridSpec with uneven columns (width ratios [1, 1, 0, 1, 1])  
+   - Overall figure size: 20 × 7 inches (wide aspect)  
+   - Panels arranged as small multiples with consistent margins and moderate whitespace between subplots
+
+5. Data encoding:  
+   - Line charts with continuous lines over frequency radius (x = 0–16)  
+   - Two main conditions encoded by line color and linestyle (solid vs dashed)  
+   - Line width ≈ 2.5 pt  
+   - No markers, no error bars, no hatching  
+   - Additional horizontal and vertical dashed reference lines in some panels
+
+6. Axis styling:  
+   - Left and bottom spines visible with thicker linewidth (~2 pt)  
+   - Top and right spines removed  
+   - No gridlines  
+   - X-axis ticks at regular intervals (every 4 units)  
+   - Y-axis uses ~4 major ticks with fixed numeric formatting (one decimal place)  
+   - Ticks point outward with default Matplotlib length
+
+7. Legend:  
+   - Position: upper right within each subplot  
+   - Frame: none (frameon=False)  
+   - Font size: 14 pt  
+   - Single-column legends, typically 2 entries (more in aggregated panels)

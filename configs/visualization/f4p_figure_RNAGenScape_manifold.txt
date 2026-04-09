@@ -1,0 +1,7 @@
+1. Overall aesthetic: Modern scientific visualization; clean, minimal, presentation-style 3D manifold with decorative shading rather than quantitative annotation.
+2. Color palette: Matplotlib “coolwarm” diverging map — deep blue ≈ #3B4CC0 (low values/valleys), light blue ≈ #9DBBFF (intermediate low), near-white ≈ #F7F7F7 (midpoint), light red ≈ #F4A582 (intermediate high), deep red ≈ #B40426 (peaks); no outlines or secondary colors.
+3. Typography: Default Matplotlib DejaVu Sans; no visible title or labels; ticks removed (font sizes effectively unused).
+4. Layout: Single-panel figure; figure size 10 × 7 inches; 3D axes with box aspect ratio [1, 1, 0.5]; generous white margins via tight_layout(pad=2); landscape orientation.
+5. Data encoding: Continuous 3D surface plot (plot_surface) from a 200 × 200 grid; smooth shading with antialiasing; no wireframe; edgecolor='none'; linewidth=0; surface opacity alpha=0.95.
+6. Axis styling: All axis ticks removed; panes hidden; axis lines fully transparent; no gridlines; custom camera view (elev=20°, azim=50°).
+7. Legend: None present (no legend box, entries, or columns).

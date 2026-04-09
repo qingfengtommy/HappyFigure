@@ -1,0 +1,13 @@
+1. Overall aesthetic: Modern computational biology schematic; clean but information-dense, publication-ready technical diagram with rounded shapes and soft colors rather than strict minimalism.
+
+2. Color palette: Pastel, role-coded colors — light green #DCEAC8 (sequence/biochemical/encoder blocks), light blue #CFE9F9 (structure/graph network blocks), pale yellow #FBE7B2 (biochemical properties/MLP), lavender #E6D5EC (multimodal attention / prediction), dark green #2F6B3F (section headers), purple #6A1B9A (prediction labels), black #000000 (text/arrows), muted gray #6E6E6E (network lines), dashed red #8B0000 (reconstruction loop).
+
+3. Typography: Sans-serif font consistent with Arial/Helvetica family; panel labels (a–d) ~28–32 pt bold; block titles ~14–16 pt; internal labels and bullet text ~10–12 pt; axis text in panel c ~10 pt.
+
+4. Layout: Multi-panel figure (a–d) arranged in a loose 2×2 grid; panel a spans the full width top; b–d occupy bottom row; left-to-right pipeline flow with generous white space; rectangular canvas with ~1.6:1 aspect ratio; consistent padding between modules (~10–20 px).
+
+5. Data encoding: Conceptual diagrams rather than quantitative charts; flow arrows with triangular heads; neural networks shown as node-link diagrams; graphs encoded as circles (nodes) and lines (edges); scatter plot in panel c with semi-transparent blue/red points; protein structures rendered as ribbon and surface models.
+
+6. Axis styling: Only panel c includes axes; thin black axes with no top/right spines; no gridlines; tick labels small (~9–10 pt); ticks short and outward-facing.
+
+7. Legend: No formal legend box; labels embedded directly in panels; scatter plot color meaning implied by annotations rather than a legend; no frame or columns used.

@@ -1,0 +1,13 @@
+1. Overall aesthetic: Clean, publication-style comparison figure with minimal decoration; technical bar-chart layout typical of machine learning / computational biology papers.
+
+2. Color palette: #DDF3DE = TrajectoryNet (very light green), #AADCA9 = OT-CFM (light green), #8BCF8B = SB-CFM (medium green), #3775BA = BEMIOflow (ours, saturated blue); white background, black axes/text.
+
+3. Typography: Helvetica throughout; global font size ≈24 pt; axis labels ≈26–28 pt; tick labels ≈20–22 pt; legend text ≈22–24 pt.
+
+4. Layout: Single-row grid of 4 columns (1×4); figure size ≈36×6 inches (aspect ratio ~6:1); generous horizontal spacing between subplots; grouped bars within each dataset category with small inter-group gaps.
+
+5. Data encoding: Grouped vertical bar charts; four bars per dataset group (one per method); solid fills, no outlines; uniform bar width (~0.8 units); no error bars, no hatching.
+
+6. Axis styling: Left and bottom spines only (top/right removed); spine linewidth ≈3 pt; no gridlines; y-axis uses scientific notation (e.g., 1e−3, 1e−1, 1e−2); ticks outward with moderate length.
+
+7. Legend: Placed to the far right of the last subplot, vertically centered; no frame; single column; four entries corresponding to methods; font size matches axis labels (~22–24 pt).

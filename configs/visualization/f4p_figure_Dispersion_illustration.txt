@@ -1,0 +1,19 @@
+1. Overall aesthetic: Clean, technical schematic illustration for a machine-learning / geometry paper; minimal axes, emphasis on conceptual arrows and geometric intuition rather than quantitative plots.
+
+2. Color palette:  
+   - #C44E52 (brick red) = primary dispersion / repel arrows and annotations  
+   - #9467BD (purple) = norm regularization vectors  
+   - #4C72B0 (muted blue) = data points on sphere  
+   - #E6E6E6 → #9E9E9E radial gradient = spherical surface shading  
+   - #000000 = axes, dashed reference lines, text  
+   - #76B7B2 (teal dashed arc) = “do nothing / obtuse angle” illustration
+
+3. Typography: DejaVu Sans (Matplotlib default); axis letters x/y/z at ~36 pt; panel annotations and callouts ~20–24 pt; legend text ~18 pt; no bolding, regular weight throughout.
+
+4. Layout: Single-row 1×4 panel layout; wide landscape aspect ratio (~4:1 overall); generous white space between panels; each panel centered with no visible subplot frames.
+
+5. Data encoding: Conceptual 3D scatter on unit sphere with small circular markers (~6–8 pt); vectors shown as quiver arrows with medium line width (~2 pt) and arrow_length_ratio ≈ 0.1; dashed great-circle or reference lines; no numeric scales.
+
+6. Axis styling: Custom 3D axes drawn as black arrows; all spines, panes, grids, and ticks removed; dashed black reference rays from origin; tick marks and labels fully suppressed.
+
+7. Legend: Present only in the third panel; lower-center/right placement; no frame; two entries (ℓ₂-repel in red, norm regularization in purple); single column; legend font ~18 pt.

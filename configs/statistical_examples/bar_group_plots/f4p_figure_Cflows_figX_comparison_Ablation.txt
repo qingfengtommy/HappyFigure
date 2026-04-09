@@ -1,0 +1,13 @@
+1. Overall aesthetic: Clean, publication-ready technical bar-chart figure in a modern ML/vision conference style; minimal decoration, emphasis on color-coded methods and bold axes.
+
+2. Color palette: Pastel-to-saturated categorical palette — #AADCA9 (OT-CFM), #8BCF8B (SB-CFM), #E9A6A1 (SF2M), #B8C9E5 (Cflows w/o growth + energy), #7097CA (Cflows w/o growth), #3775BA (Cflows, darkest/primary); black (#000000) axes and error bars.
+
+3. Typography: Helvetica throughout; global base font size ≈24 pt; y-axis labels ≈26–28 pt; tick labels ≈22–24 pt; legend text ≈24 pt; no subplot titles.
+
+4. Layout: Single-row multi-panel layout (1×5 grid allocated, 4 panels used); very wide aspect ratio (~35:7 inches, ~5:1); generous horizontal spacing between subplots; legend placed outside on the right, vertically centered.
+
+5. Data encoding: Grouped vertical bar charts (one bar per method per panel); uniform bar width (~0.8 of unit spacing); vertical error bars showing mean ± std with capsize ≈8 pt and cap thickness ≈2 pt; no hatching or markers.
+
+6. Axis styling: Left and bottom spines only (right/top removed); spine linewidth ≈3 pt; no gridlines; x-axis ticks and labels removed; y-axis ticks outward, standard Matplotlib length; scientific notation shown on some y-axes (e.g., 1e−1).
+
+7. Legend: Positioned to the far right outside the plotting area; no frame; single column; 6 entries (methods); font size ≈24 pt; color swatches matching bar fills.

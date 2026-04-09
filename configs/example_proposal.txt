@@ -1,0 +1,42 @@
+# Example Research Proposal — Image Classification with Attention
+
+## Title
+AttentionNet: Improving Image Classification with Multi-Head Self-Attention Layers
+
+## Abstract
+We propose AttentionNet, a convolutional neural network augmented with multi-head
+self-attention layers for image classification on CIFAR-10 and ImageNet-100. Our
+approach integrates attention mechanisms after each residual block to capture
+long-range spatial dependencies. We demonstrate improved accuracy over baseline
+ResNet models while maintaining comparable computational cost.
+
+## Experiments
+
+### Experiment 1: Baseline Comparison
+Compare AttentionNet against ResNet-50, ViT-Small, and DeiT-Small on CIFAR-10.
+Report top-1 accuracy, training time, and parameter count.
+Results directory: results/baseline_comparison/
+
+### Experiment 2: Ablation Study
+Evaluate the contribution of each attention component:
+- No attention (baseline ResNet)
+- Single-head attention
+- Multi-head attention (4 heads)
+- Multi-head attention (8 heads)
+Results directory: results/ablation_study/
+
+### Experiment 3: Training Convergence
+Plot training and validation loss/accuracy curves over 200 epochs for each model
+variant. Show learning rate schedule overlay.
+Results directory: results/training_curves/
+
+### Experiment 4: Attention Visualization
+Generate attention heatmaps for selected test images showing which spatial
+regions the model attends to at different layers.
+Results directory: results/attention_maps/
+
+## Figure Requirements
+- All figures should be publication-ready (300 DPI, vector PDF preferred)
+- Use a consistent color palette across all figures
+- Font size: minimum 10pt for axis labels, 12pt for titles
+- Target venue: NeurIPS (conference format)

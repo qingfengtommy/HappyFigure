@@ -1,0 +1,46 @@
+1. Overall aesthetic: Clean, high-impact publication style; minimal background with bold annotations emphasizing ablation effects.
+
+2. Color palette:  
+   - #0F4D92 = primary method (CellSpliceNet bars and baseline reference line)  
+   - #B4E6B4 = No Expression  
+   - #AFE6E6 = No Structure  
+   - #FFE080 = No ROI  
+   - #D3D3D3 = No Sequence  
+   - #FF0000 = reduction arrows and delta text  
+   - Black (#000000) = axes, tick labels, numeric bar labels
+
+3. Typography:  
+   - Font family: Helvetica  
+   - Global font size: 24 pt  
+   - Numeric bar value labels: 36 pt  
+   - Axis label (“Spearman correlation”): ~36–40 pt (larger than ticks)  
+   - Tick labels: ~24 pt  
+   - Legend text: ~28–32 pt
+
+4. Layout:  
+   - Single-panel figure (1×1)  
+   - Square aspect ratio; figure size ≈ 13 × 13 inches  
+   - Bars evenly spaced with moderate margins; ample top space for legend and annotations  
+   - No subplot grid; generous left padding for large y-axis label
+
+5. Data encoding:  
+   - Vertical bar chart with 5 categories  
+   - Bar width ≈ 0.8 (Matplotlib default)  
+   - Solid fills, no edges  
+   - Numeric value labels above each bar  
+   - Horizontal dashed baseline at first bar value (0.88)  
+   - Downward arrows from baseline to each ablated bar indicating performance drop; red delta text above arrows  
+   - No error bars or hatching
+
+6. Axis styling:  
+   - Left and bottom spines visible; top and right spines removed  
+   - Spine linewidth ≈ 3 pt  
+   - No gridlines  
+   - Tick direction: outward (default), moderate length  
+   - Y-axis range cropped to ~0.7–1.0 for emphasis
+
+7. Legend:  
+   - Position: upper right, outside the main plotting area  
+   - No frame  
+   - One column  
+   - Large color swatches matching bars; font size ~28–32 pt

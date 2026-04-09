@@ -1,0 +1,20 @@
+1. Overall aesthetic: Conference-paper style (ML/AI), clean and minimal, multi-panel quantitative comparison with muted pastel colors and no decorative elements.
+
+2. Color palette:  
+   - #DDF3DE = very light green (DeepSeek R1 Distill Qwen 1.5B)  
+   - #AADCA9 = light green (DeepSeek R1 Distill Qwen 14B)  
+   - #8BCF8B = medium green (DeepSeek R1 Distill Llama 70B)  
+   - #F6CFCB = light pink (deepseek-chat / Deepseek‑V3)  
+   - #E9A6A1 = salmon pink (deepseek‑reasoner / Deepseek‑R1)  
+   - #FFF6CC = pale yellow (gemini‑2.5‑flash‑preview‑04‑17)  
+   - #3775BA = saturated blue (OpenAI o3, emphasized baseline)
+
+3. Typography: Matplotlib default sans-serif (DejaVu Sans); subplot titles ≈16–18 pt; y-axis label “Probability” ≈12–14 pt; tick labels ≈10–11 pt; legend text ≈11–12 pt; no bolding except implicit title weight.
+
+4. Layout: Grid of 2 rows × 4 columns (7 panels used, one empty slot); wide landscape aspect ratio (~3.5:1 overall); generous white space between subplots; consistent margins and aligned axes; legend placed outside the grid on the right.
+
+5. Data encoding: Grouped bar charts with single bars per method per panel; uniform bar width (~0.7 of categorical slot); no outlines, no hatching; no error bars; values encoded solely by bar height.
+
+6. Axis styling: Only left and bottom spines visible with thicker lines (~1.5–2 pt); top and right spines removed; no gridlines; y-axis fixed from 0 to 1.0; ticks outward with short length (~3–4 pt).
+
+7. Legend: Positioned to the right of the panels, vertically centered; no frame; single column; color swatches with text labels; font size ~11–12 pt; legend entries ordered consistently with bar colors.

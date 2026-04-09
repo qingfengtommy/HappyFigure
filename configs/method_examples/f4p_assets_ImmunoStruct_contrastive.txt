@@ -1,0 +1,40 @@
+1. Overall aesthetic: High-impact biomedical publication schematic; clean, minimal, and didactic with annotated workflow diagrams and matrix illustrations, typical of Nature/Cell-style figures.
+
+2. Color palette:  
+   - Teal/green surface (#1F9E89 approx.) = cancer mutant peptide–MHC structure  
+   - Salmon/orange surface (#F08A6C approx.) = wildtype peptide–MHC structure  
+   - Light green boxes (#DCECCB) = sequence features  
+   - Light blue boxes (#CFE8F6) = structure features  
+   - Pale yellow boxes (#F6E6B5) = biochemical properties  
+   - Red/pink bars (#E57373 to #F2A0A0) = feature embeddings  
+   - Grayscale (#000000–#FFFFFF) = similarity/identity matrices  
+   - Black (#000000) = text, arrows, outlines
+
+3. Typography:  
+   - Font family: Sans-serif, Helvetica/Arial-like  
+   - Section labels (e.g., “Cancer Mutant Peptide-MHC”): ~20–24 pt, bold  
+   - Sub-box labels (Sequence, Structure, Biochemical Properties): ~12–14 pt, regular  
+   - Panel labels (“a”, “b”): ~24 pt, bold  
+   - Annotations and matrix labels: ~10–12 pt
+
+4. Layout:  
+   - Two-panel horizontal layout (a left, b right), overall aspect ratio ~2.2:1  
+   - Panel a: vertical flow with paired rows (mutant vs wildtype) feeding into shared encoders and projector  
+   - Panel b: stacked subpanels (pairwise similarity on top, feature independence bottom)  
+   - Generous white space; consistent padding ~20–30 px between elements
+
+5. Data encoding:  
+   - Conceptual block diagrams with arrows indicating data flow  
+   - Heatmaps for similarity and identity matrices (square cells, no numeric overlays)  
+   - Vertical bar glyphs to represent feature dimensions and batch dimensions  
+   - No error bars or quantitative axes; schematic encoding only
+
+6. Axis styling:  
+   - No conventional axes; matrices shown without ticks or labels  
+   - Clean square frames around matrices, thin black outlines  
+   - Directionality conveyed via arrows and dashed arrows (loss terms)
+
+7. Legend:  
+   - No standalone legend box  
+   - Explanations embedded as callout text boxes with rounded corners (light peach background, ~10–12 pt font)  
+   - Labels placed adjacent to corresponding visual elements, single-column explanatory text

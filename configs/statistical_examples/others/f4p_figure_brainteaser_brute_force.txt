@@ -1,0 +1,53 @@
+1. Overall aesthetic: Clean, publication-style technical figure; dense but orderly multi-panel comparison with minimal decoration and emphasis on categorical contrasts.
+
+2. Color palette:  
+   - #DDF3DE = DeepSeek R1 Distill Qwen 1.5B (light mint green)  
+   - #AADCA9 = DeepSeek R1 Distill Qwen 14B (soft green)  
+   - #8BCF8B = DeepSeek R1 Distill Llama 70B (medium green)  
+   - #F6CFCB = deepseek-chat (Deepseek‑V3) (light pink)  
+   - #E9A6A1 = deepseek-reasoner (Deepseek‑R1) (salmon pink)  
+   - #FFF6CC = gemini‑2.5‑flash‑preview‑04‑17 (pale yellow)  
+   - #3775BA = OpenAI o3 (solid blue, highest contrast / anchor series)  
+   Black (#000000) outlines for bars and text.
+
+3. Typography:  
+   - Font family: Matplotlib default DejaVu Sans  
+   - Subplot titles: ~14 pt, bold  
+   - Axis labels (“Probability”): ~12 pt  
+   - Tick labels: ~9–10 pt  
+   - In-bar numeric annotations: ~8 pt, bold with black text and yellow highlight box  
+   - Legend text: ~10 pt, bold for category headers
+
+4. Layout:  
+   - Grid: 2 rows × 4 columns of subplots (total 8 panels)  
+   - Each column corresponds to a prompt type (CoT, Math, Hint, Math + Hint)  
+   - Aspect ratio: very wide panoramic figure (~4:1 overall)  
+   - Tight horizontal spacing between panels; moderate vertical spacing  
+   - Legends placed in a dedicated right-side column outside the subplot grid
+
+5. Data encoding:  
+   - Chart type: Vertical stacked bar charts  
+   - Each bar sums to 1.0 probability  
+   - Four stacked segments per bar representing brute-force subtypes  
+   - Hatching patterns encode subtypes:  
+     - “/” = Only Model brute force  
+     - “\” = Only Human brute force  
+     - no hatch = Neither brute force  
+     - “x” = Both brute force  
+   - Bars have black edges; uniform bar width across panels  
+   - Numeric probability values overlaid near the bottom of each bar segment
+
+6. Axis styling:  
+   - Y-axis range fixed at 0–1.0 across all panels  
+   - No gridlines  
+   - All four spines visible, thin black lines  
+   - Ticks directed outward, short length  
+   - X-axis category labels omitted (methods encoded by color and legend)
+
+7. Legend:  
+   - Two separate legends on the right side of the figure  
+     - Upper legend: model names with color swatches  
+     - Lower legend: brute-force subtype meanings with hatch samples  
+   - No legend frame  
+   - Font size ~10 pt  
+   - Single-column layout for each legend

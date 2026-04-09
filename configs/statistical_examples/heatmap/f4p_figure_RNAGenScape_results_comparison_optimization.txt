@@ -1,0 +1,13 @@
+1. Overall aesthetic: High-impact academic publication style; clean, technical heatmap visualization with emphasis on quantitative comparison and minimal decorative elements.
+
+2. Color palette: Diverging heatmap palette — deep blue #2166AC for strong negative values, light blue #D1E5F0 for mild negatives, white #FFFFFF for neutral, light red #FDDCCB for mild positives, deep red #B2182B for strong positives; annotation text in black #000000; improvement row text in green #008000.
+
+3. Typography: Matplotlib default sans-serif (DejaVu Sans); panel titles ~20–22 pt; row/column labels ~12–13 pt; cell annotation numbers ~10–11 pt; “RNAGenScape (ours)” emphasized with bold weight; “Improvement” label italicized.
+
+4. Layout: Two side-by-side panels in a single row (1×2 grid); each panel approximately square cells; overall figure aspect ratio ~2.2:1 (wide); tight inter-panel spacing (~0.05–0.08 of figure width); margins compact but sufficient for rotated x-axis labels.
+
+5. Data encoding: Annotated heatmaps with rectangular cells; left panel encodes median change (signed values), right panel encodes success rate (percentages); numeric values overlaid centered in each cell; no markers, bars, or error bars.
+
+6. Axis styling: Axis spines hidden; no gridlines beyond cell boundaries implied by heatmap; x-axis tick labels rotated ~30–35°; y-axis labels left-aligned and horizontal; ticks without tick marks.
+
+7. Legend: No explicit legend; color meaning implied by diverging color scale and numeric annotations; no colorbar shown; panel titles act as contextual guides.

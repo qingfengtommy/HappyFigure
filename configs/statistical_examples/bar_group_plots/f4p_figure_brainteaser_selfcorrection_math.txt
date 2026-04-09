@@ -1,0 +1,13 @@
+1. Overall aesthetic: Clean, minimalist, publication-style multi-panel figure with small multiples; emphasis on categorical comparison using simple bar charts, no decorative elements.
+
+2. Color palette: Pastel categorical palette with consistent method mapping — #DDF3DE (very light green, Qwen 1.5B), #AADCA9 (light green, Qwen 14B), #8BCF8B (medium green, Llama 70B), #F6CFCB (light pink, deepseek-chat), #E9A6A1 (salmon pink, deepseek-reasoner), #3775BA (muted blue, OpenAI o3).
+
+3. Typography: Matplotlib default sans-serif (DejaVu Sans); subplot titles ~16 pt, axis labels (“Probability”) ~12 pt, tick labels ~10 pt, legend text ~12 pt.
+
+4. Layout: Grid of subplots arranged in 2 rows × 5 columns using tight spacing; top row contains 5 panels, bottom row contains 3 panels with the legend occupying the rightmost columns; wide landscape aspect ratio (~3.2:1); moderate internal padding between panels.
+
+5. Data encoding: Vertical bar charts; single bars per method per panel (grouped conceptually across panels, not within); default Matplotlib bar width (~0.8); no error bars, no markers, no hatching.
+
+6. Axis styling: Only left and bottom spines visible with thicker lines (~1.5 pt); no gridlines; y-axis fixed from 0 to 1.0; ticks pointing outward with short length (~3–4 pt); x-axis tick labels hidden.
+
+7. Legend: Placed on the right side of the figure, vertically centered; no frame; single column; color swatches with method names; font size ~12 pt.

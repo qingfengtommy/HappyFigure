@@ -1,0 +1,7 @@
+1. Overall aesthetic: Clean, publication-style scientific plot; minimal decoration with emphasis on cumulative trends and annotated events.
+2. Color palette: #FFB3B3 = Evaluation/Application area fill (text-only & multimodal); #9EC9FF = Methodological Contribution area fill (text-only & multimodal); #7A0000 = cumulative outline/edge for evaluation curves; #1F4E79 = outline/edge for methodological curves; #000000 = axes, text, and annotation arrows.
+3. Typography: DejaVu Sans (Matplotlib default); axis labels ~14 pt; tick labels ~11–12 pt; legend text ~12 pt; annotation labels ~10–11 pt.
+4. Layout: Two vertically stacked subplots (2×1), shared x-axis; wide landscape aspect ratio (~16:9); moderate vertical spacing between panels; generous left margin for y-axis labels.
+5. Data encoding: Stacked cumulative area charts; smooth stepwise monthly accumulation; solid fill for text-only panel, diagonal hatch (“//”) overlay for multimodal panel; thin solid outline tracing cumulative total; arrow annotations marking model release events.
+6. Axis styling: Only left and bottom spines visible and slightly thickened; no gridlines; ticks pointing outward; x-axis labeled by year-month with sparse major ticks.
+7. Legend: Upper-left corner of each subplot; no frame; single column; color/hatch swatches matching fills; legend font ~12 pt.

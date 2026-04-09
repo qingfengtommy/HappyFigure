@@ -1,0 +1,26 @@
+1. Overall aesthetic: High-impact biomedical journal figure (Nature/Cell-style), clean and technical, multi-panel composite combining quantitative bar/box plots with molecular structure renderings; minimal decoration, emphasis on clarity and comparison.
+
+2. Color palette: 
+   - #1F77B4 / #2E6DB4 (dark blue) = ImmunoStruct (primary method)
+   - #AEC7E8 / #7FAAD4 (light blue) = ablation baselines
+   - #BDBDBD (gray) = Prime-2.1 / neutral reference
+   - #F0E68C (pale yellow) = NetMHCpan
+   - #F4C2C2 (light pink) = MHCnuggets
+   - #E6A57E (tan/orange) = DeepNeo
+   - #9ED39A / #6BBF6B (light/medium green) = BigMHC variants
+   - #76D7EA (cyan) = NeoPred
+   - #00CED1 (cyan/teal surface) = low attention regions
+   - #C8C8C8 (light gray surface) = protein backbone
+   - #FFD700 (yellow) = high attention regions
+   - #E41A1C (red) = mutation sites
+   - #000000 (black) = axes, text, outlines
+
+3. Typography: Sans-serif font consistent with Arial/Helvetica; panel labels (a–e) ~16–18 pt bold; subplot titles ~14–16 pt bold; axis labels ~12–13 pt; tick labels ~10–11 pt; legend text ~10–11 pt; p-value annotations ~9–10 pt.
+
+4. Layout: Multi-panel grid layout (approximately 2 columns × 3 rows); left column dominated by bar charts, right column by boxplots and structural visuals; aspect ratios ~4:3 for plots and square for molecular renderings; moderate whitespace between panels (~20–30 px); consistent alignment of axes within rows.
+
+5. Data encoding: Grouped bar charts with narrow bars (~0.15–0.18 axis units) and vertical error bars (mean ± SD/SEM); box-and-whisker plots with overlaid jittered points (small circles ~3–4 pt); molecular surface and ribbon representations with color-mapped attention; zoom-in inset boxes with solid colored borders.
+
+6. Axis styling: Left and bottom spines visible, top/right spines removed; no background gridlines; outward-facing ticks; tick length short (~3–4 px); y-axis ranges tightly fit to data; dashed horizontal reference line in boxplot panel.
+
+7. Legend: Bar-chart legend centered below plots, multi-item, no frame, single row wrapping into two lines; boxplot legend positioned top-right inside panel, no frame; font size ~10–11 pt; 2–3 columns depending on panel.

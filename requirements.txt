@@ -1,0 +1,43 @@
+# FlowFigure — core runtime dependencies.
+# Optional extras (LLM providers, SVG rendering, services) are in pyproject.toml.
+# For the original author pip-freeze (411 packages), see requirements-static.txt.
+#
+# Install deps:    pip install -r requirements.txt
+#                  This is enough when running FlowFigure directly from a repo checkout.
+# Install pkg:     pip install -e .
+# Install extras:  pip install -e ".[google]"        # Gemini LLM provider
+#                  pip install -e ".[svg]"            # cairosvg + lxml for SVG rendering
+#                  pip install -e ".[all]"            # all LLM providers + SVG + examples
+#
+# Default azure provider auth:
+#   - Standard Azure OpenAI: AZURE_OPENAI_ENDPOINT + AZURE_OPENAI_API_KEY
+#
+# Azure CLI / Managed Identity auth helper:
+#   pip install -e ".[azure]"
+#
+# Services (SAM3/OCR/BEN2, only needed for `diagram` command):
+#   1. Install torch with CUDA first (PyTorch>=2.6 from PyPI ships CUDA by default):
+#        pip install torch>=2.6
+#      Or for a specific CUDA version:
+#        pip install torch --index-url https://download.pytorch.org/whl/cu126
+#   2. Then install the services extra:
+#        pip install -e ".[services]"
+#   Note: paddlepaddle-gpu==3.2.1 only has wheels for Python <=3.11.
+#         For Python 3.12+, paddlepaddle==3.2.1 (CPU) is used instead.
+#         paddlepaddle 3.3.0 has a runtime bug — use 3.2.1.
+#
+# svg-fallback extra needs system package on Linux:
+#   sudo apt install libcairo2-dev pkg-config
+
+# ── Core pipeline ────────────────────────────────────────────────
+langgraph>=0.2
+openai>=1.0
+python-dotenv
+Pillow>=10.0
+requests
+pydantic>=2.0
+numpy>=1.26
+matplotlib>=3.8
+pyyaml>=6.0
+rich>=13.0
+pandas>=1.5

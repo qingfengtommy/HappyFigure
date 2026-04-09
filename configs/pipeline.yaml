@@ -1,0 +1,255 @@
+# Centralized pipeline configuration
+# Values previously hardcoded across graphs/*.py, scripts/, and llm/
+
+# ── LLM Provider Configuration ──────────────────────────────────────
+# Maps each pipeline role to a provider + model.
+# Override all roles at once via CLI: --llm-preset {azure|gemini|mixed}
+llm:
+  providers:
+    azure:
+      api_key_env: AZURE_OPENAI_API_KEY
+      # endpoint: https://your-resource.openai.azure.com
+      endpoint_env: AZURE_OPENAI_ENDPOINT
+    google:
+      api_key_env: GEMINI_API_KEY
+    # Uncomment to enable additional providers:
+    # openai:
+    #   api_key_env: OPENAI_API_KEY
+    # anthropic:
+    #   api_key_env: ANTHROPIC_API_KEY
+    # bedrock:
+    #   region_env: AWS_DEFAULT_REGION
+
+  # Per-role LLM routing (default configuration)
+  # These roles are used by pipeline nodes (via pipeline_cli.py), not by agents.
+  # Agents use their own platform model (configured in agent: section below).
+  roles:
+    chat:      {provider: azure, model: gpt-5.4}
+    code:      {provider: azure, model: gpt-5.4}
+    drawing:   {provider: azure, model: gpt-image-1}
+
+  # Named presets for --llm-preset CLI flag.
+  # Each preset overrides specific roles from the defaults above.
+  presets:
+    azure:
+      # All roles stay azure; override drawing to use Azure image gen
+      drawing: {provider: azure, model: gpt-image-1}
+    gemini:
+      # All roles use Google
+      chat:     {provider: google, model: gemini-2.5-flash}
+      code:     {provider: google, model: gemini-2.5-pro}
+      drawing:  {provider: google, model: gemini-2.0-flash-preview-image-generation}
+    mixed:
+      # Azure for text, Google for drawing (was "azure+gemini" / "svg")
+      drawing: {provider: google, model: gemini-2.0-flash-preview-image-generation}
+
+# ── Agent Platform Configuration ─────────────────────────────────────
+# Which CLI tool orchestrates agents. Override via: --agent {opencode|claude|codex|gemini|copilot}
+agent:
+  platform: opencode
+  opencode:
+    model: gpt-5.4
+    provider: azure
+  claude:
+    model: claude-opus-4-6
+  codex:
+    model: gpt-5.4
+    sandbox_mode: workspace-write
+    retry_dangerous_on_sandbox_failure: true
+  gemini:
+    model: gemini-3-flash-preview
+  copilot:
+    model: gpt-5.3-codex
+
+orchestrator:
+  mode: agent-first
+
+scoring:
+  quality_thresholds:
+    journal: 10.2
+    conference: 9.6
+    poster: 8.4
+    presentation: 7.8
+    report: 9.0
+    grant: 9.6
+    thesis: 9.6
+    preprint: 9.0
+    default: 9.0
+  figure_score_threshold: 9.0
+  max_iterations: 3
+
+# ── Figure Lint (deterministic pre-critic validation) ────────────
+# Mechanical checks that run before the LLM critic to catch obvious
+# violations (wrong DPI, off-palette colors, missing savefig, etc.).
+figure_lint:
+  enabled: true                    # master switch for all lint gates
+  block_on_failure: false          # if true, skip LLM critic when lint fails (saves tokens)
+  checks:
+    min_file_size_kb: 50           # minimum figure PNG size
+    min_dpi: 300                   # minimum DPI for publication
+    min_font_pt: 6                 # minimum readable font size at print
+    max_figsize_inches: 20         # flag unreasonably large figures
+    require_agg_backend: true      # figure code must set Agg backend
+    require_rcparams: true         # figure code must configure rcParams
+    require_savefig_tight: true    # savefig must use bbox_inches='tight'
+    color_registry_enforcement: warn  # "block", "warn", or "off"
+  stuck_detection:
+    enabled: true                  # detect iteration loops that aren't improving
+    score_tolerance: 0.5           # scores within this range = no improvement
+    max_same_issue: 2              # break if top issue repeats N times
+
+ocr:
+  confidence_threshold: 0.6
+
+services:
+  ben2_endpoint: "http://127.0.0.1:8003"
+
+svg:
+  label_font_min: 12
+  label_font_max: 48
+  overlap_ratio_threshold: 0.3
+  oversized_font_threshold: 60
+  render_scale: 2.0
+
+beam:
+  width: 2
+  style_variants: 2
+  code_variants: 2
+  iterations: 2
+
+sam:
+  prompts: "rectangle,rounded_rectangle,arrow,circle,diamond,icon"  # fallback if LLM prompt gen fails
+  min_score: 0.0
+  merge_threshold: 0.001
+  # SAM3 supported prompt vocabulary (shown to LLM for guidance)
+  supported_prompts:
+    - rectangle
+    - rounded rectangle
+    - arrow
+    - circle
+    - diamond
+    - icon
+    - text block
+    - dashed rectangle
+    - dotted rectangle
+    - dash-dot rectangle
+    - dashed rounded rectangle
+    - dotted rounded rectangle
+    - dash-dot rounded rectangle
+    - bracket
+    - line
+    - stack
+    - cube
+    - cuboid
+    - grid
+    - document
+    - hexagon
+    - triangle
+    - star
+  # SAM prompts that represent extractable icons (not structural elements)
+  icon_prompts:
+    - icon
+    - robot
+    - animal
+    - person
+    - logo
+    - subfigure
+    - graph
+  # Valid classes for LLM box classification (must be superset of supported_prompts)
+  valid_classes:
+    structural:
+      - rectangle
+      - rounded_rectangle
+      - arrow
+      - circle
+      - diamond
+      - text_block
+      - dashed_rectangle
+      - dotted_rectangle
+      - dash_dot_rectangle
+      - dashed_rounded_rectangle
+      - dotted_rounded_rectangle
+      - dash_dot_rounded_rectangle
+      - bracket
+      - line
+      - dashed_line
+      - dotted_line
+      - stack
+      - cube
+      - cuboid
+      - grid
+      - document
+      - hexagon
+      - triangle
+      - star
+    complex:
+      - icon
+      - graph
+      - subfigure
+      - logo
+      - robot
+      - animal
+      - person
+
+image_generation:
+  size: "1024x1024"
+
+viz_composer:
+  max_retries_per_script: 2
+  accept_threshold: 6          # out of 8 total (sum of 4 dimensions, 0-2 each)
+  min_accuracy: 1              # minimum accuracy score (out of 2) to accept programmatic
+  min_fidelity: 1              # minimum fidelity score (out of 2) to accept programmatic
+  comparison_dimensions:
+    - accuracy
+    - clarity
+    - style_fit
+    - fidelity
+  tool_preferences:
+    bar_chart: matplotlib
+    line_plot: matplotlib
+    heatmap: matplotlib
+    scatter: matplotlib
+    histogram: matplotlib
+    confusion_matrix: matplotlib
+    attention_matrix: matplotlib
+    loss_curve: matplotlib
+    tsne: matplotlib
+    umap: matplotlib
+    3d_structure: pymol
+    surface_plot: matplotlib
+    volume_render: chimerax
+    network_graph: matplotlib
+    microscopy: direct_embed    # use real image file directly
+
+architecture_review:
+  min_score: 6.0
+
+# ── Context management ──────────────────────────────────────��──────
+# Controls how much Python-built context is bundled into agent task prompts.
+# Within-agent conversation compaction is handled by the CLI platforms.
+context:
+  initial_prompt_budget: 30000   # token estimate cap for Python-built task prompt
+  max_feedback_chars: 3000       # beam feedback history cap (older rounds summarised)
+  max_bundled_lines: 200         # threshold: inline content vs path reference
+
+# ── Feedback & review ──────────────────────────────────────────────
+# Human review is opt-in via --review CLI flag.
+# When active: generates review.md template after run, parses feedback
+# on --resume into stage-specific files (feedback/human_*_feedback.md).
+# Style preferences (configs/feedback/style_preferences.yaml) persist
+# across runs and are always loaded when the file exists.
+feedback:
+  max_style_preferences: 30      # cap on project-level style rules (oldest evicted)
+
+# ── Paper composite (unified figure generation) ──────────────────
+# Used by `python run_once.py paper` command.
+assembly:
+  method: pil                      # "pil" (pixel-perfect, no blur) or "matplotlib" (script-based)
+  max_iterations: 3               # assembly script retry limit per figure
+  accept_threshold: 14            # assembly critic score threshold (out of 16)
+  placeholder_style: labeled_gray # "labeled_gray" or "source_image"
+  cross_figure_check: true        # run cross-figure consistency validation
+
+paper_composite:
+  max_figures_no_proposal: 8      # max auto-inferred figures without a proposal
+  default_execution: parallel     # statistical panel execution strategy

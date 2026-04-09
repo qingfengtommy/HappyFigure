@@ -1,0 +1,48 @@
+Overall Aesthetic
+The style is "Top-Tier Genomics Publication" (e.g., Nature Genetics or Nature Biotechnology). It is characterized by a high-density multi-panel layout, a clean white background, and a "flat" vector-art style. There is a strong emphasis on comparing specific methods using a consistent color code across different chart types (bar, scatter, and genomic tracks).
+Color Palette
+Use a specific categorical trio for the main method comparisons (Panels c, e, f, i, j, k):
+Method A (Blue - e.g., AlphaGenome): Muted Medium Blue (#628CC5)
+Method B (Lime/Yellow - e.g., Borzoi): Muted Chartreuse/Lime (#DCE775 or #D4E157)
+Method C (Teal - e.g., Enformer): Muted Teal/Turquoise (#66C2A5)
+Baseline/Control: Dashed Black line or Dark Grey (#404040).
+Secondary Palettes:
+Schematic (Panel a): Pastel Blue (#D6EAF8) and Pastel Red (#FADBD8) for input blocks.
+Genomic Tracks (Panel b): Cyan/Light Blue (#5DADE2) for REF, Muted Red (#EC7063) for ALT. Highlight region in Bright Gold (#F1C40F).
+Stacked Bars (Panel h): Salmon (#EC7063), Muted Purple (#C39BD3), Blue (#628CC5), Light Grey (#E5E7E9).
+Font Choices and Sizes
+Typeface: Standard Sans-Serif (Helvetica or Arial).
+Panel Labels (a-k): Bold, approx 12-14pt, aligned to the top-left of the subplot.
+Axis Titles: Regular weight, approx 10pt.
+Tick Labels: Regular weight, approx 8-9pt.
+Bar Annotations: Vertical text centered on top of bars, regular weight, small size (approx 7-8pt).
+Legend Text: Regular weight, small (8pt).
+Line Weights and Marker Styles
+Bar Charts:
+Bars have no outline (linewidth = 0).
+Baselines: Dashed black lines (linewidth = 1.0, linestyle='--').
+Scatter Plots (Panel d):
+Tiny markers (size 1-2), semi-transparent black/grey to show density.
+Fit line: Solid thin black line.
+Genomic Tracks (Panel b):
+Filled area under the curve (alpha ~0.5) with a thin solid outline.
+Swarm/Jitter Plot (Panel k):
+Points: Small, varying opacity circles (o).
+Error Bars: Thin grey lines behind the points.
+Grid and Axis Styling
+Spines: Classic "L-frame." Only Left and Bottom spines are visible. Top and Right spines are removed (despine).
+Grid: None. No grid lines on any plot. The background is pure white.
+Ticks: Outward facing, black, short length.
+X-Axis Labels:
+Panel f/j: Categorical ranges (e.g., "0-3 kb").
+Panel k: Log-scale spacing labels.
+Layout Proportions
+Grid: A complex, irregular grid.
+Row 1: Schematic (left) and wide genomic track (right).
+Row 2 & 3: Small multiples of vertical bar charts (tall aspect ratio ~3:4).
+Row 4: Wider charts (Stacked horizontal bars and grouped vertical bars).
+Spacing: Consistent white gutters between panels.
+Design Specifics
+Bar Annotations: In the bar charts (c, e, f), the exact numerical value is often written vertically floating just above the bar.
+Schematic Style: Use simple rectangles with no drop shadows for flowcharts. Arrows are thin, grey or black, with simple heads.
+Sequence Logo (Panel b inset): Standard ATCG coloring (A=Green, T=Red, C=Blue, G=Yellow/Orange) with stacked letters scaling by height.

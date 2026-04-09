@@ -1,0 +1,7 @@
+1. Overall aesthetic: Conceptual scientific illustration with a clean, minimal, quasi-3D schematic look; resembles a theoretical ML/geometry paper figure rather than a data-heavy plot.  
+2. Color palette: #FFFFFF = background; grayscale shading from ~#F2F2F2 (highlight) to ~#BFBFBF (shadow) for the sphere; #CDE5F8 = primary point fill; #000000 = point edges and dashed radial lines.  
+3. Typography: Sans-serif (Matplotlib default, likely DejaVu Sans); no visible titles or axis labels; no tick labels; font sizes effectively unused/hidden.  
+4. Layout: Single-row, three-panel layout (1×3 grid); overall figure size ≈18×6 inches; each panel roughly square; generous white space between panels; axes expanded to [-2, 2] in both directions with padding around the sphere.  
+5. Data encoding: 2D scatter plot overlaid on a shaded sphere projection; circular markers of size ~80 pt with black edge; dashed radial line segments (linewidth ~1 pt) from origin to each point; semi-transparent sphere shading via imshow with alpha ≈0.3; no error bars or hatching.  
+6. Axis styling: Axes fully turned off; no spines, ticks, or gridlines; equal aspect implied by circular sphere appearance.  
+7. Legend: No legend present.

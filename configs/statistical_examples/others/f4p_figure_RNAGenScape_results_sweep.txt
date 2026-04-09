@@ -1,0 +1,7 @@
+1. Overall aesthetic: Clean, publication-style scientific plot; minimalist with bold axes and no decorative elements, suitable for ML/bioinformatics conference or journal figures.  
+2. Color palette: #E78AC3 (light magenta/pink) = increase property curve; #4C72B0 (muted navy blue) = decrease property curve; #000000 = axes and text; white (#FFFFFF) background.  
+3. Typography: Helvetica (via LaTeX rendering); base font size ~15 pt; axis labels ~22–24 pt; tick labels ~14–15 pt; legend text ~18–20 pt.  
+4. Layout: Two-panel horizontal layout (1×2 grid); overall figure size ≈ 9 × 4 inches (each subplot ~4.5 × 4 inches); moderate inter-panel spacing; tight margins with emphasis on plot area.  
+5. Data encoding: Line plots with circular markers; solid lines; marker size ~10–12 pt diameter; line width ~3–4 pt; no error bars or shading.  
+6. Axis styling: Only left and bottom spines visible; spine line width ≈ 2 pt; no gridlines; ticks outward with default length; x-axis uses discrete steps (1, 5, 10, 20, 40); y-axes independently scaled per panel.  
+7. Legend: Present only in right panel; positioned in lower-right quadrant inside axes; no frame; font size ~18–20 pt; single column with two entries.
