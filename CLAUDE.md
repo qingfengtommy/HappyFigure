@@ -16,6 +16,7 @@ python cli.py <command> --proposal <file> [--results-dir <dir>] [flags]
 | `diagram` | Method/architecture diagram (full SVG pipeline, requires services) |
 | `composite` | Diagram + programmatic visualization compositing (4-agent, requires services) |
 | `sketch` | Method diagram (lightweight, agent writes SVG directly, no services) |
+| `paper` | Generate all figures for a paper (plots + diagrams + assembly) in one run |
 | `review` | Interactively review figures from a completed run (writes `review.md`) |
 
 | Global Flag | Effect |
@@ -55,7 +56,7 @@ HappyFigure supports two orchestration modes, configured via `pipeline.yaml` `or
 A single main agent (`happyfigure-orchestrator`) runs the entire pipeline in one session. It spawns subagents for bounded tasks and coordinates the three stages internally. Python is a thin launcher that starts services (if needed), launches the main agent, and syncs the manifest after completion.
 
 ```
-Python (run_once.py)
+Python (cli.py)
 └─ launch_orchestrator_session("happyfigure-orchestrator", prompt)
    │
    Main orchestrator agent (single session)
@@ -77,7 +78,7 @@ Parallel subagent spawning works because agent platforms (Claude Code, OpenCode,
 Python orchestrates three stages sequentially, spawning each agent as a subprocess. Preserved for debugging and as a fallback.
 
 ```
-Python (run_once.py → pipeline/orchestrator/main.py)
+Python (cli.py → pipeline/orchestrator/main.py)
 ├─ stage_explore()  → spawn_subagent("data-explore" or "method-explore")
 ├─ stage_design()   → spawn_subagent("planner-stylist")
 └─ stage_generate() → spawn_subagent("code-agent") per experiment
