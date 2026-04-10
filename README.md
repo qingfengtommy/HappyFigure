@@ -357,6 +357,7 @@ HappyFigure/
 | [LLM Routing](docs/LLM_ROUTING.md) | Deep dive into model routing across 4 config layers |
 | [Onboarding Guide](docs/ONBOARD.md) | Step-by-step setup for specific environments (Vertex AI, Copilot, etc.) |
 | [Cheatsheet](docs/cheatsheet.md) | Copy-paste commands for common tasks |
+| [Image References](docs/REFERENCES.md) | Attribution for all reference images used in few-shot prompting |
 
 ## Privacy Note
 
@@ -372,6 +373,14 @@ HappyFigure sends your research proposal text and data descriptions to third-par
 | [BEN2](https://github.com/PramaLLC/BEN2) (PramaLLC) | Background removal — clean transparent icon crops for SVG embedding |
 | [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) (Baidu) | Text detection — recognizes labels in raster images for editable SVG `<text>` elements |
 
+### Reference Images
+
+Architecture diagram examples in `configs/method_examples/` are from published papers and used under fair use for non-commercial research. See [docs/REFERENCES.md](docs/REFERENCES.md) for the full list with DOIs. Key sources:
+
+- Xu et al., "A whole-slide foundation model for digital pathology from real-world data," *Nature* (2024) — [10.1038/s41586-024-07441-w](https://doi.org/10.1038/s41586-024-07441-w)
+- Jumper et al., "Highly accurate protein structure prediction with AlphaFold," *Nature* (2021) — [10.1038/s41586-021-03819-2](https://doi.org/10.1038/s41586-021-03819-2)
+- Ruffolo et al., "Designing CRISPR–Cas systems with language models," *Nature* (2025) — [10.1038/s41586-025-08817-w](https://doi.org/10.1038/s41586-025-08817-w)
+
 ### Code & Pipeline References
 
 | Project | What we adapted |
@@ -380,7 +389,7 @@ HappyFigure sends your research proposal text and data descriptions to third-par
 | [AutoFigure-Edit](https://github.com/ResearAI/AutoFigure-Edit) | Raster-to-SVG conversion pipeline; SAM-based segmentation approach |
 | [Paper2Any](https://github.com/OpenDCAI/Paper2Any) | Multi-format output architecture; LLM-driven code generation |
 | [Edit-Banana](https://github.com/BIT-DataLab/Edit-Banana) | Iterative critic-driven refinement loop; multi-dimension scoring rubric |
-| [figures4papers](https://github.com/ChenLiu-1996/figures4papers) | Style few-shot examples in `configs/statistical_examples/` |
+| [figures4papers](https://github.com/ChenLiu-1996/figures4papers) | Style few-shot examples in `configs/statistical_examples/` and `configs/method_examples/` (see [image references](docs/REFERENCES.md)) |
 | [claude-scientific-skills](https://github.com/K-Dense-AI/claude-scientific-skills) | Agent prompt engineering patterns for scientific figures |
 | [auto-figures](https://github.com/SocraLee/auto-figures) | Multi-agent orchestration pattern |
 | [pubfig](https://github.com/Galaxy-Dawn/pubfig) | Publication-ready plot type catalog; journal-aware styling conventions |
