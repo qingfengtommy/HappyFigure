@@ -55,6 +55,18 @@ huggingface-cli login
 
 After that, the `sam3` package auto-downloads weights on first service launch.
 
+### BPE Tokenizer Vocabulary
+
+SAM3's text encoder requires the CLIP BPE vocabulary file (`bpe_simple_vocab_16e6.txt.gz`). The server **auto-downloads** this file on first launch if it's missing. No manual action is needed.
+
+If you're on an air-gapped machine, pre-download it:
+
+```bash
+mkdir -p assets
+curl -L https://github.com/openai/CLIP/raw/main/clip/bpe_simple_vocab_16e6.txt.gz \
+  -o assets/bpe_simple_vocab_16e6.txt.gz
+```
+
 | Setting | Where | Default |
 |---------|-------|---------|
 | Auto-download | `configs/services.yaml` — leave `checkpoint_path` unset | Enabled |

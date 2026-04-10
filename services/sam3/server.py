@@ -80,6 +80,22 @@ def _calculate_area(bbox: List[int]) -> int:
     return max(0, x2 - x1) * max(0, y2 - y1)
 
 
+_BPE_URL = "https://github.com/openai/CLIP/raw/main/clip/bpe_simple_vocab_16e6.txt.gz"
+
+
+def _ensure_bpe_vocab(dest: str) -> str:
+    """Download the CLIP BPE vocabulary file if it doesn't exist locally."""
+    if os.path.exists(dest):
+        return dest
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    logger.info("BPE vocab not found at %s — downloading from CLIP repo...", dest)
+    import urllib.request
+
+    urllib.request.urlretrieve(_BPE_URL, dest)
+    logger.info("Downloaded BPE vocab to %s", dest)
+    return dest
+
+
 class Sam3Runtime:
     def __init__(
         self,
@@ -104,11 +120,17 @@ class Sam3Runtime:
         repo_root = os.path.dirname(config_dir)
 
         if bpe_path and not os.path.isabs(bpe_path):
+            resolved = False
             for base in [config_dir, repo_root, os.getcwd()]:
                 candidate = os.path.join(base, bpe_path)
                 if os.path.exists(candidate):
                     bpe_path = candidate
+                    resolved = True
                     break
+            if not resolved:
+                # Auto-download from OpenAI CLIP GitHub if missing
+                dest = os.path.join(repo_root, bpe_path)
+                bpe_path = _ensure_bpe_vocab(dest)
 
         if checkpoint_path and not os.path.isabs(checkpoint_path):
             for base in [config_dir, repo_root, os.getcwd()]:
