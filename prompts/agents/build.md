@@ -50,9 +50,9 @@ Or run agents individually:
 ```bash
 # Step 1: explore and describe (skip if --drawing-image)
 # Step 2: build SVG (services must be running)
-python3 scripts/pipeline_cli.py services start
+$HAPPYFIGURE_PYTHON scripts/pipeline_cli.py services start
 # ... agent work ...
-python3 scripts/pipeline_cli.py services stop
+$HAPPYFIGURE_PYTHON scripts/pipeline_cli.py services stop
 # Step 3: refine SVG
 ```
 

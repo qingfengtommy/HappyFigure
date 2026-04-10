@@ -193,8 +193,7 @@ def run_agent(
 
         merged_env = env
         if agent_command.env:
-            base = env if env is not None else os.environ
-            merged_env = {**base, **agent_command.env}
+            merged_env = {**env, **agent_command.env}
 
         if agent_command.use_pty:
             return _execute_pty(agent_command, merged_env, output_tail)
