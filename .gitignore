@@ -9,13 +9,18 @@ docs/analysis-run-*.md
 docs/context_window_analysis.md
 docs/test.sh
 
-# Exclude notes (run logs, debug reports, research docs)
+# Pipeline run outputs
+runs/
 notes/
+assets/
 Capricorn/
 
 # Exclude external projects
 AutoFigure-Edit/
 opencode/
+
+# Nature reference figures (evaluation dataset, not distributed with OSS)
+references/nature/
 
 # Test / manual outputs
 manual/
@@ -29,7 +34,6 @@ figures/
 # Figure retrieval indexes (regenerate with build_index.py)
 figure_retrieve/index/
 .opencode/
-*.txt.gz
 
 # Build artifacts
 build/
