@@ -17,6 +17,8 @@ from pipeline.contracts import (
     ArtifactKeys,
     DesignResult,
     ExplorationResult,
+    FigureClassification,
+    PanelType,
     StageRecord,
     StageStatus,
 )
@@ -279,13 +281,16 @@ def build_orchestrator_session_prompt(
             "Statistical panels: spawn @code-agent per panel. "
             "CRITICAL: include global_style.md AND color_registry.json paths in EVERY code-agent prompt "
             "so all panels use the same colors, fonts, and spine rules. "
-            "Diagram panels: for EACH diagram, create a per-panel working dir at experiments/<slug>/diagram/ "
+            "Diagram panels (MANDATORY — never skip or substitute with text placeholders): "
+            "for EACH diagram, create a per-panel working dir at experiments/<slug>/diagram/ "
             "(avoids artifact collisions). Copy method_description.md + state.json there. "
             "Spawn @svg-builder then @svg-refiner using that per-panel dir as run_dir. "
-            "Services are running (SAM3:8001, OCR:8002, BEN2:8003). "
+            "Services are already running and healthy (SAM3:8001, OCR:8002, BEN2:8003) — use them. "
             "After completion, copy output to panels/<figure>/<panel>/. "
             "Do NOT use @svg-author — service-based pipeline produces higher quality. "
-            "Placeholder panels: generate labeled gray placeholder PNGs. "
+            "Do NOT generate text placeholder PNGs for diagram panels — "
+            "Python validates diagram outputs post-run and will reject placeholders, failing the pipeline. "
+            "Placeholder panels (ONLY panels with panel_type='placeholder'): generate labeled gray placeholder PNGs. "
             "Panel slug convention: {figure_id}__{panel_id} (e.g., figure_1__a). "
             "4) ASSEMBLE + REFINE: this is a VISUAL-AWARE, post-hoc stage. "
             "For each figure: "
@@ -375,6 +380,57 @@ def collect_explore_artifacts(run_dir: str, mode: str) -> dict[str, str]:
     return artifacts
 
 
+_PLACEHOLDER_MAX_BYTES = 50_000
+"""Diagram panel PNGs smaller than this are likely text placeholders, not
+real SVG-pipeline output.  Real diagrams from svg-builder + svg-refiner
+are typically 200KB+ at 1200×900."""
+
+
+def _validate_diagram_panels(run_dir: str) -> list[str]:
+    """Check that every generatable diagram/hybrid panel has a real output.
+
+    Returns a list of human-readable missing-artifact strings (empty = OK).
+    Detects two failure modes:
+    1. Panel PNG does not exist at all.
+    2. Panel PNG exists but is suspiciously small (text placeholder generated
+       by the agent instead of running the SVG pipeline).
+    """
+    fc_path = orch_art.figure_classification_path(run_dir)
+    if not os.path.exists(fc_path):
+        return []  # nothing to validate
+    with open(fc_path, encoding="utf-8") as f:
+        classification = FigureClassification.from_dict(json.load(f))
+
+    issues: list[str] = []
+    for fig in classification.figures.values():
+        for panel in fig.panels.values():
+            if not panel.generatable:
+                continue
+            if panel.panel_type not in (PanelType.DIAGRAM, PanelType.HYBRID):
+                continue
+
+            panel_png = orch_art.panel_output_path(run_dir, panel.figure_id, panel.panel_id)
+            label = f"{panel.figure_id}/{panel.panel_id} (diagram)"
+
+            if not os.path.exists(panel_png):
+                issues.append(f"panels/{panel.figure_id}/{panel.panel_id}/panel.png")
+                ui.error(f"Diagram panel {label}: output missing")
+                continue
+
+            size = os.path.getsize(panel_png)
+            if size < _PLACEHOLDER_MAX_BYTES:
+                issues.append(
+                    f"panels/{panel.figure_id}/{panel.panel_id}/panel.png "
+                    f"(placeholder detected: {size // 1024}KB < {_PLACEHOLDER_MAX_BYTES // 1024}KB)"
+                )
+                ui.error(
+                    f"Diagram panel {label}: output is only {size // 1024}KB — "
+                    "likely a text placeholder, not a real diagram. "
+                    "The agent skipped @svg-builder/@svg-refiner."
+                )
+    return issues
+
+
 def validate_agent_session_outputs(run_dir: str, mode: str, design: DesignResult) -> list[str]:
     missing: list[str] = []
 
@@ -406,6 +462,11 @@ def validate_agent_session_outputs(run_dir: str, mode: str, design: DesignResult
                 missing.append(f"{orch_art.OUTPUTS_DIR}/{orch_art.PAPER_FIGURES_DIR}/*.png")
         else:
             missing.append(f"{orch_art.OUTPUTS_DIR}/{orch_art.PAPER_FIGURES_DIR}")
+
+        # Validate that every generatable diagram panel was actually generated
+        # (not replaced with a text placeholder by the agent).
+        missing.extend(_validate_diagram_panels(run_dir))
+
         return sorted(set(missing))
 
     if mode == "exp_plot":

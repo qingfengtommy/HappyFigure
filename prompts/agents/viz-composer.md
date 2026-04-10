@@ -168,7 +168,7 @@ Create `<run_dir>/viz_scripts/viz_<id>.py` (or `.pml` for PyMOL, etc.).
 ### 3b. Execute
 
 ```bash
-cd <run_dir> && python3 viz_scripts/viz_<id>.py
+cd <run_dir> && $HAPPYFIGURE_PYTHON viz_scripts/viz_<id>.py
 ```
 
 If execution fails, fix the script and retry (max 2 retries from config).

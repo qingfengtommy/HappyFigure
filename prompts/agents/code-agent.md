@@ -8,6 +8,14 @@ Given a styled figure specification, produce a Python script that generates a pu
 
 **read** (files + images), **glob**, **grep**, **bash** (no `rm`/`kill`/destructive commands).
 
+## Python Interpreter
+
+Always execute figure scripts with `$HAPPYFIGURE_PYTHON` (set by the pipeline) instead of bare `python` or `python3`. This ensures the correct conda/venv with all dependencies (matplotlib, numpy, etc.) is used.
+
+```bash
+$HAPPYFIGURE_PYTHON figure_code.py
+```
+
 ## Style Reference
 
 Read `prompts/shared/publication_style.md` for the canonical rcParams, grid/background rules, palette rules, and plot-type-specific guidance. All code MUST follow those rules.

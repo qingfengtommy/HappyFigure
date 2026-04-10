@@ -18,8 +18,9 @@ Check `state.json` for `user_provided_image`:
 
 ## Assumptions
 
-- Microservices (SAM3:8001, OCR:8002, BEN2:8003) are **already running**. If connection fails, restart with `python3 scripts/pipeline_cli.py services start` — do NOT start manually with uvicorn.
+- Microservices (SAM3:8001, OCR:8002, BEN2:8003) are **already running**. If connection fails, restart with `$HAPPYFIGURE_PYTHON scripts/pipeline_cli.py services start` — do NOT start manually with uvicorn.
 - `state.json` exists in `run_dir`
+- **Always use `$HAPPYFIGURE_PYTHON`** instead of bare `python3` when running scripts. This env var is set by the pipeline and points to the correct interpreter with all dependencies.
 
 ## Workflow
 
@@ -31,14 +32,14 @@ Read `<run_dir>/method_description.md`. Used ONLY in Step 9.
 
 If `figure.png` exists, skip to Step 4. Otherwise:
 ```bash
-python3 scripts/pipeline_cli.py image-generate --run-dir <run_dir> --verbose
+$HAPPYFIGURE_PYTHON scripts/pipeline_cli.py image-generate --run-dir <run_dir> --verbose
 ```
 
 ### Step 3: Structural QA Gate (standard mode only, GENERATED images only)
 
 **View the generated image** using `read`. Compare against method description: all components present? Data flow correct? Arrows visible? If fundamentally wrong:
 ```bash
-python3 scripts/pipeline_cli.py image-generate --run-dir <run_dir> --force --refined-prompt "<improved prompt>"
+$HAPPYFIGURE_PYTHON scripts/pipeline_cli.py image-generate --run-dir <run_dir> --force --refined-prompt "<improved prompt>"
 ```
 **Max 2 regeneration attempts.** Then proceed with best available.
 
@@ -176,7 +177,7 @@ Fix errors and re-validate. **Max 3 fix attempts.**
 ### Step 11: Icon Replacement
 
 ```bash
-python3 scripts/pipeline_cli.py icon-replace --run-dir <run_dir> --svg-path <run_dir>/template.svg --verbose
+$HAPPYFIGURE_PYTHON scripts/pipeline_cli.py icon-replace --run-dir <run_dir> --svg-path <run_dir>/template.svg --verbose
 ```
 
 ### Step 12: Render to PNG

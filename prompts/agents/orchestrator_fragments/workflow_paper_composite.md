@@ -2,6 +2,58 @@
 
 Generate ALL figures for the paper — statistical plots, method diagrams, and hybrids — in one run.
 
+### Workspace Log (`workspace_log.md`)
+
+Maintain a living document at `workspace_log.md` in the run directory. **Update it after completing each stage** (DISCOVER, PLAN, GENERATE, ASSEMBLE). This is your persistent memory — when context is compressed in long sessions, re-read this file to recover full awareness of what you've done.
+
+Format — use this exact structure so post-run validation can parse it:
+
+```markdown
+# Workspace Log
+
+## DISCOVER
+- Status: COMPLETED
+- exploration_report.md — 15 data files scanned, 3 recoverable panels found
+- exploration_summary.json — 4 figures, 11 panels total
+- method_description.md — run embedding architecture (3 diagrams needed)
+- figure_classification.json:
+  - Figure_1/a: diagram (generatable) — data splitting overview
+  - Figure_1/b: diagram (generatable) — model architecture
+  - Figure_1/c: statistical (generatable) — UMAP embeddings
+  - Figure_2/a: diagram (generatable) — classification heads
+  - ...
+- Data recovery:
+  - figure_2__b: RECOVERED → data_recovery/figure_2__b/output.json
+  - figure_3__a: RECOVERED → data_recovery/figure_3__a/output.json
+
+## PLAN
+- Status: COMPLETED
+- global_style.md — Nature-quality, despined, Helvetica, Set2 palette
+- color_registry.json — 3 models: Run Embedding (#1f77b4), Casanovo (#ff7f0e), Baseline (#2ca02c)
+- Styled specs written: figure_1__c, figure_2__b, figure_3__a, figure_3__b, figure_4__a–d
+
+## GENERATE
+- Status: IN_PROGRESS
+- Statistical panels:
+  - figure_1__c: COMPLETED → panels/Figure_1/c/panel.png (112KB)
+  - figure_2__b: COMPLETED → panels/Figure_2/b/panel.png (95KB)
+  - ...
+- Diagram panels:
+  - Figure_1/a: PENDING — needs @svg-builder + @svg-refiner
+  - Figure_1/b: PENDING — needs @svg-builder + @svg-refiner
+  - Figure_2/a: PENDING — needs @svg-builder + @svg-refiner
+
+## ASSEMBLE
+- Status: NOT_STARTED
+```
+
+**Rules:**
+- Create the file after DISCOVER completes. Update after each subsequent stage.
+- List every panel with its current status (PENDING / IN_PROGRESS / COMPLETED / FAILED) and output path.
+- Before starting GENERATE, re-read this file to verify all diagram panels are accounted for.
+- Before starting ASSEMBLE, re-read this file to verify all panels show COMPLETED with real output paths.
+- If any diagram panel is not COMPLETED, do NOT proceed to ASSEMBLE — generate it first.
+
 ### DISCOVER (parallel)
 
 #### Step 1 — Spawn exploration agents in parallel (one turn, multiple tool calls)
@@ -70,7 +122,7 @@ For each panel that WOULD be classified as "placeholder", verify the data is tru
 **For each recoverable panel:**
 1. Read the exploration report's "Recoverable Data" section for script path and inputs
 2. Write a standalone Python recovery script to `data_recovery/<panel_slug>_recover.py`
-3. **Execute it yourself** via bash: `python data_recovery/<panel_slug>_recover.py`
+3. **Execute it yourself** via bash: `$HAPPYFIGURE_PYTHON data_recovery/<panel_slug>_recover.py`
 4. Verify the output exists in `data_recovery/<panel_slug>/`
 5. Reclassify the panel from `"placeholder"` to `"statistical"` in `figure_classification.json`
 6. Set `"data_source"` to the recovered data path: `"data_recovery/<panel_slug>/output.json"`
@@ -114,6 +166,8 @@ Common recoverable patterns:
 
 For each statistical panel: create `experiments/<slug>/description.md` (slug = `{figure_id}__{panel_id}`, e.g., `figure_1__b`).
 
+**→ Update `workspace_log.md`**: write the DISCOVER section with all classified panels and recovery results.
+
 ### PLAN
 
 1. Spawn `@planner-stylist` for statistical panels (writes `global_style.md`, `multi_figure_plan.md`, per-panel `styled_spec.md`).
@@ -134,16 +188,23 @@ For each statistical panel: create `experiments/<slug>/description.md` (slug = `
 - [ ] `color_registry.json` covers all methods/conditions/datasets that appear in any panel
 - [ ] Every `styled_spec.md` references the global style and uses registry colors
 
+**→ Update `workspace_log.md`**: write the PLAN section with style spec summary and color registry contents.
+
 ### GENERATE (type-dispatched, parallel where possible)
 
 - **Statistical panels**: spawn `@code-agent` per panel. **Include in EVERY code-agent prompt**: run_dir, slug, styled_spec path, `global_style.md` path, `color_registry.json` path. This ensures all panels share the same visual language.
-- **Diagram panels**: for EACH diagram panel, create an isolated working directory at `experiments/<slug>/diagram/` (avoids artifact collisions between multiple diagrams). Copy method_description.md + state.json there. Spawn `@svg-builder` then `@svg-refiner` using the per-panel directory as run_dir. Copy final output to `panels/<figure>/<panel>/`. **Services MUST be used** (SAM3:8001, OCR:8002, BEN2:8003). Do NOT use @svg-author or write SVG directly.
+- **Diagram panels** (**MANDATORY — never skip or substitute with placeholders**):
+  For EACH diagram panel, create an isolated working directory at `experiments/<slug>/diagram/` (avoids artifact collisions between multiple diagrams). Copy method_description.md + state.json there. Spawn `@svg-builder` then `@svg-refiner` using the per-panel directory as run_dir. Copy final output to `panels/<figure>/<panel>/`. Services are already running and healthy (SAM3:8001, OCR:8002, BEN2:8003) — use them. Do NOT use @svg-author or write SVG directly. Do NOT generate text placeholder PNGs for diagram panels — Python will reject them post-run and fail the pipeline.
 - **Hybrid panels**: diagram pipeline then `@viz-composer`.
-- **Placeholder panels**: generate labeled gray placeholder PNGs.
+- **Placeholder panels** (ONLY panels classified as `panel_type: "placeholder"`): generate labeled gray placeholder PNGs. Never apply this to diagram or hybrid panels.
 
 After generation, ensure each panel's output exists at `panels/<figure_id>/<panel_id>/panel.png`.
 
+**→ Update `workspace_log.md`**: write the GENERATE section. List every panel with status (COMPLETED/FAILED) and output path + file size. **Re-read the log and verify**: every diagram panel must show COMPLETED. If any diagram is PENDING or FAILED, generate it now before proceeding.
+
 ### ASSEMBLE + REFINE (visual-aware, post-hoc)
+
+**→ Before starting**: re-read `workspace_log.md` to recover full context of all panels and their locations.
 
 This stage runs **after all panels are generated**. You have full creative flexibility to decide layout based on the actual panel content.
 
@@ -219,7 +280,10 @@ If adjustments are needed, **modify individual panel code** (respawn @code-agent
 3. If NEEDS_IMPROVEMENT: fix assembly script or individual panels, re-execute (max 3 iterations).
 4. After all figures assembled: verify cross-figure consistency (DPI, label scheme, color palette).
 
+**→ Update `workspace_log.md`**: write the ASSEMBLE section with each figure's assembly result, score, and output path.
+
 ### FINALIZE
 
 1. Verify all expected paper figures exist in `outputs/paper_figures/`.
-2. Write `run_summary.md`.
+2. **Update `workspace_log.md`**: mark all stages COMPLETED, write final panel/figure inventory.
+3. Write `run_summary.md`.

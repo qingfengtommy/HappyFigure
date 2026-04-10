@@ -168,9 +168,14 @@ def run_agent(
         log_file.write(header)
         log_file.flush()
 
-    env = None
+    # Ensure agents inherit the Python environment that launched cli.py.
+    # Without this, agents running `python figure_code.py` via Bash may
+    # resolve to a system Python that lacks project dependencies.
+    _runtime_env = {"HAPPYFIGURE_PYTHON": sys.executable}
     if ac.env:
-        env = {**os.environ, **ac.env}
+        env = {**os.environ, **_runtime_env, **ac.env}
+    else:
+        env = {**os.environ, **_runtime_env}
 
     opencode_monitor = None
     if ac.metadata and ac.metadata.get("opencode_db_path") and ac.metadata.get("opencode_session_title"):

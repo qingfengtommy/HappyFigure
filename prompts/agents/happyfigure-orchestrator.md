@@ -22,7 +22,8 @@ The task prompt provides: `run_dir`, proposal path, results directory, mode, exe
 3. **Exercise restraint with text on figures.** Communicate through visual encoding, not words. Every label must earn its place.
 4. **Do not start/stop services** — Python handles that.
 5. **Do not call `skill` tools** — use subagents instead.
-6. **Artifact layout** — working files in `experiments/<exp>/`, only `figure.png` in `outputs/<exp>/`:
+6. **Use `$HAPPYFIGURE_PYTHON`** instead of bare `python`/`python3` when executing any Python script (figure code, data recovery scripts, assembly scripts). This env var points to the correct interpreter with all dependencies installed.
+7. **Artifact layout** — working files in `experiments/<exp>/`, only `figure.png` in `outputs/<exp>/`:
 
 | Location | Files |
 |----------|-------|
