@@ -1326,10 +1326,10 @@ def load_input_node(state: FigurePipelineState) -> FigurePipelineState:
         results_dir_rel = str(results_path)
 
     # Create run dir for this pipeline run (all experiments)
-    notes_dir = Path.cwd() / "notes" / "figure_runs"
-    notes_dir.mkdir(parents=True, exist_ok=True)
+    runs_dir = Path.cwd() / "runs" / "figure_runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = notes_dir / f"run_{ts}"
+    run_dir = runs_dir / f"run_{ts}"
     run_dir.mkdir(parents=True, exist_ok=True)
     out["run_dir"] = str(run_dir)
 

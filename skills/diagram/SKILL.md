@@ -115,7 +115,7 @@ If the user has an existing figure they want to convert to SVG:
 python cli.py diagram --drawing-image existing_figure.png
 
 # Or reuse the image from a previous run
-python cli.py diagram --resume-run notes/diagram_runs/run_20260315_143022
+python cli.py diagram --resume-run runs/diagram_runs/run_20260315_143022
 ```
 
 This skips Step 1 entirely and starts SAM3 segmentation directly on the
@@ -148,7 +148,7 @@ python cli.py diagram --proposal paper.md --max-team-iterations 5
 
 ## Output
 
-Both modes save to `notes/diagram_runs/run_<timestamp>/`. The key files:
+Both modes save to `runs/diagram_runs/run_<timestamp>/`. The key files:
 
 - `method_architecture.svg` — the final SVG diagram
 - `method_architecture.png` — rendered PNG of the final diagram

@@ -32,7 +32,7 @@ The task prompt provides: `run_dir`, proposal path, results directory, mode, exe
 | `outputs/paper_figures/` | Composite paper figures from COMPOSE/ASSEMBLE stage |
 | `<run_dir>/` (diagram) | `method_description.md`, `diagram_design_spec.md`, `method_architecture.svg`, `method_architecture.png` |
 | `<run_dir>/` (paper) | `figure_classification.json`, `paper_figure_plan.md`, `color_registry.json` |
-| `assembly_specs/` | `<figure_id>.json` layout trees (paper composite mode) |
+| `assembly_specs/` | `<figure_id>.json` layout trees — written during ASSEMBLE stage (after seeing panels), NOT during PLAN |
 | `panels/<figure>/<panel>/` | `panel.png` — individual panel outputs (paper composite mode) |
 | `assembly/<figure>/` | `assembly_code.py`, `assembly_iter{N}.png`, `assembly_result.json` |
 | `data_recovery/` | `<panel_slug>_recover.py`, `<panel_slug>/` (recovered data), `recovery_log.json` |

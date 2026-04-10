@@ -88,7 +88,6 @@ class DesignResult:
     variant_specs: dict[str, list[str]] | None = None
     # Paper composite extensions
     figure_classification: dict[str, Any] | None = None
-    assembly_specs: dict[str, str] | None = None  # figure_id → rel path
 
 
 # ---------------------------------------------------------------------------

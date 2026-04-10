@@ -26,7 +26,7 @@ llm:
   roles:
     chat:      {provider: azure, model: gpt-5.4}
     code:      {provider: azure, model: gpt-5.4}
-    drawing:   {provider: azure, model: gpt-image-1}
+    drawing:   {provider: google, model: gemini-3.1-flash-image-preview}
 
   # Named presets for --llm-preset CLI flag.
   # Each preset overrides specific roles from the defaults above.

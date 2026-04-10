@@ -41,6 +41,12 @@ python cli.py diagram --proposal configs/example_proposal.txt --llm-preset gemin
 python scripts/pipeline_cli.py services stop
 ```
 
+### All figures for a paper (plots + diagrams + assembly)
+```bash
+conda activate happyfigure
+python cli.py paper --proposal paper.md --results-dir ./results --execution parallel
+```
+
 ### Architecture diagram with existing image
 ```bash
 conda activate happyfigure
@@ -145,8 +151,9 @@ configs/pipeline_override.yaml     # Your personal overrides (HAPPYFIGURE_CONFIG
 .opencode/opencode.jsonc           # OpenCode provider + default model config
 .opencode/agent/*.md               # Auto-generated agent files (don't commit)
 .env                               # API keys, env vars (gitignored)
-notes/diagram_runs/                # diagram/sketch output runs
-notes/figure_runs/                 # plot output runs
+runs/figure_runs/                  # plot output runs
+runs/diagram_runs/                 # diagram/sketch/composite output runs
+runs/paper_runs/                   # paper output runs
 configs/method_examples/           # Reference architecture diagrams
 configs/statistical_examples/      # Reference statistical figures
 ```

@@ -223,14 +223,8 @@ def _design_paper_composite(exploration: ExplorationResult, args: argparse.Names
     if os.path.exists(fc_path):
         design_artifacts[ArtifactKeys.FIGURE_CLASSIFICATION] = orch_art.FIGURE_CLASSIFICATION
 
-    # Check for assembly specs
-    spec_dir = orch_art.assembly_spec_dir(run_dir)
-    assembly_specs: dict[str, str] = {}
-    if os.path.isdir(spec_dir):
-        for fname in os.listdir(spec_dir):
-            if fname.endswith(".json"):
-                fig_id = fname.replace(".json", "")
-                assembly_specs[fig_id] = os.path.join(orch_art.ASSEMBLY_SPEC_DIR, fname)
+    # Assembly specs are late-bound (written during ASSEMBLE, not PLAN).
+    # They are indexed under the "assemble" manifest stage, not here.
 
     # For any statistical panels, run plot planning if exploration found experiments
     experiments: list[str] = list(exploration.experiments)
@@ -260,7 +254,6 @@ def _design_paper_composite(exploration: ExplorationResult, args: argparse.Names
                 "pipeline": "paper_composite",
                 "artifact_layout_version": orch_art.ARTIFACT_LAYOUT_VERSION,
                 "experiments": experiments,
-                "assembly_specs": assembly_specs,
                 "has_figure_classification": os.path.exists(fc_path),
             },
             f,
@@ -273,7 +266,6 @@ def _design_paper_composite(exploration: ExplorationResult, args: argparse.Names
         artifacts=design_artifacts,
         experiments=experiments,
         variant_specs=variant_specs,
-        assembly_specs=assembly_specs if assembly_specs else None,
     )
 
 

@@ -17,6 +17,10 @@ Usage:
     # Explicit flags still work
     python cli.py plot --proposal paper.md --results-dir ./results
 
+    # Natural language — describe what you want instead of a file path
+    python cli.py plot "generate bar charts comparing model accuracy"
+    python cli.py sketch "draw a transformer architecture diagram"
+
     # Architecture diagram
     python cli.py diagram paper.md
 
@@ -34,7 +38,7 @@ Usage:
 
     # Human review: generate template, edit, resume with feedback
     python cli.py plot paper.md --review
-    python cli.py review notes/figure_runs/run_20260406_220000
+    python cli.py review runs/figure_runs/run_20260406_220000
     python cli.py plot --proposal paper.md --resume <run_dir> --review
 """
 
@@ -149,13 +153,16 @@ def _build_parser() -> argparse.ArgumentParser:
             "  %(prog)s plot paper.md ./exp1 ./exp2          # proposal + multiple results dirs\n"
             "  %(prog)s plot ./data/dir1 ./data/dir2         # results dirs only (no proposal)\n"
             "  %(prog)s plot --proposal paper.md             # explicit flag still works\n"
+            '  %(prog)s plot "compare accuracy across models" # natural language instruction\n'
+            '  %(prog)s sketch "transformer with attention"   # natural language for diagrams\n'
             "  %(prog)s plot paper.md --execution beam\n"
             "  %(prog)s diagram paper.md --quality-profile conference\n"
             "  %(prog)s composite paper.md ./results\n"
             "  %(prog)s sketch paper.md\n"
+            "  %(prog)s paper paper.md ./results --execution parallel\n"
             "  %(prog)s plot paper.md --agent claude\n"
             "  %(prog)s plot paper.md --llm-preset gemini\n"
-            "  %(prog)s review notes/figure_runs/run_20260406_220000\n"
+            "  %(prog)s review runs/figure_runs/run_20260406_220000\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -421,17 +428,27 @@ def _looks_like_path(s: str) -> bool:
 
 
 def _resolve_positional_paths(args: argparse.Namespace) -> None:
-    """Classify positional paths into --proposal / --results-dir when not set explicitly."""
+    """Classify positional paths into --proposal / --results-dir when not set explicitly.
+
+    If a positional argument looks like natural language (multi-word, not a
+    filesystem path), it is stored as ``args.proposal`` so that
+    ``_ensure_compat_attrs`` can later reclassify it as a
+    ``_proposal_instruction``.
+    """
     paths = getattr(args, "paths", None) or []
     if not paths:
         return
 
     proposal_candidates: list[str] = []
     dir_candidates: list[str] = []
+    nl_candidates: list[str] = []
 
     for p in paths:
         p = p.strip()
         if not p:
+            continue
+        if not _looks_like_path(p):
+            nl_candidates.append(p)
             continue
         resolved = os.path.abspath(p)
         if os.path.isdir(resolved):
@@ -456,6 +473,11 @@ def _resolve_positional_paths(args: argparse.Namespace) -> None:
         args.proposal = proposal_candidates[0]
         # Remaining proposal files treated as dirs (unlikely but safe)
         dir_candidates.extend(proposal_candidates[1:])
+
+    # Natural-language positional args → treat as proposal instruction
+    # (downstream _ensure_compat_attrs will reclassify via _looks_like_path)
+    if not getattr(args, "proposal", None) and nl_candidates:
+        args.proposal = " ".join(nl_candidates)
 
     # Fill in --results-dir from positional if not already set
     if not getattr(args, "results_dir", None) and dir_candidates:

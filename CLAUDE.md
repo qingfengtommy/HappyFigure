@@ -470,7 +470,7 @@ Key pipeline parameters are centralized in `configs/pipeline.yaml`, loaded by `g
 | `cli.py` | Entry point: subcommand CLI, context setup, launches orchestrator |
 | `pipeline/orchestrator/main.py` | Top-level driver: agent-first vs python-stages dispatch |
 | `pipeline/orchestrator/artifacts.py` | Canonical v2 artifact paths (single source of truth) |
-| `pipeline/orchestrator/steps.py` | Stage execution: explore, design, generate, resume |
+| `pipeline/orchestrator/steps.py` | Stage execution: explore, design, generate, assemble (paper), resume |
 | `pipeline/orchestrator/strategies.py` | Pluggable execution handlers (sequential/parallel/beam) |
 | `pipeline/orchestrator/modes.py` | CLI command → mode resolution |
 | `pipeline/agent_runtime.py` | Agent subprocess execution, doom-loop detection |

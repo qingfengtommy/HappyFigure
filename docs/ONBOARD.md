@@ -137,8 +137,9 @@ python cli.py plot \
   --agent opencode
 ```
 
-`plot` output goes to `notes/figure_runs/run_YYYYMMDD_HHMMSS/`.
-Method runs (`sketch`, `diagram`, `composite`) go to `notes/diagram_runs/run_YYYYMMDD_HHMMSS/`.
+`plot` output goes to `runs/figure_runs/run_YYYYMMDD_HHMMSS/`.
+Method runs (`sketch`, `diagram`, `composite`) go to `runs/diagram_runs/run_YYYYMMDD_HHMMSS/`.
+Paper runs (`paper`) go to `runs/paper_runs/run_YYYYMMDD_HHMMSS/`.
 
 ## 5. Agent Platform Comparison
 

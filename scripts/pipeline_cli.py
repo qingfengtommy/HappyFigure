@@ -164,9 +164,9 @@ def cmd_init(args: argparse.Namespace) -> None:
     # Create run directory
     if not run_dir:
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        notes_dir = Path.cwd() / "notes" / "figure_runs"
-        notes_dir.mkdir(parents=True, exist_ok=True)
-        run_dir = str(notes_dir / f"run_{ts}")
+        runs_dir = Path.cwd() / "runs" / "figure_runs"
+        runs_dir.mkdir(parents=True, exist_ok=True)
+        run_dir = str(runs_dir / f"run_{ts}")
     rd = Path(run_dir)
     rd.mkdir(parents=True, exist_ok=True)
     # Create logs/ for all modes. For exp_plot, outputs/ and debug/ are created

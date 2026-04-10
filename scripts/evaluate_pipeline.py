@@ -53,8 +53,9 @@ TIMEOUTS = {
 }
 
 RUN_DIR_PATTERNS = [
-    r"(notes/figure_runs/run_\S+)",
-    r"(notes/diagram_runs/run_\S+)",
+    r"(runs/figure_runs/run_\S+)",
+    r"(runs/diagram_runs/run_\S+)",
+    r"(runs/paper_runs/run_\S+)",
 ]
 
 

@@ -140,7 +140,7 @@ def _shorten_paths_in_text(text: str) -> str:
 def _smart_path_truncate(path: str, limit: int) -> str:
     """Truncate a path keeping the last components (filename matters most).
 
-    Instead of ``notes/figure_runs/run_20260406/experiments/cross_...``
+    Instead of ``runs/figure_runs/run_20260406/experiments/cross_...``
     produces ``…/experiments/cross_cell_line/figure_code.py``.
     """
     if len(path) <= limit:

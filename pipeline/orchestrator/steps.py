@@ -39,7 +39,7 @@ from pipeline.run_state import (
 def allocate_run_dir(mode: str) -> str:
     ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     if mode == "exp_plot":
-        runs_dir = Path.cwd() / "notes" / "figure_runs"
+        runs_dir = Path.cwd() / "runs" / "figure_runs"
         runs_dir.mkdir(parents=True, exist_ok=True)
         run_dir = runs_dir / f"run_{ts}"
         run_dir.mkdir(parents=True, exist_ok=True)
@@ -47,9 +47,9 @@ def allocate_run_dir(mode: str) -> str:
         return str(run_dir)
 
     if mode == "paper_composite":
-        runs_dir = Path.cwd() / "notes" / "paper_runs"
+        runs_dir = Path.cwd() / "runs" / "paper_runs"
     else:
-        runs_dir = Path.cwd() / "notes" / "diagram_runs"
+        runs_dir = Path.cwd() / "runs" / "diagram_runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
     run_dir = runs_dir / f"run_{ts}"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -272,7 +272,7 @@ def build_orchestrator_session_prompt(
             "Max 8 figures without explicit proposal. "
             "2) PLAN: spawn @planner-stylist for statistical panels "
             "(writes global_style.md, per-panel styled_spec.md). "
-            "Write assembly_spec/<figure>.json with nested row-based layout trees for each figure. "
+            "Do NOT write assembly_specs yet — layout is decided later after seeing actual panels. "
             "Write color_registry.json for cross-figure color consistency. "
             "Write paper_figure_plan.md and design_summary.json. "
             "3) GENERATE: route panels by type. "
@@ -287,12 +287,23 @@ def build_orchestrator_session_prompt(
             "Do NOT use @svg-author — service-based pipeline produces higher quality. "
             "Placeholder panels: generate labeled gray placeholder PNGs. "
             "Panel slug convention: {figure_id}__{panel_id} (e.g., figure_1__a). "
-            "4) ASSEMBLE: for each figure, read assembly_spec, write a PIL-based assembly script "
-            "(use PIL Image.open/paste for pixel-perfect composition without blur; fall back to matplotlib GridSpec "
-            "with aspect='equal' if PIL unavailable). Tight spacing, 14pt bold labels, 300 DPI, white background. "
-            "Run @figure-critic in assembly mode on each assembled figure. "
-            "Iterate assembly if NEEDS_IMPROVEMENT (max 3). "
-            "Save to outputs/paper_figures/Figure_N.{png,pdf}. "
+            "4) ASSEMBLE + REFINE: this is a VISUAL-AWARE, post-hoc stage. "
+            "For each figure: "
+            "a) READ all panel PNGs from panels/<figure>/<panel>/panel.png. Inspect actual dimensions, aspect ratios, content density. "
+            "b) COMPARE with Nature reference figures in references/nature/*/reference_figures/ — "
+            "study their spacing, label placement, whitespace balance, font harmony. "
+            "c) DECIDE layout dynamically based on actual panel content — row structure, width/height ratios, "
+            "whether to crop/pad individual panels. You have full flexibility: uneven rows, spanning panels, "
+            "creative groupings (e.g. 5 diagrams top + 1 wide plot bottom). "
+            "d) WRITE assembly_specs/<figure>.json with the layout you chose (nested row-based layout tree). "
+            "e) Write a PIL-based assembly script (Image.open/paste for pixel-perfect composition; "
+            "fall back to matplotlib GridSpec with aspect='equal' if PIL unavailable). "
+            "Tight spacing, 14pt bold labels, 300 DPI, white background. "
+            "f) AESTHETIC PASS: compare assembled figure against Nature references. "
+            "Check: whitespace balance, font size harmony across panels, label alignment, "
+            "color consistency, spine rules, legend placement. Adjust if needed. "
+            "g) Run @figure-critic in assembly mode. Iterate if NEEDS_IMPROVEMENT (max 3). "
+            "h) Save to outputs/paper_figures/Figure_N.{png,pdf}. "
             "5) Verify all figures exist, write run_summary.md."
         )
 
@@ -377,7 +388,9 @@ def validate_agent_session_outputs(run_dir: str, mode: str, design: DesignResult
         for rel in required:
             if not os.path.exists(os.path.join(run_dir, rel)):
                 missing.append(rel)
-        # Check assembly specs directory has at least one spec
+        # Assembly specs are late-bound (written during ASSEMBLE, not PLAN).
+        # They must still exist by the end of the run — the agent writes them
+        # after inspecting generated panels, before composing the final figures.
         spec_dir = orch_art.assembly_spec_dir(run_dir)
         if os.path.isdir(spec_dir):
             specs = [f for f in os.listdir(spec_dir) if f.endswith(".json")]
@@ -485,13 +498,8 @@ def collect_design_artifacts(
         ):
             if os.path.exists(os.path.join(run_dir, rel)):
                 artifacts[key] = rel
-        # Index assembly specs
-        spec_dir = orch_art.assembly_spec_dir(run_dir)
-        if os.path.isdir(spec_dir):
-            for fname in sorted(os.listdir(spec_dir)):
-                if fname.endswith(".json"):
-                    fig_id = fname.replace(".json", "")
-                    artifacts[f"assembly_spec/{fig_id}"] = os.path.join(orch_art.ASSEMBLY_SPEC_DIR, fname)
+        # NOTE: assembly_specs are late-bound (written during ASSEMBLE, not PLAN).
+        # They are indexed under the "assemble" stage by collect_assemble_artifacts().
         # Index per-panel experiments
         for exp in experiments:
             rel = os.path.relpath(orch_art.experiment_styled_spec_path(run_dir, exp), run_dir)
@@ -562,6 +570,25 @@ def sync_agent_session_manifest(run_dir: str, args: argparse.Namespace, mode: st
         ),
         mode=mode,
     )
+
+    # For paper_composite, write a separate "assemble" stage that captures
+    # late-bound assembly specs and assembled paper figures.
+    if mode == "paper_composite":
+        assemble_artifacts = collect_assemble_artifacts(run_dir)
+        if assemble_artifacts:
+            write_manifest_stage(
+                run_dir,
+                "assemble",
+                StageRecord(
+                    status=StageStatus.COMPLETED,
+                    completed_at=now,
+                    artifacts=assemble_artifacts,
+                    experiments=experiments,
+                    metadata=stage_metadata(run_dir, mode, args, stage="assemble", design=design),
+                ),
+                mode=mode,
+            )
+
     return design
 
 
@@ -663,7 +690,7 @@ def step_explore_plot(args: argparse.Namespace) -> str:
     first_experiments_dir = experiments_dir.split(",")[0].strip() if experiments_dir else ""
 
     ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    runs_dir = Path.cwd() / "notes" / "figure_runs"
+    runs_dir = Path.cwd() / "runs" / "figure_runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
     run_dir = str(runs_dir / f"run_{ts}")
     os.makedirs(run_dir, exist_ok=True)
@@ -881,7 +908,7 @@ def collect_generate_artifacts(
     experiments: list[str],
 ) -> dict[str, str]:
     artifacts: dict[str, str] = {}
-    if mode == "exp_plot":
+    if mode in ("exp_plot", "paper_composite"):
         for exp in experiments:
             fig = os.path.join("outputs", exp, "figure.png")
             if os.path.exists(os.path.join(run_dir, fig)):
@@ -897,13 +924,20 @@ def collect_generate_artifacts(
             # Backward compat: check old location in outputs/<exp>/
             elif os.path.exists(os.path.join(run_dir, "outputs", exp, orch_art.CRITIC_RESULT)):
                 artifacts[f"critic_workspace/{exp}"] = os.path.join("outputs", exp, orch_art.CRITIC_RESULT)
-        # Composite paper figures
-        pf_dir = os.path.join(run_dir, "outputs", orch_art.PAPER_FIGURES_DIR)
-        if os.path.isdir(pf_dir):
-            for fname in sorted(os.listdir(pf_dir)):
-                if fname.endswith((".png", ".pdf")):
-                    rel = os.path.join("outputs", orch_art.PAPER_FIGURES_DIR, fname)
-                    artifacts[f"paper_figure/{fname}"] = rel
+        if mode == "paper_composite":
+            # Index individual panel PNGs (generate-stage outputs)
+            panels_root = os.path.join(run_dir, orch_art.PANELS_DIR)
+            if os.path.isdir(panels_root):
+                for fig_dir in sorted(os.listdir(panels_root)):
+                    fig_path = os.path.join(panels_root, fig_dir)
+                    if os.path.isdir(fig_path):
+                        for panel_dir in sorted(os.listdir(fig_path)):
+                            panel_png = os.path.join(fig_path, panel_dir, "panel.png")
+                            if os.path.exists(panel_png):
+                                rel = os.path.join(orch_art.PANELS_DIR, fig_dir, panel_dir, "panel.png")
+                                artifacts[f"panel/{fig_dir}/{panel_dir}"] = rel
+        # Assembly specs and paper figures are indexed under the separate
+        # "assemble" stage by collect_assemble_artifacts().
     else:
         for name in ("method_architecture.svg", "method_architecture.png"):
             if os.path.exists(os.path.join(run_dir, name)):
@@ -911,6 +945,47 @@ def collect_generate_artifacts(
         composed = "method_architecture_composed.png"
         if os.path.exists(os.path.join(run_dir, composed)):
             artifacts["composed"] = composed
+    return artifacts
+
+
+def collect_assemble_artifacts(run_dir: str) -> dict[str, str]:
+    """Collect late-bound assembly artifacts for the ``assemble`` manifest stage.
+
+    Assembly specs and assembled paper figures are produced during the ASSEMBLE
+    stage (after panels are generated), not during PLAN/design.
+    """
+    artifacts: dict[str, str] = {}
+
+    # Assembly specs (layout decisions made after seeing panel PNGs)
+    spec_dir = orch_art.assembly_spec_dir(run_dir)
+    if os.path.isdir(spec_dir):
+        for fname in sorted(os.listdir(spec_dir)):
+            if fname.endswith(".json"):
+                fig_id = fname.replace(".json", "")
+                artifacts[f"assembly_spec/{fig_id}"] = os.path.join(orch_art.ASSEMBLY_SPEC_DIR, fname)
+
+    # Assembly scripts, iteration archives, and root-level assembly outputs
+    asm_dir = orch_art.assembly_dir(run_dir)
+    if os.path.isdir(asm_dir):
+        for entry in sorted(os.listdir(asm_dir)):
+            entry_path = os.path.join(asm_dir, entry)
+            if os.path.isdir(entry_path):
+                for fname in os.listdir(entry_path):
+                    rel = os.path.join(orch_art.ASSEMBLY_DIR, entry, fname)
+                    artifacts[f"assembly/{entry}/{fname}"] = rel
+            elif os.path.isfile(entry_path):
+                # Root-level assembly outputs (e.g. cross_figure_consistency.json)
+                rel = os.path.join(orch_art.ASSEMBLY_DIR, entry)
+                artifacts[f"assembly/{entry}"] = rel
+
+    # Assembled paper figures
+    pf_dir = orch_art.paper_figures_dir(run_dir)
+    if os.path.isdir(pf_dir):
+        for fname in sorted(os.listdir(pf_dir)):
+            if fname.endswith((".png", ".pdf")):
+                rel = os.path.join("outputs", orch_art.PAPER_FIGURES_DIR, fname)
+                artifacts[f"paper_figure/{fname}"] = rel
+
     return artifacts
 
 

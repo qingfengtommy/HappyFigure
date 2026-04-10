@@ -117,25 +117,7 @@ For each statistical panel: create `experiments/<slug>/description.md` (slug = `
 ### PLAN
 
 1. Spawn `@planner-stylist` for statistical panels (writes `global_style.md`, `multi_figure_plan.md`, per-panel `styled_spec.md`).
-2. Write `assembly_specs/<figure_id>.json` for each figure — nested row-based layout tree:
-   ```json
-   {
-     "figure_id": "Figure_1",
-     "figsize_inches": [18.0, 12.0],
-     "dpi": 300,
-     "layout": {
-       "type": "nested_gridspec",
-       "rows": [
-         {"row_index": 0, "height_ratio": 1.0, "panels": [
-           {"panel_id": "a", "width_ratio": 2.0, "col_span": 1, "aspect_policy": "preserve"},
-           {"panel_id": "b", "width_ratio": 1.0, "col_span": 1, "aspect_policy": "fill"}
-         ]}
-       ],
-       "wspace": 0.08, "hspace": 0.10
-     },
-     "panel_labels": {"scheme": "lowercase", "size_pt": 14, "weight": "bold", "offset": [-0.08, 1.04]}
-   }
-   ```
+2. **Do NOT write `assembly_specs/` yet.** Layout decisions are deferred to the ASSEMBLE stage, after you can see the actual generated panels.
 3. Write `color_registry.json` — **critical for cross-figure consistency**. Map every data category to a specific hex color:
    ```json
    {
@@ -151,7 +133,6 @@ For each statistical panel: create `experiments/<slug>/description.md` (slug = `
 - [ ] `global_style.md` defines concrete rcParams (font.size, spines, legend.frameon)
 - [ ] `color_registry.json` covers all methods/conditions/datasets that appear in any panel
 - [ ] Every `styled_spec.md` references the global style and uses registry colors
-- [ ] Assembly specs use tight spacing (wspace ≤ 0.12, hspace ≤ 0.15)
 
 ### GENERATE (type-dispatched, parallel where possible)
 
@@ -162,19 +143,81 @@ For each statistical panel: create `experiments/<slug>/description.md` (slug = `
 
 After generation, ensure each panel's output exists at `panels/<figure_id>/<panel_id>/panel.png`.
 
-### ASSEMBLE
+### ASSEMBLE + REFINE (visual-aware, post-hoc)
 
-For each figure:
-1. Collect all panel outputs from `panels/<figure>/<panel>/panel.png`.
-2. Write a **PIL-based** assembly script (preferred — no re-rasterization blur) or matplotlib GridSpec script:
-   - **PIL method**: Use `from PIL import Image` to load panel PNGs, auto-crop white borders, scale panels in same row to equal height (preserving aspect ratio), paste onto white canvas, draw bold panel labels. This avoids the blur caused by matplotlib `imshow` re-rendering.
-   - **matplotlib fallback**: Use nested GridSpec with `aspect='equal'` (not `'auto'`) to prevent stretching.
-   - In either case: **tight spacing**, 14pt bold labels, 300 DPI output, white background.
-3. Execute the script -> `outputs/paper_figures/<figure_id>.png`.
-4. Run deterministic validation (panel count, dimensions, not blank).
-5. Spawn `@figure-critic` in assembly mode for quality review.
-6. If NEEDS_IMPROVEMENT: fix assembly script, re-execute (max 3 iterations). Common fixes: adjust spacing, rebalance width_ratios, fix label overlap.
-7. After all figures assembled: verify cross-figure consistency (DPI, label scheme, color palette).
+This stage runs **after all panels are generated**. You have full creative flexibility to decide layout based on the actual panel content.
+
+#### Step 1 — Inspect panels
+
+For each figure, **read every panel PNG** from `panels/<figure>/<panel>/panel.png`:
+- Note actual dimensions, aspect ratios, content density
+- Identify panels that are landscape vs portrait, text-heavy vs visual
+- Check if any panels have excessive whitespace that should be cropped
+
+#### Step 2 — Study Nature references (if available)
+
+If `references/nature/` exists, read 2-3 Nature reference figures from `references/nature/*/reference_figures/` that are most similar to your figure (e.g., multi-panel statistical figure, diagram + plot composite). If not available, apply Nature-quality standards from memory. Study:
+- **Spacing**: How tight are panels? How much breathing room between rows?
+- **Label placement**: Where are panel labels (a, b, c)? How large?
+- **Whitespace balance**: How is negative space distributed?
+- **Font harmony**: Are font sizes consistent across panels of different types?
+- **Overall composition**: How do they handle mixed panel types (diagram + bar chart)?
+
+#### Step 3 — Decide layout dynamically
+
+Based on the actual panels (not a pre-planned grid), decide:
+- **Row structure**: Which panels go in which row? Uneven rows are fine (e.g., 3 panels top, 1 wide panel bottom)
+- **Width/height ratios**: Set based on actual panel aspect ratios and content importance
+- **Cropping/padding**: Should any panel be trimmed (white borders) or given extra space?
+- **Panel ordering**: Re-order if it improves visual flow (respect logical grouping)
+
+Write `assembly_specs/<figure_id>.json` with your chosen layout:
+```json
+{
+  "figure_id": "Figure_1",
+  "figsize_inches": [18.0, 12.0],
+  "dpi": 300,
+  "layout": {
+    "type": "nested_gridspec",
+    "rows": [
+      {"row_index": 0, "height_ratio": 1.0, "panels": [
+        {"panel_id": "a", "width_ratio": 2.0, "col_span": 1, "aspect_policy": "preserve"},
+        {"panel_id": "b", "width_ratio": 1.0, "col_span": 1, "aspect_policy": "fill"}
+      ]}
+    ],
+    "wspace": 0.08, "hspace": 0.10
+  },
+  "panel_labels": {"scheme": "lowercase", "size_pt": 14, "weight": "bold", "offset": [-0.08, 1.04]}
+}
+```
+
+#### Step 4 — Compose
+
+Write a **PIL-based** assembly script (preferred — no re-rasterization blur) or matplotlib GridSpec script:
+- **PIL method**: Use `from PIL import Image` to load panel PNGs, auto-crop white borders, scale panels in same row to equal height (preserving aspect ratio), paste onto white canvas, draw bold panel labels.
+- **matplotlib fallback**: Use nested GridSpec with `aspect='equal'` (not `'auto'`) to prevent stretching.
+- In either case: **tight spacing**, 14pt bold labels, 300 DPI output, white background.
+
+Execute the script → `outputs/paper_figures/<figure_id>.png`.
+
+#### Step 5 — Aesthetic alignment
+
+Compare the assembled figure against Nature references (if available) or Nature-quality standards. Check and fix:
+- [ ] **Whitespace balance**: no large empty regions; breathing room between panels is uniform
+- [ ] **Font harmony**: axis labels, tick labels, panel labels all readable at print scale
+- [ ] **Color consistency**: palette matches across panels (verify color_registry was applied)
+- [ ] **Spine/border rules**: clean, despined, consistent across panel types
+- [ ] **Legend placement**: not overlapping data; positioned consistently
+- [ ] **Label alignment**: panel labels (a, b, c) at consistent positions across all figures
+
+If adjustments are needed, **modify individual panel code** (respawn @code-agent for a panel) or adjust the assembly script. You have authority to make per-panel changes during this stage.
+
+#### Step 6 — Validate and iterate
+
+1. Run deterministic validation (panel count, dimensions, not blank).
+2. Spawn `@figure-critic` in assembly mode for quality review.
+3. If NEEDS_IMPROVEMENT: fix assembly script or individual panels, re-execute (max 3 iterations).
+4. After all figures assembled: verify cross-figure consistency (DPI, label scheme, color palette).
 
 ### FINALIZE
 

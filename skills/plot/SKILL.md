@@ -105,7 +105,7 @@ Scoring and iteration limits are configured in `configs/pipeline.yaml`.
 
 ## Output
 
-All outputs land in `notes/figure_runs/run_<timestamp>/`. Tell the user where
+All outputs land in `runs/figure_runs/run_<timestamp>/`. Tell the user where
 to find their figures — the key files are:
 
 - `<experiment>/figure_code.py` — the final Python code

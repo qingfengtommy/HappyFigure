@@ -240,10 +240,10 @@ def load_markdown_node(state: MethodDrawingPipelineState) -> MethodDrawingPipeli
             run_dir = REPO_ROOT / run_dir
         run_dir.mkdir(parents=True, exist_ok=True)
     else:
-        notes_dir = REPO_ROOT / "notes" / "diagram_runs"
-        notes_dir.mkdir(parents=True, exist_ok=True)
+        runs_dir = REPO_ROOT / "runs" / "diagram_runs"
+        runs_dir.mkdir(parents=True, exist_ok=True)
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        run_dir = notes_dir / f"run_{ts}"
+        run_dir = runs_dir / f"run_{ts}"
         run_dir.mkdir(parents=True, exist_ok=True)
 
     # Load architecture few-shot examples (same pattern as _load_style_few_shots)

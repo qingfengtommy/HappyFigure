@@ -33,9 +33,9 @@ def step_init_drawing_image(args: argparse.Namespace) -> str:
 
     # Create run_dir
     ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    notes_dir = Path.cwd() / "notes" / "diagram_runs"
-    notes_dir.mkdir(parents=True, exist_ok=True)
-    run_dir = str(notes_dir / f"run_{ts}")
+    runs_dir = Path.cwd() / "runs" / "diagram_runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    run_dir = str(runs_dir / f"run_{ts}")
     os.makedirs(run_dir, exist_ok=True)
 
     # Copy drawing image to run_dir/figure.png
@@ -109,9 +109,9 @@ def step_method_explore(args: argparse.Namespace) -> str:
 
     # Create run_dir
     ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    notes_dir = Path.cwd() / "notes" / "diagram_runs"
-    notes_dir.mkdir(parents=True, exist_ok=True)
-    run_dir = str(notes_dir / f"run_{ts}")
+    runs_dir = Path.cwd() / "runs" / "diagram_runs"
+    runs_dir.mkdir(parents=True, exist_ok=True)
+    run_dir = str(runs_dir / f"run_{ts}")
     os.makedirs(run_dir, exist_ok=True)
 
     ui.section("Step 1: Method exploration")

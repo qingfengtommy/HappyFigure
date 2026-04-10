@@ -59,38 +59,79 @@ cp .env.example .env
 
 ### 1. Generate statistical figures
 
+Point HappyFigure at your research proposal and the directory containing your experimental results (CSV files, JSON outputs, etc.). The pipeline will scan your data, decide what figures to create, and generate publication-ready matplotlib plots — one per experiment.
+
 ```bash
-python cli.py plot --proposal paper.md
+# Using file paths (positional — proposal file auto-detected by extension)
+python cli.py plot paper.md ./results
+
+# Or with explicit flags
+python cli.py plot --proposal paper.md --results-dir ./results
+
+# Or with natural language — just describe what you want
+python cli.py plot "generate bar charts comparing model accuracy across datasets"
 ```
 
-This runs 3 agents in sequence: **data-explore** → **planner-stylist** → **code-agent** (with critic loop). Each figure is scored and iterated until it meets the quality threshold.
+You can pass positional arguments (files are auto-detected as proposals by extension, directories as results) or use explicit `--proposal` / `--results-dir` flags. You can also pass a natural-language instruction instead of a proposal file — the pipeline will forward your description to the agent as the task specification.
+
+Behind the scenes, three AI agents work in sequence. First, a **data-explore** agent reads every file in your results directory, identifies experiments and their schemas, and writes a structured exploration report. Next, a **planner-stylist** agent reads the report along with your proposal, plans the figures, and writes a detailed styled specification for each one (plot type, axis labels, color palette, fonts, etc.). Finally, a **code-agent** generates matplotlib code for each figure and runs it. A built-in **figure-critic** scores the output on five dimensions; if the score is below the threshold, the code-agent revises and re-runs, up to three iterations.
+
+Output: `runs/figure_runs/run_YYYYMMDD_HHMMSS/`
 
 ### 2. Generate an architecture diagram
 
-```bash
-# Lightweight — agent writes SVG directly (no GPU needed)
-python cli.py sketch --proposal paper.md
+If you need a method or architecture diagram for your paper, HappyFigure can generate one from your proposal text alone — no data directory needed.
 
-# Full pipeline — image generation → SAM3 segmentation → SVG → review (needs GPU + services)
+**Sketch mode** (lightweight, no GPU required): an agent reads your proposal, writes a method description, then directly authors an SVG diagram with a self-review loop.
+
+```bash
+python cli.py sketch --proposal paper.md
+```
+
+**Diagram mode** (full pipeline, GPU + microservices required): an LLM generates a raster image of the diagram, then SAM3 segments it into bounding boxes, PaddleOCR extracts text labels, and BEN2 removes backgrounds from icons. These are reassembled into a clean, editable SVG. An advocate agent scores the result and iteratively refines it.
+
+```bash
+# Start the three microservices (SAM3, OCR, BEN2)
 python scripts/pipeline_cli.py services start
+
+# Run the full diagram pipeline
 python cli.py diagram --proposal paper.md
+
+# Stop services when done
 python scripts/pipeline_cli.py services stop
 ```
 
-### 3. Generate everything for a paper
+**Composite mode** extends diagram mode by replacing raster visualization panels (bar charts, heatmaps embedded in the diagram) with programmatically generated versions for higher fidelity.
 
 ```bash
-python cli.py paper --proposal paper.md --execution parallel
+python cli.py composite --proposal paper.md
 ```
+
+Output: `runs/diagram_runs/run_YYYYMMDD_HHMMSS/`
+
+### 3. Generate everything for a paper
+
+The `paper` command is the end-to-end pipeline: it discovers what figures your paper needs (both statistical plots and architecture diagrams), generates each one, then assembles them into final multi-panel figures matching the layout your paper requires.
+
+```bash
+python cli.py paper --proposal paper.md --results-dir ./results --execution parallel
+```
+
+The pipeline runs four stages: **DISCOVER** (classify what figures the paper needs and which panels are plots vs. diagrams), **PLAN** (create detailed specs for each panel), **GENERATE** (produce every panel in parallel), and **ASSEMBLE** (compose panels into final figures with consistent styling, spacing, and labeling). Assembly is visual-aware — the agent inspects generated panels and reference figures before deciding layout.
+
+Output: `runs/paper_runs/run_YYYYMMDD_HHMMSS/`
 
 ### 4. Find your output
 
+Each run creates a timestamped directory with all generated figures, source code, critic scores, and intermediate artifacts.
+
 | Command | Output location |
 |---------|----------------|
-| `plot` | `notes/figure_runs/run_YYYYMMDD_HHMMSS/` |
-| `sketch`, `diagram`, `composite` | `notes/diagram_runs/run_YYYYMMDD_HHMMSS/` |
+| `plot` | `runs/figure_runs/run_YYYYMMDD_HHMMSS/` |
+| `sketch`, `diagram`, `composite` | `runs/diagram_runs/run_YYYYMMDD_HHMMSS/` |
+| `paper` | `runs/paper_runs/run_YYYYMMDD_HHMMSS/` |
 
-Each run directory contains the generated figures, code, critic scores, and intermediate artifacts.
+Inside a run directory you will find: the copied proposal, an exploration report, per-experiment workspaces (styled specs, generated code, critic results), and an `outputs/` directory with the final promoted figures.
 
 ## Commands
 
@@ -200,9 +241,28 @@ python cli.py <command> [options]
 python cli.py plot -h              # command-specific help
 ```
 
+### Input modes
+
+HappyFigure accepts input in three ways:
+
+```bash
+# 1. Positional arguments — files and directories are auto-detected
+python cli.py plot paper.md ./results          # .md → proposal, directory → results
+python cli.py plot paper.md ./exp1 ./exp2      # multiple results directories
+
+# 2. Explicit flags
+python cli.py plot --proposal paper.md --results-dir ./results
+
+# 3. Natural language — describe what you want instead of providing a file
+python cli.py plot "generate bar charts comparing model accuracy"
+python cli.py sketch "draw a transformer architecture with attention layers"
+```
+
+When you pass a natural-language string (3+ words that don't resolve to an existing file), HappyFigure forwards it as a task instruction to the agent instead of reading a proposal file.
+
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--proposal <file>` | Path to paper proposal / description | **(required)** |
+| `--proposal <file>` | Path to paper proposal / description, or a natural-language instruction | **(required)** |
 | `--results-dir <dir>` | Directory containing experiment data | `./results` |
 | `--agent <platform>` | Agent platform: `opencode`, `claude`, `codex`, `gemini`, `copilot` | from config |
 | `--llm-preset <name>` | LLM preset: `azure`, `gemini`, `mixed` | from config |
@@ -282,7 +342,7 @@ HappyFigure/
 | Services won't start | Check `nvidia-smi` for GPU, ensure `happyfigure` conda env is active |
 | `AZURE_OPENAI_API_KEY` not set | Set in `.env` file — see `.env.example` |
 | Google Gemini 403/429 | Verify `GEMINI_API_KEY` or Vertex AI credentials |
-| Agent exits immediately | Check logs in `notes/figure_runs/run_*/logs/` or `notes/diagram_runs/run_*/logs/` |
+| Agent exits immediately | Check logs in `runs/figure_runs/run_*/logs/` or `runs/diagram_runs/run_*/logs/` |
 | `figure_code.py` import errors | Run `pip install -e ".[examples]"` for matplotlib/seaborn/scipy |
 | Low critic scores (< 7) | Try `--execution beam` for multi-variant search |
 | SVG validation exhausts retries | Simplify proposal or increase `scoring.max_iterations` in config |

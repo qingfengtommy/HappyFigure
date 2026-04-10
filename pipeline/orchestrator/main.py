@@ -87,9 +87,15 @@ def run_agent_pipeline(args: argparse.Namespace) -> None:
 
         ctx.orchestrator.setup(run_dir=run_dir, mode=mode, execution=execution)
         prompt = orch_steps.build_orchestrator_session_prompt(run_dir, args, mode)
-        generate_rec = read_manifest_stage(run_dir, "generate")
+        # For paper_composite, the terminal stage is "assemble" (not "generate").
+        # Fall back to "generate" for backward compat with old manifests that
+        # predate the assemble stage.
+        if mode == "paper_composite":
+            terminal_rec = read_manifest_stage(run_dir, "assemble") or read_manifest_stage(run_dir, "generate")
+        else:
+            terminal_rec = read_manifest_stage(run_dir, "generate")
         resume_completed = bool(
-            getattr(args, "resume", None) and generate_rec and generate_rec.status == StageStatus.COMPLETED
+            getattr(args, "resume", None) and terminal_rec and terminal_rec.status == StageStatus.COMPLETED
         )
 
         with ui.orchestrator_log(run_dir):

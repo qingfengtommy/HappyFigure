@@ -76,59 +76,27 @@ When no proposal is provided:
 5. Do NOT propose speculative figures
 6. First figure should show data overview/distribution if applicable
 
-## Step 3: Design Layouts
+## Step 3: Document Layout Intent
 
-For each figure, write an `assembly_specs/<figure_id>.json` with a nested row-based layout:
+For each figure, document the **intended layout** in `paper_figure_plan.md` (panel grouping, logical ordering, suggested row structure). This guides code-agents on target aspect ratios.
 
-```json
-{
-  "figure_id": "Figure_1",
-  "figsize_inches": [18.0, 12.0],
-  "dpi": 300,
-  "layout": {
-    "type": "nested_gridspec",
-    "rows": [
-      {
-        "row_index": 0,
-        "height_ratio": 1.0,
-        "panels": [
-          {"panel_id": "a", "width_ratio": 2.0, "col_span": 1, "aspect_policy": "preserve"},
-          {"panel_id": "b", "width_ratio": 1.0, "col_span": 1, "aspect_policy": "fill"}
-        ]
-      }
-    ],
-    "wspace": 0.08,
-    "hspace": 0.10
-  },
-  "panel_labels": {
-    "scheme": "lowercase",
-    "size_pt": 14,
-    "weight": "bold",
-    "position": "top-left",
-    "offset": [-0.08, 1.04]
-  },
-  "shared_elements": []
-}
-```
+**Do NOT write `assembly_specs/<figure_id>.json` here.** Assembly layout is decided later during the ASSEMBLE stage, after all panels are generated and the orchestrator can see actual panel dimensions and content.
 
-### Layout Guidelines
+### Layout Guidance (for `paper_figure_plan.md`)
 
-- Each row is independent (no cross-row spanning in v1)
-- `col_span` > 1 makes a panel span multiple columns within its row
-- `aspect_policy`: `"preserve"` for images/diagrams, `"fill"` for statistical plots
-- `width_ratio`: relative width within a row
-- `height_ratio`: relative height of the row
-- `figsize_inches`: total figure size. Nature single column = 89mm (~7in), double = 183mm (~7.2in wide)
-- Use `[18.0, 12.0]` (approx double column) as default
+Include per-figure:
+- Panel grouping: which panels belong together in a row
+- Suggested row structure: e.g., "3 panels top row, 1 wide panel bottom"
+- Content type hints: which panels are diagrams vs statistical (affects aspect ratio)
+- Relative importance: which panels should get more visual weight
 
-### Nature-Quality Layout Rules
+### Nature-Quality Layout Principles
 
-- **Tight spacing**: `wspace` 0.05–0.12, `hspace` 0.08–0.15. Never exceed 0.2.
-- **Panel proportions**: Match width_ratio to content complexity. Wide panels (2.0) for multi-column bar charts or heatmaps; narrow (1.0) for single scatter or violin plots.
-- **Row height balance**: Use height_ratio to match the vertical complexity of panels in each row. Heatmaps/tables often need more height than bar charts.
-- **figsize_inches**: Scale to actual content density. 4-panel figures: `[14, 10]`. 8+ panel figures: `[18, 16]`. Single-row: `[18, 5]`.
-- **Avoid square figures for irregular content** — match aspect ratio to the layout (e.g., `[18, 8]` for a 1-row, 4-panel figure).
-- **Panel labels**: 14pt bold, offset `[-0.08, 1.04]` — placed just above and left of each panel. Labels should be **lowercase** (`a`, `b`, `c`) per Nature style.
+- **Tight spacing**: panels should be close together with minimal whitespace
+- **Panel proportions**: wide panels for multi-column charts/heatmaps; narrow for single scatter/violin
+- **Row height balance**: match vertical complexity (heatmaps need more height than bar charts)
+- **Panel labels**: lowercase (`a`, `b`, `c`) per Nature style, 14pt bold
+- **figsize_inches guidance**: 4-panel figures ~`[14, 10]`, 8+ panels ~`[18, 16]`, single-row ~`[18, 5]`
 
 ## Step 4: Write Outputs
 
@@ -163,11 +131,7 @@ For each figure, write an `assembly_specs/<figure_id>.json` with a nested row-ba
 
 Panel slug convention: `{figure_id}__{panel_id}` (lowercase, underscores). Example: `figure_1__a`, `figure_3__k`.
 
-### 2. `assembly_specs/<figure_id>.json` (one per figure)
-
-Layout tree as described above.
-
-### 3. `paper_figure_plan.md`
+### 2. `paper_figure_plan.md`
 
 Human-readable plan:
 

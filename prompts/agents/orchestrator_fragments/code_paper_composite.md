@@ -8,9 +8,14 @@ Services (SAM3:8001, OCR:8002, BEN2:8003) are running if any panel needs them.
 4. **Data recovery panels**: If any panel was reclassified from placeholder to statistical during the data recovery step, treat it as a statistical panel — spawn `@code-agent` with the recovered data path.
 5. **Placeholder panels**: for each REMAINING placeholder (only truly non-generatable content), write a labeled gray placeholder PNG to `panels/<figure>/<panel>/panel.png`.
 5. After all panels complete: copy each panel's output to `panels/<figure>/<panel>/panel.png`.
-6. For each figure: read `assembly_specs/<figure>.json`, write a **PIL-based** assembly script (preferred — avoids blur from matplotlib imshow re-rendering). Use PIL `Image.open/paste` to compose panels at native resolution. If PIL unavailable, use matplotlib GridSpec with `aspect='equal'`. **Tight spacing**, 14pt bold panel labels, 300 DPI.
-7. Run `@figure-critic` in assembly mode on each assembled paper figure (view the assembled PNG + the spec).
-8. If NEEDS_IMPROVEMENT: adjust the assembly script (spacing, label positioning), re-execute (max 3 iterations).
+6. **ASSEMBLE (visual-aware)**: For each figure:
+   a. **Read all panel PNGs** — inspect actual dimensions, aspect ratios, content.
+   b. **Study Nature references** (if `references/nature/` exists) — read 2-3 similar figures from `references/nature/*/reference_figures/` for spacing, label, and composition guidance. If unavailable, apply Nature-quality standards.
+   c. **Decide layout** based on actual panel content (not a pre-planned grid). Write `assembly_specs/<figure>.json` with your chosen layout tree.
+   d. Write a **PIL-based** assembly script (preferred — avoids blur from matplotlib imshow re-rendering). Use PIL `Image.open/paste` to compose panels at native resolution. If PIL unavailable, use matplotlib GridSpec with `aspect='equal'`. **Tight spacing**, 14pt bold panel labels, 300 DPI.
+   e. **Aesthetic pass**: compare assembled figure with Nature references. Fix whitespace, font harmony, label alignment, color consistency. May respawn `@code-agent` to adjust individual panels.
+7. Run `@figure-critic` in assembly mode on each assembled paper figure.
+8. If NEEDS_IMPROVEMENT: adjust assembly or individual panels, re-execute (max 3 iterations).
 9. Save final assembled figures to `outputs/paper_figures/<figure_id>.png`.
 
 ### Cross-Figure Style Consistency
